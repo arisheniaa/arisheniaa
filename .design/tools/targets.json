@@ -1,0 +1,36 @@
+[
+  { "slug": "oatly", "url": "https://www.oatly.com", "polus": "mat", "wait": 3000,
+    "why": "Печатная фактура и рисунок от руки как несущий язык бренда, тёплая бумага. Проверяем: мягкая материальность, не суровая." },
+  { "slug": "dinamo", "url": "https://abcdinamo.com", "polus": "mat", "wait": 3000,
+    "why": "Словолитня, играющая с фактурой и деградацией литеры. Плюс кандидат в полюс морфинга." },
+  { "slug": "risotto", "url": "https://risottostudio.com", "polus": "mat", "wait": 3000,
+    "why": "Студия риso-печати: сдвиг цветоделения и зерно как предмет работы." },
+  { "slug": "poolsuite", "url": "https://poolsuite.net", "polus": "mat", "wait": 4000,
+    "why": "Аналоговая ностальгия в интерфейсе: тёплая палитра, шум, ретро-материал." },
+  { "slug": "creativeindep", "url": "https://thecreativeindependent.com", "polus": "mat", "wait": 3000,
+    "why": "Кремово-бумажное издание. Важно как проверка: где граница между «тёплой бумагой» и Vigbo." },
+
+  { "slug": "aesop", "url": "https://www.aesop.com/us/", "polus": "pal", "wait": 3500,
+    "why": "Песочно-оливковая палитра вне фотонишы. Как тёплое звучит аптечно-строго, а не свадебно." },
+  { "slug": "jacquemus", "url": "https://www.jacquemus.com", "polus": "pal", "wait": 3500,
+    "why": "Песочный как основной цвет бренда, при жёсткой сетке и крупной типографике." },
+  { "slug": "thesill", "url": "https://www.thesill.com", "polus": "pal", "wait": 3000,
+    "why": "Зелёный и песочный вместе, растения: та же температура в бытовом, не романтическом регистре." },
+  { "slug": "greatjones", "url": "https://greatjonesgoods.com", "polus": "pal", "wait": 3000,
+    "why": "Тёплая посуда: песочный, зелёный, ржавый в одном наборе. Проверка сочетаемости." },
+
+  { "slug": "gumroad", "url": "https://gumroad.com", "polus": "nai", "wait": 3000,
+    "why": "Наивная геометрия и толстый контур как система, а не как милота." },
+  { "slug": "figmaconfig", "url": "https://config.figma.com", "polus": "nai", "wait": 3500,
+    "why": "Кандидат на неровный вектор и рукотворные фигуры в крупной сетке." },
+
+  { "slug": "wfolio", "url": "https://wfolio.ru", "polus": "anti", "wait": 3000, "mobile": true, "locale": "ru-RU",
+    "why": "anti: true. Второй по массовости конструктор сайтов для фотографов в рунете, после Vigbo." },
+  { "slug": "tildaphoto", "url": "https://tilda.cc/ru/", "polus": "anti", "wait": 3000, "mobile": true, "locale": "ru-RU",
+    "why": "anti: true. Tilda — то, на чём собрана половина сайтов фотографов в рунете." },
+
+  { "slug": "locomotive", "url": "https://locomotive.ca", "polus": "scr", "wait": 3500,
+    "why": "ПЕРЕСНЯТЬ: прошлый кадр поймал подвал вместо первого экрана." },
+  { "slug": "makemepulse", "url": "https://makemepulse.com", "polus": "cur", "wait": 3500, "mobile": true,
+    "why": "ПЕРЕСНЯТЬ: прошлый кадр на четверть закрыт баннером cookie. Плюс мобильный — курсора там нет." }
+]

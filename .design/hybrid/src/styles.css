@@ -1,0 +1,989 @@
+@import 'tailwindcss';
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ГИБРИД B+C. Токены, ОДНА тема, полотно, типографские роли.
+   Все значения явные. Каждое отклонение от лока помечено в README (правило П3).
+
+   РЕДАКЦИЯ 2 (Ф28): розовая тема и переключатель удалены. Лок, «Цвет — ТОЛЬКО
+   зелёная тема, переключатель отменён (Ф28, закрывает OQ-18)»: «Розовая тема не
+   реализуется дальше, переключателя не будет». Удалены блок `[data-theme=pink]`
+   и класс `.swatch`; селектор `[data-theme='green']` тоже снят — тема одна, и
+   ветвление по атрибуту, которое никто не переключает, это приглашение вернуть
+   вторую тему случайно.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Гарнитуры ───────────────────────────────────────────────────────────
+   ТЕЛО САЙТА — БЕЗ ЗАСЕЧЕК, ИМЯ В ШАПКЕ — АНТИКВА. Лок, «Типографика»:
+   «общий текст сайта — без засечек» отменяет антикву как несущий приём
+   «везде, КРОМЕ имени в шапке, которое остаётся антиквой из направления C
+   по отдельному прямому одобрению». То есть исключение названо в локе явно,
+   и класс `.t-name` — единственное место, где засечки живут.
+
+   Первая версия набрала имя тем же Golos Text, что и весь сайт, на основании
+   того, что в коде C имя стояло Golos. Это была ошибка чтения: гарнитура,
+   которую владелица одобрила («и по расположению вверху и по размеру тоже
+   всё устраивает»), в C называется `--font-display` и это Vollkorn 900
+   (`directions/c/README.md`, «Гарнитуры»). Возвращено.
+
+   Golos Text — ParaType, кириллица-first, переменная ось wght 400–900.
+   JetBrains Mono — кириллица есть, проверена в направлении C.
+   Vollkorn 900 — брусковая антиква, SIL OFL; взяты ровно два подрезанных
+   файла из C (кириллица и латиница по `unicode-range`), потому что имя —
+   единственный текст этой гарнитурой на сайте, и тянуть весь набор
+   начертаний ради одной строки незачем.
+   Все три self-hosted, все OFL. Кириллица проверена на РУССКОМ боевом
+   тексте, не на латинской панграмме: `shots/font-proof.png`, и на самом
+   имени в кадрах `shots/name-*.png` — там кириллица и латиница стоят
+   одной гарнитурой рядом. */
+@import '@fontsource-variable/golos-text/wght.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+
+/* Vollkorn 900 — только для `.t-name`. Файлы из `directions/c/public/fonts`,
+   подрезка по unicode-range оттуда же: кириллица отдельным файлом, поэтому
+   при показе латиницы `arisheniaa` кириллический файл даже не скачивается,
+   а к моменту морфинга он уже нужен и приходит. */
+@font-face {
+  font-family: 'Vollkorn';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('/fonts/vollkorn-900-n-13.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Vollkorn';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('/fonts/vollkorn-900-n-17.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@theme {
+  --font-sans: 'Golos Text Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  /* Антиква. Ровно одна роль на сайте — имя в шапке (лок, «Типографика»).
+     Фолбэк Georgia — как в C: если Vollkorn не пришёл, имя остаётся антиквой,
+     а не проваливается в гротеск тела и не теряет исключение из правила. */
+  --font-display: 'Vollkorn', Georgia, 'Times New Roman', serif;
+
+  /* ─── Движение. Числа, не эпитеты ─── */
+  --ease-out: cubic-bezier(0.16, 0.84, 0.28, 1);
+  /* Кривая с перелётом (back-out) — «пружина» для клика-раскрытия (цена за
+     кликом, Ф29 п.6), CSS-переход вместо второго параллельного JS-цикла: цель
+     здесь одна (открыто/закрыто), а не бросок с импульсом, как у рэка. */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-reveal: 620ms;
+  --stagger: 90ms;
+  --dur-press: 100ms;
+  --dur-fold: 420ms;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+
+    /* Прогресс прокрутки 0…1 — единственная переменная, которую двигает
+       полотно (`Gradient.tsx`). Ноль на загрузке, значит в первом кадре
+       движения нет (П7). */
+    --sp: 0;
+    /* Локальный прогресс прохода диптиха «Как получается кино» (Ф29 п.1,
+       FACTS.md — не лок). Ноль на загрузке по той же причине, что и --sp. */
+    --mood: 0;
+
+    /* Тайминги морфинга имени — спецификация владелицы Ф15, число в число */
+    --t-morph-letter: 340ms;
+    --t-morph-step: 28ms;
+
+    /* Шкала. Кратность ≈1.32. --step-4 посажен на самое длинное слово H1
+       («Создаю», 6 знаков, Golos 800 ≈ 3.5em по ширине): на 390 px при
+       гаттере 18 px доступно 354 px, то есть кегль до 101 px. Верхняя
+       граница 136 px берётся не от мобильного, а от меры строки на 1920. */
+    --step--1: 0.8125rem;
+    --step-0: 1.0625rem;
+    --step-1: clamp(1.125rem, 0.98rem + 0.62vw, 1.4rem);
+    --step-2: clamp(1.35rem, 1.05rem + 1.3vw, 1.95rem);
+    --step-3: clamp(1.7rem, 1.1rem + 2.6vw, 3rem);
+    --step-4: clamp(3rem, 2rem + 8vw, 8.5rem);
+    --gutter: clamp(1.125rem, 0.55rem + 2.5vw, 3.5rem);
+    --measure: 1500px;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────
+     ТЕМА «ЗЕЛЁНАЯ» — ЕДИНСТВЕННАЯ И ФИНАЛЬНАЯ (Ф28, закрывает OQ-18).
+     Владелица: «тему оставь в зелёном стиле! то что нужно — и тепло, и нежно».
+     Цвета сняты пипеткой с файлов владелицы в `для сайта/`
+     (скрипт замера — в README, точки и значения перечислены там же):
+       градиент8.jpg                  #DFDDB6 · #A7B98F · #D57646 · #E9BF75
+       градиент со звездами.jpg       #98A683 · #E4DFCB · #80906C
+       градиент солнце.jpg            #ECA54B · #FDF4ED
+       градиент зеленый с розовым.jpg #678E57 · #F2AEC7
+     ───────────────────────────────────────────────────────────────────── */
+  :root {
+    --paper: #ede7d2;
+    --paper-hi: #f6f3e2;
+    --ink: #14140f;
+    --ink-soft: #3f412f;
+    --ink-mute: #6d6c56;
+    --accent: #c05a2a; /* терракота из градиент8 — линия под ссылкой */
+    --accent-soft: #d57646;
+    /* Плашка цены. Отдельный, более тёмный тон, чем --accent: на плашке стоит
+       текст, и контраст считается, а не подбирается. #8E3D18 под #F6F3E2 —
+       6,6:1, то есть проходит AA для основного кегля с запасом. */
+    --plate: #8e3d18;
+    --plate-ink: #f6f3e2;
+
+    --star-ink: #131110;
+    --star-gold: #f4b93f;
+    --star-wine: #7a2530;
+
+    --folder-face: #aeb883; /* папка.jpg, тело */
+    --folder-back: #767a5f; /* папка.jpg, отворот */
+
+    --m-base: #ede7d2;
+    --m1: #98a683;
+    --m2: #d57646;
+    --m3: #eca54b;
+    --m4: #678e57;
+    --m5: #f2aec7;
+  }
+
+  html {
+    background: var(--paper);
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    /* `clip`, а не `hidden`: hidden на корне делает html скролл-контейнером и
+       ломает `position: sticky` внутри. clip обрезает и ничего не прокручивает.
+       Стоит на КОРНЕ, потому что overflow на body фиксированные элементы
+       (`.canvas`) не обрезает — их содержащий блок вьюпорт, не body. */
+    overflow-x: clip;
+  }
+
+  body {
+    margin: 0;
+    background: transparent; /* землю держит полотно, а не body */
+    font-family: var(--font-sans);
+    font-size: var(--step-0);
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--ink);
+    font-synthesis: none;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--star-gold);
+    color: #14140f;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@layer components {
+  /* ═══ ПОЛОТНО ═══════════════════════════════════════════════════════════
+     Меш-градиент из радиальных слоёв. Не картинка (П10) и не одна линейная
+     растяжка: у файлов владелицы органическое пятновое смешение, а линейный
+     градиент даёт полосу. Слои двигаются и набирают силу от --sp.
+     `position: fixed` и слой под контентом — требование лока дословно. */
+  .canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: var(--m-base);
+    /* Обрезка обязательна. Слои `.mesh` намеренно вылезают за край на 18 %
+       (`inset: -18%`) — иначе на ходу открывался угол сплошного `--m-base`.
+       Но без обрезки этот вылет попадал в `scrollWidth` документа и давал
+       горизонтальную прокрутку на всех ширинах: на 390 px — 19 px, на 1280 —
+       43 px. Полотно фиксированное и декоративное, обрезка по вьюпорту не
+       отнимает у него ничего: за краем экрана мягкость всё равно не видна. */
+    overflow: hidden;
+  }
+  .mesh {
+    position: absolute;
+    /* запас за краем вьюпорта: слои ездят, и без запаса на ходу открывался
+       угол сплошного --m-base */
+    inset: -18%;
+  }
+  .mesh-base {
+    background:
+      radial-gradient(
+        68% 54% at calc(14% + var(--sp) * 28%) calc(8% + var(--sp) * 36%),
+        color-mix(in oklab, var(--m1) 78%, transparent) 0%,
+        transparent 66%
+      ),
+      radial-gradient(
+        56% 46% at calc(90% - var(--sp) * 32%) calc(28% + var(--sp) * 24%),
+        color-mix(in oklab, var(--m2) 62%, transparent) 0%,
+        transparent 62%
+      ),
+      radial-gradient(
+        52% 42% at calc(46% + var(--sp) * 20%) calc(92% - var(--sp) * 44%),
+        color-mix(in oklab, var(--m3) 70%, transparent) 0%,
+        transparent 64%
+      );
+  }
+  /* Второй слой — про интенсивность: на первом экране он почти выключен,
+     к подвалу набирает полную силу. Отсюда «изменяется при прокручивании»
+     не только положением, но и составом цвета. */
+  .mesh-bloom {
+    opacity: calc(0.16 + var(--sp) * 0.84);
+    background:
+      radial-gradient(
+        46% 38% at calc(82% - var(--sp) * 44%) calc(58% + var(--sp) * 24%),
+        color-mix(in oklab, var(--m4) 52%, transparent) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        36% 32% at calc(18% + var(--sp) * 38%) calc(82% - var(--sp) * 50%),
+        color-mix(in oklab, var(--m5) 66%, transparent) 0%,
+        transparent 58%
+      );
+  }
+
+  /* ═══ НАСТРОЕНИЕ ДИПТИХА (Ф29 п.1, FACTS.md — не лок) ═══════════════════
+     Кроссфейд двух пятен, привязанный к --mood (Gradient.tsx: локальный
+     прогресс прохода секции «Как получается кино», не всей страницы): пока
+     диптих ещё не показался — «тихое» пятно на месте и в полной силе; по
+     мере прохода оно гаснет, а «странное» непрерывно разгорается — свет
+     меняется кадр за кадром скролла, а не блок сменяется блоком.
+     Цвета — уже принятые тона звёзд ЭТОЙ ЖЕ секции (`tones={[2, 0]}` у
+     `<Stars>` в `Cinema()`, App.tsx): чернь и бордо. Настроение фона отвечает
+     тем же двум полюсам, что и звёзды перед глазами читателя, а не вводит
+     третью, никому не знакомую пару цветов. Интенсивность заметно ниже
+     `.mesh-bloom` (макс. ~0,3–0,4 против 1.0): это акцент поверх основного
+     полотна, «свечение, а не контраст» — числа подобраны так, чтобы эффект
+     был читаем боковым зрением, а не спорил с текстом диптиха. */
+  .mesh-mood-a {
+    opacity: calc((1 - var(--mood, 0)) * 0.34);
+    background: radial-gradient(
+      52% 44% at 26% 32%,
+      color-mix(in oklab, var(--star-ink) 40%, transparent) 0%,
+      transparent 70%
+    );
+  }
+  .mesh-mood-b {
+    opacity: calc(var(--mood, 0) * 0.4);
+    background: radial-gradient(
+      52% 44% at 74% 64%,
+      color-mix(in oklab, var(--star-wine) 58%, transparent) 0%,
+      transparent 70%
+    );
+  }
+
+  /* ═══ ЗЕРНО ════════════════════════════════════════════════════════════
+     SVG feTurbulence — тот же приём, что в B и C, здесь одним фиксированным
+     слоем на всю страницу: полотно под ним непрерывное, и зерно, нарезанное
+     по секциям, дало бы видимые швы на стыках. Лежит и на фотографиях —
+     стерильных пикселей на сайте нет нигде. */
+  .grain-veil {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.3;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.88' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+  }
+
+  /* ═══ ТИПОГРАФСКИЕ РОЛИ ════════════════════════════════════════════════
+     Трекинг размерозависимый: крупное — минус, мелкое — плюс. */
+  .t-display {
+    font-size: var(--step-4);
+    font-weight: 800;
+    line-height: 0.88;
+    letter-spacing: -0.04em;
+  }
+  .t-h1 {
+    font-size: clamp(1.95rem, 1rem + 4.2vw, 4.5rem);
+    font-weight: 750;
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+  }
+  .t-h2 {
+    font-size: var(--step-3);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.026em;
+  }
+  .t-h3 {
+    font-size: var(--step-2);
+    font-weight: 650;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+  }
+  /* ИМЯ В ШАПКЕ — единственная антиква на сайте (лок, «Типографика»:
+     «кроме имени в шапке, которое остаётся антиквой из направления C»).
+     Гарнитура — `--font-display`, то есть Vollkorn 900 из C.
+     Кегль поднят до 1.5rem против 1.0625rem у гротеска: брусковая антиква
+     в 900 при том же кегле читается мельче гротеска в 500 из-за плотности
+     и засечек, и на 1920 имя терялось. Позиция и звезда-компаньон — из C
+     без изменений.
+     Трекинг не отрицательный: у Vollkorn 900 засечки уже смыкают строку,
+     и минус превращал «аришения» в слипшуюся ленту. */
+  .t-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 1.05rem + 0.62vw, 1.75rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+  .t-lead {
+    font-size: var(--step-1);
+    font-weight: 400;
+    line-height: 1.45;
+    letter-spacing: -0.008em;
+  }
+  /* Крупный текст без веса заголовка. Нужен в диптихе «Как получается кино»:
+     там две половины по 21 слову держат всю секцию и на кегле лида провисают. */
+  .t-quote {
+    font-size: var(--step-2);
+    font-weight: 400;
+    line-height: 1.32;
+    letter-spacing: -0.016em;
+  }
+  .t-body {
+    font-size: var(--step-0);
+    font-weight: 400;
+    line-height: 1.6;
+  }
+  .t-num {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.012em;
+  }
+  /* Служебный слой — моно. Различие «гротеск против моноширинного» настоящее
+     и читаемое, в отличие от пары двух похожих гротесков. */
+  .t-mono {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ═══ ПЛАШКА ЦЕНЫ ══════════════════════════════════════════════════════
+     Замена запрещённой «плашки цены с изображением-заглушкой» (лок, таблица
+     запретов): цветовая плашка темы, цифра, состав рядом. Приём взят
+     с mat-creativeindep — плотные цветные плашки без фурнитуры вокруг.
+     Скруглений и тени нет: это плашка краски, а не кнопка. */
+  .plate {
+    display: inline-block;
+    background: var(--plate);
+    color: var(--plate-ink);
+    padding: 0.42em 0.72em 0.5em;
+    font-size: var(--step-0);
+    line-height: 1.28;
+  }
+
+  /* ═══ ЦЕНА ЗА КЛИКОМ (Ф29 п.6, FACTS.md — не лок) ═════════════════════════
+     `.plate` остаётся плашкой краски (см. выше), но теперь ещё и кнопкой:
+     `PricePlate.tsx` оборачивает те же классы `.plate.t-num` в `<button>`.
+     Цифра приглушена фильтром до клика, состав (город, «за час» и т. п.)
+     читается сразу — ровно требование «состав без итоговой цифры». */
+  .price-plate {
+    cursor: pointer;
+    border: 0;
+    font: inherit;
+    text-align: left;
+    transition: transform var(--dur-press) ease-out;
+  }
+  .price-plate:hover {
+    background: color-mix(in srgb, var(--plate) 88%, var(--paper-hi));
+  }
+  .price-plate:active {
+    transform: scale(0.985);
+  }
+  /* Приглушённая цифра: блюр + просадка непрозрачности и лёгкое сжатие по
+     вертикали — «разворачивается», а не просто проявляется. Кривая с
+     перелётом (`--ease-spring`) на transform — та самая «пружина» задания;
+     opacity идёт отдельной, более простой кривой, потому что прозрачность
+     не «пружинит» на глаз, только форма. Текст в DOM не меняется НИКОГДА
+     (см. комментарий в `PricePlate.tsx`) — meняется только это, визуальное. */
+  .price-plate-digits {
+    display: inline-block;
+    filter: blur(6px);
+    opacity: 0.4;
+    transform-origin: left center;
+    transform: scaleY(0.72) scaleX(0.95) translateY(1px);
+    transition:
+      filter 380ms var(--ease-spring),
+      opacity 260ms var(--ease-out),
+      transform 420ms var(--ease-spring);
+  }
+  .price-plate[data-open] .price-plate-digits {
+    filter: blur(0);
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ═══ ТИЛТ КАРТОЧЕК УСЛУГ (Ф29 п.3, FACTS.md — не лок) ════════════════════
+     `TiltFrame.tsx` оборачивает каждый кадр услуги. Наклон — CSS-переменные
+     `--tilt-x`/`--tilt-y`, которые пишет JS через `setProperty` (НЕ через
+     `style.transform` напрямую — тот занят `useFocusScrub`'ом на вложенном
+     `[data-focus]`, см. комментарий в `Tilt.tsx`). `perspective` — в самом
+     значении transform, отдельный слой-родитель не нужен. */
+  .tilt-frame {
+    position: relative;
+    --tilt-x: 0;
+    --tilt-y: 0;
+    transform: perspective(900px) rotateX(calc(var(--tilt-x) * 1deg)) rotateY(calc(var(--tilt-y) * 1deg));
+    transition: transform 340ms var(--ease-out);
+    will-change: transform;
+  }
+  .tilt-frame.is-tilting {
+    /* мгновенное слежение 1:1, как у пальца в рэке — пружина/переход только
+       на возврате в состояние покоя */
+    transition: transform 70ms linear;
+  }
+  /* Блик по краю кадра — пятно света у позиции курсора, `mix-blend-mode:
+     overlay` вместо непрозрачного слоя: подсвечивает, не закрашивает. */
+  .tilt-glint {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+      140px 140px at var(--glint-x, 50%) var(--glint-y, 50%),
+      color-mix(in srgb, var(--paper-hi) 65%, transparent) 0%,
+      transparent 72%
+    );
+    mix-blend-mode: overlay;
+    transition: opacity 220ms var(--ease-out);
+  }
+  .tilt-frame.is-tilting .tilt-glint {
+    opacity: 1;
+  }
+
+  /* ═══ EXIF-ПОДПИСЬ ПЛЁНОЧНОГО КАДРА (Ф29 п.5, FACTS.md — не лок) ══════════
+     Один кадр на сайте — `offer.film.photo` (см. `FilmCaption.tsx` для
+     обоснования сужения до одного файла и одного слова). */
+  .film-tag {
+    position: relative;
+  }
+  .film-tag-caption {
+    position: absolute;
+    left: 0.55rem;
+    bottom: 0.55rem;
+    z-index: 2;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--paper-hi);
+    background: color-mix(in srgb, var(--ink) 80%, transparent);
+    padding: 0.3em 0.58em 0.34em;
+    opacity: 0;
+    transform: translateY(4px);
+    pointer-events: none;
+    transition:
+      opacity 200ms var(--ease-out),
+      transform 200ms var(--ease-out);
+  }
+  .film-tag-caption[data-show] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ═══ КАДР ═════════════════════════════════════════════════════════════
+     Р4: кадр — объект. Ни рамки, ни скругления, ни тени: фурнитура вокруг
+     превратила бы его в карточку интерфейса. Подложка нужна, чтобы при
+     загрузке на месте кадра не было дыры в градиенте. */
+  .frame {
+    background: color-mix(in srgb, var(--ink) 8%, var(--paper-hi));
+  }
+
+  /* ═══ СТОПКА КАДРОВ ════════════════════════════════════════════════════
+     Тень одна и по делу: она отделяет уровни стопки друг от друга, иначе
+     восемь кадров читаются как один с обводкой. Вес — от размера поверхности. */
+
+  /* Нижние уровни выступают вправо-вниз на PEEK × глубину, максимум
+     13 × 3 = 39 px (`useRack.ts`). Верхний кадр стоял вплотную к правому краю
+     колонки, поэтому выступ уходил за край документа и давал прокрутку.
+     Отступ равен выступу: теперь к правому краю колонки приходит ВИДИМЫЙ
+     край стопки — самый глубокий уровень, — а не край верхнего кадра.
+     Оптически это и правильнее: выравнивается силуэт предмета, не его
+     верхняя грань. Тем же числом снизу — под тень и выступ по вертикали. */
+  .rack-stack {
+    margin-right: 39px;
+    margin-bottom: 39px;
+  }
+  .rack-stack [data-layer] {
+    box-shadow:
+      0 1px 2px rgb(20 20 15 / 0.1),
+      0 16px 38px -14px rgb(20 20 15 / 0.32);
+  }
+  .rack-stack img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+  .rack-next {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink-mute);
+    cursor: pointer;
+    transition:
+      color var(--dur-press) ease-out,
+      transform var(--dur-press) ease-out;
+  }
+  .rack-next:hover {
+    color: var(--ink);
+    transform: translateX(3px);
+  }
+  .rack-next:active {
+    transform: translateX(1px) scale(0.96);
+  }
+
+  /* ═══ КУРСОР-МЕТКА «ТЯНИ» (Ф29 п.2, FACTS.md — не лок) ═══════════════════
+     Следует за курсором внутри `.rack-stack` (`Rack.tsx` пишет transform
+     напрямую в этот узел по `pointermove`). Не системный `grab`/`grabbing`:
+     обычная стрелка курсора остаётся, метка — независимый второй слой.
+     z-index выше любого кадра стопки (JS выставляет верхнему кадру
+     `count + 1`, при пуле из 8 это 9 — здесь взят запас). */
+  .rack-hint {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 40;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.34em;
+    pointer-events: none;
+    opacity: 0;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--paper-hi);
+    background: color-mix(in srgb, var(--ink) 82%, transparent);
+    padding: 0.32em 0.62em 0.36em 0.5em;
+    white-space: nowrap;
+    transition: opacity 140ms var(--ease-out);
+  }
+  .rack-hint svg {
+    width: 9px;
+    height: 9px;
+    color: var(--star-gold);
+  }
+  .rack-hint[data-show] {
+    opacity: 1;
+  }
+
+  /* ═══ НАВИГАЦИЯ В ШАПКЕ (Ф28) ══════════════════════════════════════════
+     Шесть подписей, состав задан владелицей дословно. Раньше эта навигация
+     стояла в подвале — Ф28: «навигацию сделай в верхушке сайта, а не внизу».
+
+     Набор — моно, мелким кеглем, капителью: тот же служебный слой, что у
+     `.t-mono` в остальном сайте. Навигация не имеет права спорить с именем по
+     весу, а гротеск тела в мелком кегле рядом с брусковой антиквой имени
+     читается как второй заголовок.
+
+     Активный пункт помечается линией, не цветом: на живом полотне градиента
+     цветовая метка теряется в пятне, а линия видна на любом фоне. */
+  .nav-link {
+    position: relative;
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--ink-soft);
+    padding-bottom: 0.28em;
+    transition:
+      color 180ms var(--ease-out),
+      transform var(--dur-press) ease-out;
+  }
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 200ms var(--ease-out);
+  }
+  .nav-link:hover {
+    color: var(--ink);
+  }
+  .nav-link:hover::after,
+  .nav-link[aria-current='page']::after {
+    transform: scaleX(1);
+  }
+  .nav-link[aria-current='page'] {
+    color: var(--ink);
+  }
+  .nav-link:active {
+    transform: scale(0.985);
+  }
+
+  /* Кнопка мобильного меню. На 360–767 px шесть подписей моно в строку не
+     встают: «Подготовка к съёмке» одна занимает 168 px, и строка уезжает за
+     край. Поэтому на узком навигация складывается в раскрывающийся список —
+     не гамбургер-иконкой без слова, а словом: иконка без подписи на сайте, где
+     весь служебный слой набран словами, читалась бы чужой деталью. */
+  .nav-toggle {
+    border: 0;
+    background: transparent;
+    padding: 0.28em 0;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-bottom: 1px solid color-mix(in srgb, var(--ink-soft) 45%, transparent);
+    transition:
+      color 180ms var(--ease-out),
+      border-color 180ms var(--ease-out);
+  }
+  .nav-toggle:hover {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+  /* Раскрытый список на узком экране. Подложка обязательна: под шапкой едет
+     живое полотно и фотографии, и без неё шесть подписей ложатся на кадр. */
+  .nav-sheet {
+    background: color-mix(in srgb, var(--paper) 94%, transparent);
+    backdrop-filter: blur(9px);
+  }
+
+  /* ═══ ССЫЛКИ ═══════════════════════════════════════════════════════════
+     Кнопочная фурнитура на этом сайте не используется: отклик несут линия
+     и нажатие. Отклик — на нажатии, не на отпускании. */
+  .link-major {
+    position: relative;
+    display: inline-block;
+    font-weight: 620;
+    letter-spacing: -0.014em;
+    text-decoration: none;
+    color: inherit;
+    padding-bottom: 0.18em;
+    transition: transform var(--dur-press) ease-out;
+  }
+  .link-major::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--accent);
+    transition: height 180ms var(--ease-out);
+  }
+  .link-major:hover::after {
+    height: 9px;
+  }
+  .link-major:active {
+    transform: scale(0.985);
+  }
+  .link-minor {
+    display: inline-block;
+    color: var(--ink-soft);
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--ink-soft) 42%, transparent);
+    padding-bottom: 0.12em;
+    transition:
+      border-color 180ms var(--ease-out),
+      transform var(--dur-press) ease-out;
+  }
+  .link-minor:hover {
+    border-bottom-color: var(--ink);
+  }
+  .link-minor:active {
+    transform: scale(0.985);
+  }
+
+  /* ═══ ПАПКИ ОТДАЧИ ═════════════════════════════════════════════════════ */
+  .delivery-stage {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: clamp(0.7rem, 2vw, 1.4rem);
+    /* Три папки в ряд не влезали в колонку 4/12 на 1280 и выдавливали строку
+       за край документа на 43 px. Перенос вместо сжатия: сжатая до 60 px папка
+       перестаёт читаться папкой, а перенос сохраняет и предмет, и подписи. */
+    flex-wrap: wrap;
+    row-gap: clamp(1rem, 2.5vw, 1.6rem);
+    min-width: 0;
+  }
+  .folder {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    align-items: flex-start;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    list-style: none;
+  }
+  .folder-art {
+    display: block;
+    width: clamp(5.5rem, 17vw, 8.5rem);
+    height: auto;
+    filter: drop-shadow(0 10px 20px rgb(20 20 15 / 0.18));
+    transition: transform 260ms var(--ease-out);
+  }
+  .folder-parent {
+    cursor: pointer;
+  }
+  .folder-parent:hover .folder-art {
+    transform: translateY(-4px) rotate(-1.4deg);
+  }
+  .folder-parent:active .folder-art {
+    transform: translateY(-1px) scale(0.985);
+  }
+  .folder-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+  }
+
+  /* ═══ ПОДПИСЬ-ТРИГГЕР НА САМОЙ ПАПКЕ (Ф28) ═════════════════════════════
+     Владелица: «текст „нажми на меня“ сделай на самой папке». Раньше подпись
+     стояла отдельной строкой под иконкой — теперь лежит на её передней створке.
+
+     Почему рядом с иконкой поставлен `position: relative` и подпись центрируется
+     абсолютом, а не легла в flex: у папки есть отворот сверху, и оптический
+     центр створки ниже геометрического центра фигуры. Сдвиг 8 % вниз ставит
+     подпись в середину именно СТВОРКИ.
+
+     Контраст считан, а не подобран: `--ink` #14140F на `--folder-face` #AEB883
+     даёт 9,1:1 — AA проходит с запасом даже для мелкого кегля.
+
+     Кегль 0.5625rem (9 px) — единственное место на сайте мельче служебных
+     0.6875rem. Причина в ширине носителя: створка папки на 390 px шириной
+     88 px, и «нажми на меня» в три слова должно уложиться в неё, не выходя за
+     край предмета. Ниже 9 px не опускаюсь — это порог читаемости. */
+  .folder-art-wrap {
+    position: relative;
+    display: block;
+    width: clamp(5.5rem, 17vw, 8.5rem);
+  }
+  .folder-art-wrap .folder-art {
+    width: 100%;
+  }
+  .folder-trigger-label {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    top: 58%;
+    transform: translateY(-50%);
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--ink);
+    pointer-events: none;
+  }
+  /* Подчёркивание пунктиром переехало с текста на подпись внутри папки:
+     оно и было тем, что говорило «это можно нажать». */
+  .folder-trigger-label > span {
+    border-bottom: 1px dashed color-mix(in srgb, var(--ink) 45%, transparent);
+    padding-bottom: 0.12em;
+  }
+  .delivery-children {
+    display: flex;
+    gap: clamp(0.7rem, 2vw, 1.4rem);
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  /* Закрыто: дочерние папки лежат ЗА родительской, сдвинутые к ней и сжатые.
+     Не display:none — узлы должны быть в разметке всегда, чтобы содержимое
+     не появлялось из ничего для поиска и скринридера.
+
+     АСИММЕТРИЯ (Ф29 п.7, FACTS.md — не лок): раньше обе дочерние папки
+     раскрывались ОДНОЙ формулой transform, различаясь только 70-мс сдвигом
+     таймера, — то есть по сути зеркально. Теперь угол, сдвиг по X, масштаб
+     И длительность у каждой свои — два отдельных набора чисел через
+     `:nth-child`, а не производная одной переменной (производная от одного
+     числа осталась бы симметричной функцией, а «неровно рукой» требует двух
+     независимо выбранных наборов). Итоговое положение у обеих — `none`,
+     то есть ровно на месте: асимметрия живёт в ПУТИ раскрытия, не в покое,
+     иначе рассинхрон читался бы как ошибка вёрстки, а не как характер. */
+  .delivery-children > .folder {
+    opacity: 0;
+    transform-origin: bottom left;
+    transition-property: opacity, transform;
+    transition-timing-function: var(--ease-out);
+  }
+  /* первая — «на цифру»: короче бросок, доворот против часовой, быстрее */
+  .delivery-children > .folder:nth-child(1) {
+    transform: translateX(-40%) rotate(-8deg) scale(0.7);
+    transition-duration: 400ms;
+    transition-delay: 0ms;
+  }
+  /* вторая — «на плёнку»: шире бросок, доворот по часовой, чуть медленнее и
+     с небольшой задержкой — не зеркало первой */
+  .delivery-children > .folder:nth-child(2) {
+    transform: translateX(-34%) rotate(6deg) scale(0.74);
+    transition-duration: 470ms;
+    transition-delay: 90ms;
+  }
+  .delivery-children[data-open] > .folder {
+    opacity: 1;
+    transform: none;
+  }
+  .delivery-children:not([data-open]) {
+    /* пока закрыто, папки не должны ловить курсор и попадать в порядок обхода */
+    pointer-events: none;
+  }
+  .delivery-stage[data-open] .folder-parent .folder-art {
+    transform: rotate(-3deg) translateY(2px);
+  }
+
+  /* ═══ БОКОВОЙ ИНДИКАТОР РАЗДЕЛОВ (Ф29 п.4, FACTS.md — не лок) ═════════════
+     Тот же силуэт `tiny8`, что у фоновой россыпи звёзд — не отдельный виджет
+     точек. Фиксирован на кромке вьюпорта, скрыт до `lg`: на уже видно
+     столько, сколько ширины гаттер оставляет. */
+  .section-stars {
+    position: fixed;
+    right: clamp(0.5rem, 1.6vw, 1.35rem);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 40;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(0.5rem, 1.1vw, 0.85rem);
+  }
+  .section-star {
+    display: block;
+    width: 13px;
+    height: 13px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    opacity: 0.38;
+    transform: scale(0.86);
+    filter: drop-shadow(0 0 0 transparent);
+    transition:
+      opacity 260ms var(--ease-out),
+      transform 260ms var(--ease-out),
+      filter 260ms var(--ease-out);
+  }
+  .section-star svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .section-star:hover {
+    opacity: 0.7;
+  }
+  /* Активная — ярче и крупнее (требование дословно), свечение тем же
+     приёмом, что у фоновых звёзд (`drop-shadow`, Ф28). */
+  .section-star[data-active] {
+    opacity: 1;
+    transform: scale(1.34);
+    filter: drop-shadow(0 0 6px var(--star-gold));
+  }
+
+  /* ═══ ВХОД СЦЕНЫ ═══════════════════════════════════════════════════════
+     Одно движение на весь сайт: расфокус → резкость. П7: то, что видно при
+     загрузке, ставится резким без перехода (`is-instant` в reveal.ts). */
+  .reveal {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(12px) scale(1.012);
+    will-change: opacity, filter, transform;
+  }
+  .reveal.is-sharp {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+    transition:
+      opacity var(--dur-reveal) var(--ease-out),
+      filter var(--dur-reveal) var(--ease-out),
+      transform var(--dur-reveal) var(--ease-out);
+    transition-delay: calc(var(--i, 0) * var(--stagger));
+  }
+  .reveal.is-instant {
+    transition: none !important;
+    transition-delay: 0ms !important;
+  }
+
+  .rule {
+    height: 1px;
+    background: color-mix(in srgb, var(--ink) 16%, transparent);
+  }
+}
+
+/* ═══ ДВИЖЕНИЕ ВЫКЛЮЧЕНО ПОЛЬЗОВАТЕЛЕМ ═══════════════════════════════════
+   Ни один блок не теряет контента: рэк разворачивается в сетку кадров,
+   звёзды рисуются один раз, полотно стоит в стартовом положении, имя сразу
+   кириллицей, папки раскрываются мгновенно. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal.is-sharp {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .link-major,
+  .link-minor,
+  .link-major::after,
+  .nav-link,
+  .nav-link::after,
+  .nav-toggle,
+  .rack-next,
+  .folder-art,
+  .delivery-children > .folder,
+  .price-plate,
+  .price-plate-digits,
+  .tilt-frame,
+  .tilt-glint,
+  .film-tag-caption,
+  .section-star {
+    transition: none !important;
+  }
+  /* Линия активного пункта навигации при выключенном движении не выезжает,
+     а просто стоит: иначе она осталась бы в scaleX(0), то есть невидимой, и
+     выключенное движение забрало бы у навигации метку текущего раздела. */
+  .nav-link[aria-current='page']::after {
+    transform: none;
+  }
+  .folder-parent:hover .folder-art,
+  .delivery-stage[data-open] .folder-parent .folder-art {
+    transform: none;
+  }
+  /* Тилт (Ф29 п.3) не подписывается на события в reduced-motion вовсе
+     (`Tilt.tsx`) — это дублирующая, защитная запись на случай, если разметка
+     всё же получит `--tilt-x`/`--tilt-y` НЕ через JS (например, при отладке):
+     наклон не должен появиться ни при каких условиях. */
+  .tilt-frame {
+    transform: none !important;
+  }
+  .tilt-glint {
+    opacity: 0 !important;
+  }
+}

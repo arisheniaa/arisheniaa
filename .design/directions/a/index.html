@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>arisheniaa · аришения — портретный фотограф, Москва и Тула</title>
+<meta name="description" content="Портретная съёмка на цифру и на плёнку. Москва — 7 000 ₽ за час, Тула — 5 000 ₽. Три съёмки целиком, цены и условия без звёздочек.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<canvas id="stars" aria-hidden="true"></canvas>
+
+<!-- ── ЛИНЕЙКА: липкая телеметрия ─────────────────────────────── -->
+<div class="rule" id="rule">
+  <span class="rule-cell">ЛИСТ&nbsp;01</span>
+  <span class="rule-cell">ПОРТРЕТ · ЦИФРА + ПЛЁНКА</span>
+  <span class="rule-cell rule-geo">МОСКВА 55.75N 37.61E · ТУЛА — ВЫЕЗД</span>
+  <span class="rule-cell rule-count" id="counter">КАДР 001</span>
+</div>
+
+<main>
+
+<!-- ── ЗНАК ────────────────────────────────────────────────────── -->
+<div class="frame frame-mark">
+  <div class="cell cell-mark">
+    <a class="mark" href="#" id="markLink" aria-label="arisheniaa, читается «аришения» — на главную">
+      <span class="mark-name" id="morph"></span><svg class="mark-star" viewBox="0 0 40 40" aria-hidden="true"><path d="M21 2 L25.5 15.5 L38 17.5 L27 25 L31.5 38 L19.5 30 L7 37 L11 24 L2 15 L15.5 14.5 Z"/></svg>
+    </a>
+    <p class="mark-sub">ПОРТРЕТНЫЙ ФОТОГРАФ<span class="sep">/</span>СЪЁМКА НА ЦИФРУ И НА ПЛЁНКУ</p>
+  </div>
+  <nav class="cell cell-nav" aria-label="Разделы">
+    <a href="#">Съёмки</a><a href="#">Портрет</a><a href="#">Пара</a><a href="#">Цены</a><a href="#">Обо&nbsp;мне</a><a href="#">Контакты</a>
+  </nav>
+</div>
+
+<!-- ── ПЕРВЫЙ ЭКРАН ────────────────────────────────────────────── -->
+<section class="frame frame-hero" aria-labelledby="h1">
+  <div class="cell cell-h1">
+    <h1 id="h1">Тихие&nbsp;портреты<br>и <em class="plate-terra">странные</em><br>затеи</h1>
+    <p class="lead">Снимаю на цифру и на плёнку. Мандарин над снегом придумывается заранее, туман над полем&nbsp;— просто ждётся.</p>
+    <div class="hero-act">
+      <a class="btn" href="#">Написать в Telegram</a>
+      <a class="btn-2" href="#">Сначала посмотреть съёмки</a>
+    </div>
+    <p class="geo"><span class="tick">+</span>Москва. В Тулу — приезжаю</p>
+  </div>
+
+  <figure class="cell cell-photo">
+    <div class="halftone"><img src="img/okno.jpg" alt="Портрет у окна: девушка сидит в простыне, за стеклом закатное поле" width="1500" height="1000" fetchpriority="high"></div>
+    <figcaption>01<span class="sep">/</span>ОКНО, ЗАКАТ<span class="sep">/</span>ЕСТЕСТВЕННЫЙ СВЕТ</figcaption>
+  </figure>
+
+  <div class="cell cell-air" aria-hidden="true"></div>
+
+  <div class="cell cell-spec">
+    <dl>
+      <div><dt>ГОРОД</dt><dd>Москва / Тула</dd></div>
+      <div><dt>НОСИТЕЛЬ</dt><dd>цифра / плёнка 36 / 72</dd></div>
+      <div><dt>ПОРОГ ПЛЁНКИ</dt><dd>1,5 часа</dd></div>
+      <div><dt>ОТДАЧА</dt><dd>30 снимков за час, 5–7 дней</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- ── ДВА РЕГИСТРА ────────────────────────────────────────────── -->
+<section class="frame frame-reg" aria-labelledby="regt">
+  <h2 class="cell cell-regt" id="regt">Тихое и странное</h2>
+
+  <div class="cell cell-reg reg-a reveal">
+    <p class="reg-label">Тихое</p>
+    <div class="halftone halftone-sm"><img src="img/pole.jpg" alt="Размытая фигура со спины уходит в поле, чёрно-белый кадр" loading="lazy" width="800" height="1200"></div>
+    <p class="reg-text">Вода, трава, чёрно-белое. Здесь я ничего не придумываю: приезжаю и жду, пока свет ляжет.</p>
+  </div>
+
+  <div class="cell cell-reg reg-b reveal">
+    <p class="reg-label">Странное</p>
+    <div class="halftone halftone-sm"><img src="img/ohra.jpg" alt="Девушка смеётся у изразцовой стены, охристая плитка и купол за спиной" loading="lazy" width="800" height="1200"></div>
+    <p class="reg-text">Мандарин над снегом. Эльфийское платье однажды сшила сама — мама принесла велюр. Затея делается всерьёз.</p>
+  </div>
+</section>
+
+<!-- ── СЕКЦИЯ: ЧТО МОЖНО СНЯТЬ = РЕЕСТР ────────────────────────── -->
+<section class="frame frame-offer" aria-labelledby="offt">
+  <div class="cell cell-offhead">
+    <h2 id="offt">Что можно<br>у меня снять</h2>
+    <p class="reg-index">[ РЕЕСТР 01—03 ]</p>
+  </div>
+
+  <div class="cell cell-offlead">
+    <p>Два жанра по запросу — один человек и двое. И третий, где запроса нет: вы отдаётесь моему воображению и смотрите, как я вас увижу. Плёнка добавляется к любому.</p>
+  </div>
+
+  <article class="cell card reveal">
+    <p class="card-idx">01</p>
+    <h3>Один человек</h3>
+    <p class="card-price"><b>7 000 ₽</b> за час в Москве · <b>5 000 ₽</b> в Туле</p>
+    <p class="card-inc">Час съёмки, 30 снимков в обработке (за каждый следующий час +30). Плёнка — по желанию, от 1,5 часа.</p>
+  </article>
+
+  <article class="cell card reveal">
+    <p class="card-idx">02</p>
+    <h3>Двое</h3>
+    <p class="card-price"><b>7 000 ₽</b> за час в Москве · <b>5 000 ₽</b> в Туле</p>
+    <p class="card-inc">Полтора часа на двоих, 45 снимков в обработке. Плёнка — по желанию.</p>
+  </article>
+
+  <div class="cell cell-gap" aria-hidden="true"></div>
+
+  <article class="cell card card-hero reveal">
+    <p class="card-idx">03<span class="sep">/</span>БЕЗ ЗАПРОСА</p>
+    <h3>Творческая</h3>
+    <p class="card-price"><b>7 000 ₽</b> за час в Москве · <b>5 000 ₽</b> в Туле</p>
+    <p class="card-inc">Идею и реквизит собираю я. До даты съёмки может быть месяц — образ готовится.</p>
+    <figure class="card-fig">
+      <div class="halftone halftone-sm"><img src="img/granat.jpg" alt="Гранаты крупным планом, тёмный тёплый кадр" loading="lazy" width="1000" height="667"></div>
+      <figcaption>РЕКВИЗИТ<span class="sep">/</span>СОБИРАЕТСЯ ПОД ИДЕЮ</figcaption>
+    </figure>
+  </article>
+
+  <p class="cell cell-note">Плёнка в час не входит: +3 000 ₽ за 36 кадров, +5 000 ₽ за 72.</p>
+
+  <a class="cell cell-offcta" href="#">Весь прайс и условия <span class="arw">→</span></a>
+</section>
+
+<footer class="frame frame-foot">
+  <p class="cell">arisheniaa<span class="sep">/</span>МОСКВА, ВЫЕЗД В ТУЛУ</p>
+  <p class="cell">НАПРАВЛЕНИЕ&nbsp;A<span class="sep">/</span>МАТЕРИАЛ И СЕТКА<span class="sep">/</span>Ф2 ЧЕРНОВИК</p>
+</footer>
+
+</main>
+
+<script src="main.js"></script>
+</body>
+</html>

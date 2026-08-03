@@ -1,0 +1,22 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "direction-c",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", ".design/directions/c"],
+      "port": 5175
+    },
+    {
+      "name": "direction-b",
+      "url": "http://localhost:5174",
+      "port": 5174
+    },
+    {
+      "name": "hybrid",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", ".design/hybrid"],
+      "port": 5176
+    }
+  ]
+}

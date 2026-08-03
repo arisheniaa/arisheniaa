@@ -1,0 +1,295 @@
+@import 'tailwindcss';
+
+/* Гарнитуры. Обе с рабочей кириллицей, обе OFL, обе self-hosted (@fontsource).
+   Literata: переменная, оси opsz 7–72 и wght 200–900. Оптический размер даёт
+   плотную засечку с контрастом штриха на крупном кегле и спокойную на тексте.
+   Проверена живьём на «д з к ъ я ж щ» — см. README.
+   Golos Text: кириллица-first (ParaType), служебный слой. */
+@import '@fontsource-variable/literata/opsz.css';
+@import '@fontsource-variable/golos-text/wght.css';
+
+@theme {
+  /* ——— палитра ———
+     Песочно-зелёная температура обязательна (она из кадров владелицы), но она
+     не должна звучать кремовым Vigbo. Различие набрано тремя вещами:
+     фон суше и холоднее кремового, чёрный настоящий (не «тёмно-серый»),
+     акценты плашечные и насыщенные (олива/охра), а не дымчатые. */
+  --color-paper: #f2efe4;
+  --color-paper-hi: #faf8f1;
+  --color-paper-dim: #e7e2d2;
+  --color-ink: #14140f;
+  --color-ink-soft: #45443a;
+  --color-ink-mute: #7c7a6c;
+  /* приглушённый на чернильном поле: на --color-ink контраст 4.7:1 */
+  --color-paper-mute: #9d9a89;
+  --color-olive: #5c6b3e;
+  --color-olive-dp: #2e3826;
+  --color-ochre: #b4801f;
+  --color-star: #f2c13c;
+  --color-star-w: #fffcf0;
+
+  --font-display: 'Literata Variable', Georgia, serif;
+  --font-meta: 'Golos Text Variable', system-ui, sans-serif;
+
+  /* ——— движение ———
+     Числа обоснованы, не «плавно». Все значения перечислены в README. */
+  --ease-rack: cubic-bezier(0.16, 0.84, 0.28, 1);
+  --dur-rack: 620ms;
+  --stagger-rack: 90ms;
+  --dur-press: 100ms;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    /* Шкала: явные ступени, кратность 1.32 от 1rem вверх.
+       Трекинг зависит от кегля (не одно значение на всё). */
+    --step--1: 0.8125rem;
+    --step-0: 1.0625rem;
+    --step-1: clamp(1.125rem, 0.98rem + 0.62vw, 1.4rem);
+    --step-2: clamp(1.35rem, 1.05rem + 1.3vw, 1.95rem);
+    --step-3: clamp(1.7rem, 1.1rem + 2.6vw, 3rem);
+    /* step-4 посажен на длину самой длинной строки заголовка: «и странные затеи»
+       в Literata 800 это ~9.6em по ширине. На 390 px при гаттере 18 px доступно
+       354 px → кегль не больше 34 px, иначе строка уходит за экран.
+       Проверено съёмкой на 390 / 768 / 1280 / 1920, а не на глаз. */
+    --step-4: clamp(1.95rem, 0.62rem + 5.5vw, 6.25rem);
+    --gutter: clamp(1.125rem, 0.55rem + 2.5vw, 3.5rem);
+  }
+
+  html {
+    background: var(--color-paper);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--step-0);
+    line-height: 1.62;
+    color: var(--color-ink);
+    font-optical-sizing: auto;
+    font-synthesis: none;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--color-star);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ochre);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  /* ——— типографские роли ———
+     Трекинг размерозависимый: крупное — минус, мелкое — плюс. */
+  .t-display {
+    font-size: var(--step-4);
+    font-variation-settings: 'opsz' 72, 'wght' 800;
+    line-height: 0.95;
+    letter-spacing: -0.028em;
+  }
+  .t-h1 {
+    font-size: clamp(1.85rem, 0.9rem + 4vw, 4.25rem);
+    font-variation-settings: 'opsz' 60, 'wght' 760;
+    line-height: 1;
+    letter-spacing: -0.026em;
+  }
+  .t-h2 {
+    font-size: var(--step-3);
+    font-variation-settings: 'opsz' 48, 'wght' 720;
+    line-height: 1.03;
+    letter-spacing: -0.022em;
+  }
+  /* Знак. Отдельная роль, а не h3: расфокус в переходе имени читается только на
+     плотной засечке, поэтому здесь самый тяжёлый вес и максимальный оптический
+     размер. Семейство задано явно — кнопка шрифт не наследует. */
+  .t-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 1rem + 1.1vw, 2.05rem);
+    font-variation-settings: 'opsz' 72, 'wght' 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .t-h3 {
+    font-size: var(--step-2);
+    font-variation-settings: 'opsz' 32, 'wght' 700;
+    line-height: 1.1;
+    letter-spacing: -0.016em;
+  }
+  .t-lead {
+    font-size: var(--step-1);
+    font-variation-settings: 'opsz' 24, 'wght' 400;
+    line-height: 1.44;
+    letter-spacing: -0.008em;
+  }
+  /* Крупный текст без веса заголовка. Нужен ровно в одном месте — в диптихе
+     регистров: там две подписи по 14 слов держат целую секцию, и на кегле
+     лида они провисают в пустоте. */
+  .t-quote {
+    font-size: var(--step-2);
+    font-variation-settings: 'opsz' 36, 'wght' 420;
+    line-height: 1.3;
+    letter-spacing: -0.014em;
+  }
+  .t-body {
+    font-size: var(--step-0);
+    font-variation-settings: 'opsz' 14, 'wght' 400;
+    line-height: 1.62;
+    letter-spacing: 0;
+  }
+  .t-num {
+    font-variation-settings: 'opsz' 36, 'wght' 620;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.014em;
+  }
+  .t-meta {
+    font-family: var(--font-meta);
+    font-size: var(--step--1);
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: 0.085em;
+    text-transform: uppercase;
+  }
+
+  /* ——— зерно ———
+     Приём взят с pho-1854 (растровая фактура фоном) и переведён из
+     полиграфического растра в плёночное зерно: у нас предмет — плёнка,
+     а не печать. Лежит и на бумаге, и на кадрах: стерильных пикселей
+     на этом сайте нет нигде, включая фотографии. */
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 30;
+    opacity: 0.34;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  }
+  /* На чернильном поле умножение не видно — там зерно светлое. */
+  .grain-ink::after {
+    mix-blend-mode: screen;
+    opacity: 0.11;
+  }
+
+  /* ——— кадр ———
+     Ни рамки, ни тени, ни скругления: кадр — объект, а фурнитура вокруг
+     превратила бы его в карточку интерфейса. Единственное, что добавлено, —
+     подложка цвета бумаги, чтобы при загрузке не было чёрной дыры. */
+  .frame {
+    background: var(--color-paper-dim);
+  }
+
+  /* ——— стопка кадров (механика первого экрана) ———
+     Тень нужна ровно одна и по делу: она отделяет верхний кадр от нижнего,
+     иначе стопка читается как один кадр с обводкой. Вес тени — от размера
+     поверхности, как в apple-design. */
+  .rack-stack [data-layer] {
+    box-shadow: 0 1px 2px rgb(20 20 15 / 0.08), 0 14px 34px -12px rgb(20 20 15 / 0.28);
+  }
+  .rack-stack img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  /* ——— наводка на резкость ———
+     Единственный переход входа во всём направлении. Одно движение,
+     повторённое на каждом элементе: расфокус → резкость. */
+  .reveal {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(12px) scale(1.012);
+    will-change: opacity, filter, transform;
+  }
+  .reveal.is-sharp {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+    transition:
+      opacity var(--dur-rack) var(--ease-rack),
+      filter var(--dur-rack) var(--ease-rack),
+      transform var(--dur-rack) var(--ease-rack);
+    transition-delay: calc(var(--i, 0) * var(--stagger-rack));
+  }
+  /* П7: в первом кадре движения нет. Всё, что видно при загрузке,
+     ставится резким без перехода. */
+  .reveal.is-instant {
+    transition: none !important;
+    transition-delay: 0ms !important;
+  }
+
+  /* ——— ссылка вместо кнопки ———
+     Направление отказывается от кнопочной фурнитуры целиком (см. README).
+     Отклик — на нажатии, не на отпускании. */
+  .link-major {
+    position: relative;
+    display: inline-block;
+    font-variation-settings: 'opsz' 28, 'wght' 620;
+    letter-spacing: -0.012em;
+    text-decoration: none;
+    color: inherit;
+    padding-bottom: 0.18em;
+    transition: transform var(--dur-press) ease-out;
+  }
+  .link-major::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--color-ochre);
+    transition: height 180ms var(--ease-rack);
+  }
+  .link-major:hover::after {
+    height: 8px;
+  }
+  .link-major:active {
+    transform: scale(0.985);
+  }
+  .link-pale::after {
+    background: var(--color-star);
+  }
+
+  .link-minor {
+    display: inline-block;
+    color: var(--color-ink-soft);
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-ink-soft) 38%, transparent);
+    padding-bottom: 0.12em;
+    transition:
+      border-color 180ms var(--ease-rack),
+      transform var(--dur-press) ease-out;
+  }
+  .link-minor:hover {
+    border-bottom-color: var(--color-ink);
+  }
+  .link-minor:active {
+    transform: scale(0.985);
+  }
+
+  .rule-pale {
+    height: 1px;
+    background: color-mix(in srgb, var(--color-paper) 22%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal.is-sharp {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .link-major,
+  .link-minor,
+  .link-major::after {
+    transition: none !important;
+  }
+}

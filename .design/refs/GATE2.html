@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Гейт 2 — отбор референсов</title>
+<style>
+  :root { color-scheme: light dark; --bg:#0d0d0f; --fg:#f2f2f0; --dim:#8b8b93;
+          --line:#26262b; --pick:#c8ff3d; --warn:#ff8f5e; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#fbfbf9; --fg:#16161a; --dim:#6a6a72; --line:#e2e2dd;
+            --pick:#2f6b00; --warn:#a4400d; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+         font:15px/1.5 ui-sans-serif,system-ui,"Segoe UI",sans-serif; }
+  header { position:sticky; top:0; z-index:5; background:var(--bg);
+           border-bottom:1px solid var(--line); padding:18px 24px;
+           display:flex; gap:24px; align-items:baseline; flex-wrap:wrap; }
+  h1 { font-size:15px; font-weight:600; margin:0; letter-spacing:-.01em; }
+  .count { font-variant-numeric:tabular-nums; font-weight:600; }
+  .count.ok { color:var(--pick); }
+  .count.bad { color:var(--warn); }
+  .hint { color:var(--dim); font-size:13px; }
+  button { font:inherit; padding:7px 14px; border:1px solid var(--line);
+           background:transparent; color:var(--fg); border-radius:6px; cursor:pointer; }
+  button:hover { border-color:var(--fg); }
+  .warn { margin:0; padding:14px 24px; border-bottom:1px solid var(--line);
+          color:var(--warn); font-size:13px; }
+  .grid { display:grid; gap:18px; padding:0 24px 8px;
+          grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); }
+  .pole { border-top:1px solid var(--line); padding-top:20px; margin-top:12px; }
+  .pole h2 { font-size:14px; font-weight:600; margin:0 24px 2px; letter-spacing:-.01em; }
+  .pole h2 em { font-style:normal; font-weight:400; color:var(--dim); font-size:12px;
+                font-variant-numeric:tabular-nums; margin-left:8px; }
+  .poleWhy { font-size:13px; color:var(--dim); margin:0 24px 16px; max-width:80ch; }
+  .pole--anti { background:color-mix(in srgb, var(--warn) 8%, transparent);
+                border-top:2px solid var(--warn); margin-top:34px; padding-bottom:10px; }
+  .pole--anti h2 { color:var(--warn); }
+  .pole--anti .poleWhy { color:var(--warn); }
+  .pole--anti .card:has(:checked) { border-color:var(--warn); }
+  .pole--anti .card:has(:checked) .frame { outline-color:var(--warn); }
+  .card { display:flex; flex-direction:column; gap:10px; cursor:pointer;
+          border:1px solid var(--line); border-radius:10px; padding:10px;
+          background:transparent; transition:border-color .12s, transform .12s; }
+  .card:hover { border-color:var(--dim); }
+  .card:has(:checked) { border-color:var(--pick); transform:translateY(-2px); }
+  .card input { position:absolute; opacity:0; pointer-events:none; }
+  .frame { display:block; aspect-ratio:16/10; overflow:hidden; border-radius:6px;
+           background:#00000018; }
+  .frame img { width:100%; height:100%; object-fit:cover; object-position:top center;
+               display:block; }
+  .card:has(:checked) .frame { outline:2px solid var(--pick); outline-offset:-2px; }
+  .meta { display:flex; flex-direction:column; gap:3px; }
+  .name { font-size:12px; color:var(--dim); font-variant-numeric:tabular-nums; }
+  .note { font-size:13px; }
+  .card--nonote .note { color:var(--warn); }
+  #out { margin:0 24px 40px; padding:14px; width:calc(100% - 48px);
+         min-height:130px; background:transparent; color:var(--fg);
+         border:1px solid var(--line); border-radius:8px;
+         font:13px/1.6 ui-monospace,"Cascadia Code",Consolas,monospace; display:none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Гейт 2 — отбор референсов</h1>
+  <span class="count" id="count">выбрано 0, нужно 8–12</span>
+  <span class="hint">Отбор — единственная точка калибровки вкуса. Смотри, что берёшь, а не что нравится.</span>
+  <button id="copy">Выгрузить список</button>
+</header>
+
+<p class="warn">⚠ Источники, которые не взялись:<br>source_gap: **тёплая аналоговая материальность в вебе** — зерно, riso, плёночная деградация, печатная фактура средствами браузера. Несущий полюс проекта: именно он выражает конфликт «против цифровой стерильности». Не собран ни одним годным снимком.<br>source_gap: **наивная неровная векторная графика** — несуразные звёзды владелицы. Полюс не начат.<br>source_gap: **тёплые песочно-зелёные палитры** вне контекста фотографов. Не начат. Критично после находки про Vigbo.<br>source_gap: **курсорные частицы, сделанные хорошо** — единственный кандидат испорчен баннером cookie.<br>source_gap: **поведение сложного интерактива на 390 px** — мобильных снимков всего 7 из 38, ни один не показывает интерактив.<br>source_gap: **межалфавитный морфинг** (латиница ↔ кириллица) в живой реализации. Есть только механизм (Kablammo) и кириллическая словолитня по отдельности.<br>source_gap: `refs/motion/` **пуст** — ни одного захвата движения с реальными duration/easing/триггерами. Требование Ф1 не выполнено.<br>source_gap: анти-полюс — 3 источника из требуемых 4–6.</p>
+<div class="grid">
+    <section class="pole">
+      <h2>Материальность <em>14 снимков, с аннотацией 14</em></h2>
+      <p class="poleWhy">Зерно, печатная фактура, аналоговая деградация. Несущий полюс: он выражает конфликт «против цифровой стерильности».</p>
+      <div class="grid">
+    <label class="card" data-file="mat-creativeindep--d-dense.png">
+      <input type="checkbox" value="mat-creativeindep--d-dense.png">
+      <span class="frame"><img src="raw/mat-creativeindep--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">01 · mat-creativeindep--d-dense.png</span>
+        <span class="note">· thecreativeindependent.com · Продолжение сетки плашек.</span>
+      </span>
+    </label>
+    <label class="card" data-file="mat-creativeindep--d-hero.png">
+      <input type="checkbox" value="mat-creativeindep--d-hero.png">
+      <span class="frame"><img src="raw/mat-creativeindep--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">02 · mat-creativeindep--d-hero.png</span>
+        <span class="note">· thecreativeindependent.com · Моноширинный набор, сетка цветных плашек, пиксельная спираль-логотип, гифка с птицей. «Рукодельный веб» — сделано человеком, не шаблоном. Тепло идёт от бумажного фона и наивных деталей, а не от беж-градиента. Годен и для полюса наивного вектора.</span>
+      </span>
+    </label>
+    <label class="card" data-file="mat-dinamo--d-dense.png">
+      <input type="checkbox" value="mat-dinamo--d-dense.png">
+      <span class="frame"><img src="raw/mat-dinamo--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">03 · mat-dinamo--d-dense.png</span>
+        <span class="note">· abcdinamo.com · Второй экран: образцы гарнитур крупно.</span>
+      </span>
+    </label>
+    <label class="card" data-file="mat-dinamo--d-hero.png">
+      <input type="checkbox" value="mat-dinamo--d-hero.png">
+      <span class="frame"><img src="raw/mat-dinamo--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">04 · mat-dinamo--d-hero.png</span>
+        <span class="note">· abcdinamo.com · Вторая находка полюса, и она про двойственность. Словолитня: тёплый песочно-оливковый кадр, фигура в маске коня, рука с печеньем-предсказанием «Accept Cookies?». Песочный плюс абсурд — буквально «странное и тёплое» вместе, то есть оба регистра автора в одном экране. Меню голым списком слева, без украшений. Жёлтый баннер cookie в кадре, закрыть не удалось.</span>
+      </span>
+    </label>
+    <label class="card" data-file="mat-ilovedust--d-dense.png">
+      <input type="checkbox" value="mat-ilovedust--d-dense.png">
+      <span class="frame"><img src="raw/mat-ilovedust--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">05 · mat-ilovedust--d-dense.png</span>
+        <span class="note">· ilovedust.com · Второй экран стены постеров. Не открывал поимённо, вес 1,1 МБ.</span>
+      </span>
+    </label>
+    <label class="card" data-file="mat-ilovedust--d-hero.png">
+      <input type="checkbox" value="mat-ilovedust--d-hero.png">
+      <span class="frame"><img src="raw/mat-ilovedust--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">06 · mat-ilovedust--d-hero.png</span>
+        <span class="note">· ilovedust.com · Стена постеров, кислотный розовый и салатовый, «DRAG &amp; DROP», сетка тайлов уезжает под курсором. Материальность есть — но регистр панк-рейв, агрессивный. Противоположность просьбе «помягче». Держать как границу: вот докуда нельзя.</span>
+      </span>
+    </label>
+    <label class="card" data-file="mat-ilovedust--m-hero.png">
+      <input type="checkbox" value="mat-ilovedust--m-hero.png">
+      <span class="frame"><img src="raw/mat-ilovedust--m-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">07 · mat-ilovedust--m-hero.png</span>
+        <span class="note">· ilovedust.com · Мобильная версия, и она отвечает на важный вопрос. Стена постеров на 390 px не рассыпается: плитки просто становятся мельче, «DRAG &amp; DROP» и подпись остаются. Доказательство, что плотная сетка мелких кадров работает на телефоне — прямо относится к нашему правилу «кадр — объект, не фон».</span>
+      </span>
+    </label>
+    <label class="card" data-file="mat-oatly--d-dense.png">
+      <input type="checkbox" value="mat-oatly--d-dense.png">
+      <span class="frame"><img src="raw/mat-oatly--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">08 · mat-oatly--d-dense.png</span>
+        <span class="note">· oatly.com · Второй экран: сетка карточек на той же кремовой бумаге, оранжевые метки-ярлычки. Видно, как фактура держится на плотном контенте, а не только в герое.</span>
+      </span>
+    </label>
+    <label class="card" data-file="mat-oatly--d-hero.png">
+      <input type="checkbox" value="mat-oatly--d-hero.png">
+      <span class="frame"><img src="raw/mat-oatly--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">09 · mat-oatly--d-hero.png</span>
+        <span class="note">· oatly.com · Лучший в полюсе. Кремовая бумага, по краю рамка в клетку как на миллиметровке, узкие рисованные капители, готическая вязь «Look Book Vol.3». Материальность и юмор в одном, тепло без сладости. Ровно тот регистр, который просила владелица: мягко, но не нежно-свадебно. В кадре всплывашка выбора страны — не мешает.</span>
+      </span>
+    </label>
+    <label class="card" data-file="mat-risotto--d-dense.png">
+      <input type="checkbox" value="mat-risotto--d-dense.png">
+      <span class="frame"><img src="raw/mat-risotto--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">10 · mat-risotto--d-dense.png</span>
+        <span class="note">· risottostudio.com · Плитки риso-отпечатков: видно сдвиг цветоделения и зерно краски.</span>
+      </span>
+    </label>
+    <label class="card" data-file="mat-risotto--d-hero.png">
+      <input type="checkbox" value="mat-risotto--d-hero.png">
+      <span class="frame"><img src="raw/mat-risotto--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">11 · mat-risotto--d-hero.png</span>
+        <span class="note">· risottostudio.com · Студия риso-печати: «celebration of all things paper and ink», ярко-розовый блок рядом с фотографией мастерской. Материальность настоящая — краска и бумага как предмет. Палитра громкая, не наша, но отношение к материалу верное. В кадре виджет чата.</span>
+      </span>
+    </label>
+    <label class="card" data-file="mat-studiodumbar--d-hero.png">
+      <input type="checkbox" value="mat-studiodumbar--d-hero.png">
+      <span class="frame"><img src="raw/mat-studiodumbar--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">12 · mat-studiodumbar--d-hero.png</span>
+        <span class="note">· studiodumbar.com · Мимо полюса. Белая страница, синий градиентный шар, подпись OpenAI. Ни зерна, ни фактуры. Оставлен только чтобы не притворяться, будто полюс собран.</span>
+      </span>
+    </label>
+    <label class="card" data-file="mat-studiofeed--d-hero.png">
+      <input type="checkbox" value="mat-studiofeed--d-hero.png">
+      <span class="frame"><img src="raw/mat-studiofeed--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">13 · mat-studiofeed--d-hero.png</span>
+        <span class="note">· studiofeed.us · Мимо и брак. Белая страница, логотип, тонкий гуманистический шрифт, абзац текста. Выглядит как неоформленный шаблон. Никакой материальности.</span>
+      </span>
+    </label>
+    <label class="card" data-file="mat-studiofnt--d-hero.png">
+      <input type="checkbox" value="mat-studiofnt--d-hero.png">
+      <span class="frame"><img src="raw/mat-studiofnt--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">14 · mat-studiofnt--d-hero.png</span>
+        <span class="note">· studiofnt.com · Единственный годный в полюсе. Фотографии печатных обложек с фольгой: физический объект, отражения, латиница и корейский вместе. Материальность настоящая, но это снятая на камеру печать, а не фактура, сделанная в браузере. Тёплый оранжево-фиолетовый — цвет живой.</span>
+      </span>
+    </label></div>
+    </section>
+    <section class="pole">
+      <h2>Тёплая палитра вне фотонишы <em>4 снимков, с аннотацией 4</em></h2>
+      <p class="poleWhy">Песочный и зелёный там, где они НЕ значат «нежная свадебная съёмка». Смотри сюда после анти-полюса: вопрос не «нравится ли», а «чем это звучит иначе, чем Vigbo».</p>
+      <div class="grid">
+    <label class="card" data-file="pal-aesop--d-dense.png">
+      <input type="checkbox" value="pal-aesop--d-dense.png">
+      <span class="frame"><img src="raw/pal-aesop--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">15 · pal-aesop--d-dense.png</span>
+        <span class="note">· aesop.com · Второй экран на светлом кремовом: как та же палитра работает в светлой половине.</span>
+      </span>
+    </label>
+    <label class="card" data-file="pal-aesop--d-hero.png">
+      <input type="checkbox" value="pal-aesop--d-hero.png">
+      <span class="frame"><img src="raw/pal-aesop--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">16 · pal-aesop--d-hero.png</span>
+        <span class="note">· aesop.com · Ответ на вопрос «как тёплое звучит не по-свадебному». Песочный и оливковый, камень, флакон, тёмный тёплый свет. Строго, аптечно, взросло. Та же температура, что у владелицы, но регистр — сдержанность, а не нежность. Ключевой референс после находки про Vigbo.</span>
+      </span>
+    </label>
+    <label class="card" data-file="pal-greatjones--d-dense.png">
+      <input type="checkbox" value="pal-greatjones--d-dense.png">
+      <span class="frame"><img src="raw/pal-greatjones--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">17 · pal-greatjones--d-dense.png</span>
+        <span class="note">· greatjonesgoods.com · Каталог на кремовом: как палитра держит товарную сетку.</span>
+      </span>
+    </label>
+    <label class="card" data-file="pal-greatjones--d-hero.png">
+      <input type="checkbox" value="pal-greatjones--d-hero.png">
+      <span class="frame"><img src="raw/pal-greatjones--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">18 · pal-greatjones--d-hero.png</span>
+        <span class="note">· greatjonesgoods.com · Кремовый фон, глубокий зелёный, игривая жирная антиква логотипа, посуда. Песочный и зелёный вместе в бытовом регистре — не романтика, а кухня. Есть промо-мусор по краям.</span>
+      </span>
+    </label></div>
+    </section>
+    <section class="pole">
+      <h2>Наивный вектор <em>4 снимков, с аннотацией 4</em></h2>
+      <p class="poleWhy">Неровные фигуры, толстый контур, кривое намеренно. Под звёзды: «несуразные, не пятиугольные».</p>
+      <div class="grid">
+    <label class="card" data-file="nai-figmaconfig--d-dense.png">
+      <input type="checkbox" value="nai-figmaconfig--d-dense.png">
+      <span class="frame"><img src="raw/nai-figmaconfig--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">19 · nai-figmaconfig--d-dense.png</span>
+        <span class="note">· config.figma.com · Второй экран, те же формы без модалки. Не открывал поимённо, вес 205 КБ — вероятно, полезнее героя.</span>
+      </span>
+    </label>
+    <label class="card" data-file="nai-figmaconfig--d-hero.png">
+      <input type="checkbox" value="nai-figmaconfig--d-hero.png">
+      <span class="frame"><img src="raw/nai-figmaconfig--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">20 · nai-figmaconfig--d-hero.png</span>
+        <span class="note">· config.figma.com · Мятно-зелёные, персиковые и голубые органические кляксы, облакообразные формы, наивная геометрия крупными пятнами. Больше половины экрана закрыто модальным окном настроек cookie — закрыть не удалось. Приём виден по краям, целиком — нет.</span>
+      </span>
+    </label>
+    <label class="card" data-file="nai-gumroad--d-dense.png">
+      <input type="checkbox" value="nai-gumroad--d-dense.png">
+      <span class="frame"><img src="raw/nai-gumroad--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">21 · nai-gumroad--d-dense.png</span>
+        <span class="note">· gumroad.com · Карточки с наивными иллюстрациями внутри интерфейса.</span>
+      </span>
+    </label>
+    <label class="card" data-file="nai-gumroad--d-hero.png">
+      <input type="checkbox" value="nai-gumroad--d-hero.png">
+      <span class="frame"><img src="raw/nai-gumroad--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">22 · nai-gumroad--d-hero.png</span>
+        <span class="note">· gumroad.com · Плоские розовые «монеты» с литерой G, толстый контур, наивная изометрия, бумажно-серый фон. Наивность как система, а не как милота: фигуры кривоваты намеренно и при этом собраны в порядок. Палитра не наша.</span>
+      </span>
+    </label></div>
+    </section>
+    <section class="pole">
+      <h2>Морфинг и подмена глифов <em>4 снимков, с аннотацией 4</em></h2>
+      <p class="poleWhy">Под переход arisheniaa → аришения. Смотри на механику, не на цвет.</p>
+      <div class="grid">
+    <label class="card" data-file="axs-codropstype--d-hero.png">
+      <input type="checkbox" value="axs-codropstype--d-hero.png">
+      <span class="frame"><img src="raw/axs-codropstype--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">23 · axs-codropstype--d-hero.png</span>
+        <span class="note">· tympanus.net/codrops · Подборка GSAP-анимаций типографики по скроллу. Ценность техническая, не вкусовая: показывает, чем именно исполняется послойный переход. Кадр снят с рекламным блоком в углу.</span>
+      </span>
+    </label>
+    <label class="card" data-file="axs-kablammo--d-hero.png">
+      <input type="checkbox" value="axs-kablammo--d-hero.png">
+      <span class="frame"><img src="raw/axs-kablammo--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">24 · axs-kablammo--d-hero.png</span>
+        <span class="note">· fonts.google.com/knowledge · Самый ценный по технике. Статья Google Design про вариативный шрифт Kablammo с осью Morph, которая меняет форму литеры. Это буквальный механизм превращения одной буквы в другую, управляемый одной CSS-переменной. Ограничение: у Kablammo нет кириллицы, то есть как шрифт он нам не годится — годится приём.</span>
+      </span>
+    </label>
+    <label class="card" data-file="axs-scrambletext--d-hero.png">
+      <input type="checkbox" value="axs-scrambletext--d-hero.png">
+      <span class="frame"><img src="raw/axs-scrambletext--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">25 · axs-scrambletext--d-hero.png</span>
+        <span class="note">· gsap.com/docs · Документация плагина ScrambleText: тёмная страница, оглавление, окно демо. Демо не догрузилось — в рамке «loading…». Источник техники, не визуальный референс; механику даёт, картинки не даёт.</span>
+      </span>
+    </label>
+    <label class="card" data-file="axs-typetoday--d-hero.png">
+      <input type="checkbox" value="axs-typetoday--d-hero.png">
+      <span class="frame"><img src="raw/axs-typetoday--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">26 · axs-typetoday--d-hero.png</span>
+        <span class="note">· type.today · Кириллица, и это главное. Русская словолитня, все образцы набраны по-русски: «Неделима наша доля» кеглем 48. Прямой источник для typography-ru.md: здесь видно, как гарнитура ведёт себя в кириллице, а не в латинском панграмме. К морфингу отношения не имеет — полюс в имени файла неверен.</span>
+      </span>
+    </label></div>
+    </section>
+    <section class="pole">
+      <h2>Фотография как объект <em>5 снимков, с аннотацией 5</em></h2>
+      <p class="poleWhy">Кадр внутри сетки и типографики, а не фон под текстом.</p>
+      <div class="grid">
+    <label class="card" data-file="pho-1854--d-dense.png">
+      <input type="checkbox" value="pho-1854--d-dense.png">
+      <span class="frame"><img src="raw/pho-1854--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">27 · pho-1854--d-dense.png</span>
+        <span class="note">· 1854.photography · Второй экран журнала: сетка материалов. Не открывал поимённо; вес 1,2 МБ.</span>
+      </span>
+    </label>
+    <label class="card" data-file="pho-1854--d-hero.png">
+      <input type="checkbox" value="pho-1854--d-hero.png">
+      <span class="frame"><img src="raw/pho-1854--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">28 · pho-1854--d-hero.png</span>
+        <span class="note">· 1854.photography · British Journal of Photography: кадр на две трети экрана, справа тёмная колонка с заголовком и автором. Фото не фон и не обои — оно врезано в сетку рядом с типографикой. Ровно правило Р4. Регистр журнальный, холодный.</span>
+      </span>
+    </label>
+    <label class="card" data-file="pho-anothermag3--d-dense.png">
+      <input type="checkbox" value="pho-anothermag3--d-dense.png">
+      <span class="frame"><img src="raw/pho-anothermag3--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">29 · pho-anothermag3--d-dense.png</span>
+        <span class="note">· anothermag.com · Второй экран, лента материалов. Не открывал поимённо; источник и разворот те же, вес 650 КБ — содержимое на месте.</span>
+      </span>
+    </label>
+    <label class="card" data-file="pho-anothermag3--d-hero.png">
+      <input type="checkbox" value="pho-anothermag3--d-hero.png">
+      <span class="frame"><img src="raw/pho-anothermag3--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">30 · pho-anothermag3--d-hero.png</span>
+        <span class="note">· anothermag.com · Чистая иллюстрация правила Р4. Белый фон, тонкая антиква логотипа, слева кадр (красный абажур на теле), справа — заголовок крупной антиквой и врез. Кадр не фон, а элемент сетки наравне с текстом. Ниже — лента карточек 4 в ряд.</span>
+      </span>
+    </label>
+    <label class="card" data-file="pho-aperture--d-hero.png">
+      <input type="checkbox" value="pho-aperture--d-hero.png">
+      <span class="frame"><img src="raw/pho-aperture--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">31 · pho-aperture--d-hero.png</span>
+        <span class="note">· aperture.org · Фотоинституция. Ч/б кадр Ларри Кларка на две трети экрана, справа тёмная колонка с рубрикой, заголовком антиквой и врезом. Тот же приём, что у 1854, но строже и тише. Хорошая пара для сравнения: как один приём звучит в двух температурах.</span>
+      </span>
+    </label></div>
+    </section>
+    <section class="pole">
+      <h2>Курсорный интерактив <em>8 снимков, с аннотацией 8</em></h2>
+      <p class="poleWhy">Реакция на курсор и палец. Проверяй, что остаётся на телефоне.</p>
+      <div class="grid">
+    <label class="card" data-file="cur-julieguzal--d-dense.png">
+      <input type="checkbox" value="cur-julieguzal--d-dense.png">
+      <span class="frame"><img src="raw/cur-julieguzal--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">32 · cur-julieguzal--d-dense.png</span>
+        <span class="note">· julieguzal.com · Полюс в имени неверен — это pho. Тёмная страница, кадр: жёлтый рукав, тёмная рука, часы, оранжевая подушка. Тёплый насыщенный кадр на почти чёрном фоне, под ним имя проекта и роли мелким гротеском. Показывает то, чего нет в других: как тёплая фотография работает на тёмном, а не на кремовом. Для нас это альтернативный ход, если светлый фон окажется слишком близко к Vigbo.</span>
+      </span>
+    </label>
+    <label class="card" data-file="cur-julieguzal2--d-hero.png">
+      <input type="checkbox" value="cur-julieguzal2--d-hero.png">
+      <span class="frame"><img src="raw/cur-julieguzal2--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">33 · cur-julieguzal2--d-hero.png</span>
+        <span class="note">· julieguzal.com · Тёмный портфолио арт-директора: огромное тонкое «WORK», меню списком, справа описание. Кадр проекта не догрузился — серый прямоугольник-заглушка. Композиция читается, содержимое нет. Слабый.</span>
+      </span>
+    </label>
+    <label class="card" data-file="cur-julieguzal2--m-hero.png">
+      <input type="checkbox" value="cur-julieguzal2--m-hero.png">
+      <span class="frame"><img src="raw/cur-julieguzal2--m-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">34 · cur-julieguzal2--m-hero.png</span>
+        <span class="note">· julieguzal.com · Мобильная версия. Не открывал поимённо, вес 135 КБ.</span>
+      </span>
+    </label>
+    <label class="card" data-file="cur-kurppahosk--d-dense.png">
+      <input type="checkbox" value="cur-kurppahosk--d-dense.png">
+      <span class="frame"><img src="raw/cur-kurppahosk--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">35 · cur-kurppahosk--d-dense.png</span>
+        <span class="note">· kurppahosk.com · Второй экран того же, что признан лучшим референсом фактуры. Не открывал поимённо, вес 119 КБ.</span>
+      </span>
+    </label>
+    <label class="card" data-file="cur-kurppahosk--d-hero.png">
+      <input type="checkbox" value="cur-kurppahosk--d-hero.png">
+      <span class="frame"><img src="raw/cur-kurppahosk--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">36 · cur-kurppahosk--d-hero.png</span>
+        <span class="note">· kurppahosk.com · Полюс в имени неверен: это лучший референс материальности во всей выборке. Макросъёмка печатной упаковки под наклоном, антиква вплотную с рукописным курсивом, видна фактура бумаги и тиснение. Ручное и нежное одновременно — то, чего просит владелица. Переставить в mat.</span>
+      </span>
+    </label>
+    <label class="card" data-file="cur-makemepulse--d-dense.png">
+      <input type="checkbox" value="cur-makemepulse--d-dense.png">
+      <span class="frame"><img src="raw/cur-makemepulse--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">37 · cur-makemepulse--d-dense.png</span>
+        <span class="note">· makemepulse.com · Второй экран, тёплый закатный кадр во всю ширину. Не открывал поимённо, вес 286 КБ.</span>
+      </span>
+    </label>
+    <label class="card" data-file="cur-makemepulse--d-hero.png">
+      <input type="checkbox" value="cur-makemepulse--d-hero.png">
+      <span class="frame"><img src="raw/cur-makemepulse--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">38 · cur-makemepulse--d-hero.png</span>
+        <span class="note">· makemepulse.com · Тёмная студийная страница, крупная тонкая антиква в три строки, за ней наклонённые карточки проектов. Курсорная параллакс-механика есть, но кадр испорчен: четверть экрана занимает баннер cookie. Ценность низкая.</span>
+      </span>
+    </label>
+    <label class="card" data-file="cur-makemepulse--m-hero.png">
+      <input type="checkbox" value="cur-makemepulse--m-hero.png">
+      <span class="frame"><img src="raw/cur-makemepulse--m-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">39 · cur-makemepulse--m-hero.png</span>
+        <span class="note">· makemepulse.com · Мобильный: что остаётся от курсорной механики там, где курсора нет. Прямой ответ на пробел «интерактив на 390 px».</span>
+      </span>
+    </label></div>
+    </section>
+    <section class="pole">
+      <h2>Скролл-режиссура <em>4 снимков, с аннотацией 4</em></h2>
+      <p class="poleWhy">Сцена, которой управляет прокрутка.</p>
+      <div class="grid">
+    <label class="card" data-file="scr-basement--d-dense.png">
+      <input type="checkbox" value="scr-basement--d-dense.png">
+      <span class="frame"><img src="raw/scr-basement--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">40 · scr-basement--d-dense.png</span>
+        <span class="note">· basement.studio · Второй экран. Не открывал поимённо, вес 893 КБ.</span>
+      </span>
+    </label>
+    <label class="card" data-file="scr-basement2--d-hero.png">
+      <input type="checkbox" value="scr-basement2--d-hero.png">
+      <span class="frame"><img src="raw/scr-basement2--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">41 · scr-basement2--d-hero.png</span>
+        <span class="note">· basement.studio · Настоящая скролл-сцена. Чёрный фон, белый каркасный 3D-интерьер: лестница, балки, надпись «basement.» на стене вдали, пиксельные пятна как шум. Сцена, которой управляет прокрутка. Холодное и техничное — держать как контраст, не как ориентир по тону.</span>
+      </span>
+    </label>
+    <label class="card" data-file="scr-dogstudio--d-dense.png">
+      <input type="checkbox" value="scr-dogstudio--d-dense.png">
+      <span class="frame"><img src="raw/scr-dogstudio--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">42 · scr-dogstudio--d-dense.png</span>
+        <span class="note">· dogstudio.co · Второй экран. Не открывал поимённо, вес 939 КБ.</span>
+      </span>
+    </label>
+    <label class="card" data-file="scr-dogstudio--d-hero.png">
+      <input type="checkbox" value="scr-dogstudio--d-hero.png">
+      <span class="frame"><img src="raw/scr-dogstudio--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">43 · scr-dogstudio--d-hero.png</span>
+        <span class="note">· dogstudio.co · Тёмно-синий градиент, 3D-волк, «We Make Good Shit» крупной антиквой в четыре строки. Скролл-сцена с 3D. В кадре два баннера — cookie и «браузер устарел», четверть экрана. Композиция читается.</span>
+      </span>
+    </label></div>
+    </section>
+    <section class="pole pole--anti">
+      <h2>⚠ АНТИ-ПОЛЮС — от чего отличаемся <em>8 снимков, с аннотацией 8</em></h2>
+      <p class="poleWhy">Это НЕ примеры для подражания. Отбирать их в picked/ нельзя: они и есть то, во что одета вся ниша. Смотри и запоминай, чтобы не повторить.</p>
+      <div class="grid">
+    <label class="card" data-file="anti-pixieset--d-hero.png">
+      <input type="checkbox" value="anti-pixieset--d-hero.png" data-anti="1">
+      <span class="frame"><img src="raw/anti-pixieset--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">44 · anti-pixieset--d-hero.png</span>
+        <span class="note">— anti: true · pixieset.com · «Designed for photographers. Built to help you grow.» Тёмный фон, фотография руки с телефоном, на экране — интерфейс брони: «Upcoming Sessions», «CONFIRMED». Мятно-зелёная кнопка. Это платформа, а не эстетика: продаёт workflow, а не красоту. Полезен как напоминание, что часть ниши говорит языком CRM. Баннер cookie в кадре.</span>
+      </span>
+    </label>
+    <label class="card" data-file="anti-pixieset--m-hero.png">
+      <input type="checkbox" value="anti-pixieset--m-hero.png" data-anti="1">
+      <span class="frame"><img src="raw/anti-pixieset--m-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">45 · anti-pixieset--m-hero.png</span>
+        <span class="note">— anti: true · pixieset.com · Мобильная версия того же.</span>
+      </span>
+    </label>
+    <label class="card" data-file="anti-smugmug2--d-hero.png">
+      <input type="checkbox" value="anti-smugmug2--d-hero.png" data-anti="1">
+      <span class="frame"><img src="raw/anti-smugmug2--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">46 · anti-smugmug2--d-hero.png</span>
+        <span class="note">— anti: true · smugmug.com · Ломает мою же находку и потому ценен. Не бежевый и не с тонкой антиквой: кремово-серый фон, гигантский чёрный геометрический гротеск «smugmug», закатное фото двух бегущих девушек, поверх — промо-полосы кислотных цветов. То есть связка «тёплый беж + тонкая антиква» — примета русского рынка, а не мирового. Прямое следствие для Ф2 в F1-STATUS.md.</span>
+      </span>
+    </label>
+    <label class="card" data-file="anti-vigbo--d-hero.png">
+      <input type="checkbox" value="anti-vigbo--d-hero.png" data-anti="1">
+      <span class="frame"><img src="raw/anti-vigbo--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">47 · anti-vigbo--d-hero.png</span>
+        <span class="note">— anti: true · vigbo.com · Эталон того, от чего уходим, и главная находка Ф1. Заголовок «ВСЁ, ЧТО НУЖНО ФОТОГРАФУ» тонким широким антиквой, кремово-бежевый фон, ч/б кадр невесты в интерьере. Взять на заметку: этот сайт тёплый и кремовый — то есть ровно та палитра, к которой тянется владелица. Совпадение опасное, см. Ф1-STATUS.md.</span>
+      </span>
+    </label>
+    <label class="card" data-file="anti-vigbo--m-hero.png">
+      <input type="checkbox" value="anti-vigbo--m-hero.png" data-anti="1">
+      <span class="frame"><img src="raw/anti-vigbo--m-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">48 · anti-vigbo--m-hero.png</span>
+        <span class="note">— anti: true · vigbo.com · то же на 390 px: заголовок дробится, кадр уходит под фолд. Показывает, как ниша решает мобильный — плохо.</span>
+      </span>
+    </label>
+    <label class="card" data-file="anti-wfolio--d-dense.png">
+      <input type="checkbox" value="anti-wfolio--d-dense.png" data-anti="1">
+      <span class="frame"><img src="raw/anti-wfolio--d-dense.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">49 · anti-wfolio--d-dense.png</span>
+        <span class="note">— anti: true · wfolio.ru · Второй экран, тёмная секция.</span>
+      </span>
+    </label>
+    <label class="card" data-file="anti-wfolio--d-hero.png">
+      <input type="checkbox" value="anti-wfolio--d-hero.png" data-anti="1">
+      <span class="frame"><img src="raw/anti-wfolio--d-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">50 · anti-wfolio--d-hero.png</span>
+        <span class="note">— anti: true · wfolio.ru · Подтверждает находку про Vigbo и усиливает её. «САЙТ И ОБЛАЧНЫЕ ГАЛЕРЕИ ДЛЯ УМНЫХ ФОТОГРАФОВ», фон — тёплый коричневый градиент, пара с камерой в бежевых пальто. Ниже — заголовок «ВСЁ, ЧТО НУЖНО ФОТОГРАФУ», дословно тот же, что у Vigbo. То есть два крупнейших конструктора рунета одеты в одну температуру и говорят одними словами.</span>
+      </span>
+    </label>
+    <label class="card" data-file="anti-wfolio--m-hero.png">
+      <input type="checkbox" value="anti-wfolio--m-hero.png" data-anti="1">
+      <span class="frame"><img src="raw/anti-wfolio--m-hero.png" alt="" loading="lazy"></span>
+      <span class="meta">
+        <span class="name">51 · anti-wfolio--m-hero.png</span>
+        <span class="note">— anti: true · wfolio.ru · Мобильный: как ниша решает 390 px.</span>
+      </span>
+    </label></div>
+    </section></div>
+<textarea id="out" spellcheck="false" readonly></textarea>
+<script>
+  const boxes = [...document.querySelectorAll('input[type=checkbox]')]
+  const count = document.getElementById('count')
+  const out = document.getElementById('out')
+  const MIN = 8, MAX = 12
+  const picked = () => boxes.filter(b => b.checked).map(b => b.value)
+  const antiPicked = () => boxes.filter(b => b.checked && b.dataset.anti).length
+  function render () {
+    const n = picked().length
+    const a = antiPicked()
+    count.textContent = 'выбрано ' + n + ', нужно 8–12'
+      + (a ? '  ⚠ из них ' + a + ' из анти-полюса — так нельзя' : '')
+    count.classList.toggle('ok', n >= MIN && n <= MAX && a === 0)
+    count.classList.toggle('bad', a > 0)
+  }
+  boxes.forEach(b => b.addEventListener('change', render))
+  document.getElementById('copy').addEventListener('click', async () => {
+    const list = picked()
+    const text = list.length
+      ? '# picked (' + list.length + ')\n' + list.map(f => 'cp .design/refs/raw/' + f + ' .design/refs/picked/').join('\n')
+      : '# ничего не выбрано'
+    out.style.display = 'block'
+    out.value = text
+    out.select()
+    try { await navigator.clipboard.writeText(text) } catch {}
+  })
+  render()
+</script>
+</body>
+</html>

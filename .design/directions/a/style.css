@@ -1,0 +1,245 @@
+/* ══════════════════════════════════════════════════════════════
+   НАПРАВЛЕНИЕ A — МАТЕРИАЛ И СЕТКА
+   Подложка: Swiss Industrial Print, но бумага не газетная, а песочная.
+   Один субстрат на весь экран, светлый. Тёмного режима нет.
+   ══════════════════════════════════════════════════════════════ */
+
+@font-face{font-family:'Vollkorn';src:url('fonts/Vollkorn-900.ttf') format('truetype');font-weight:900;font-display:swap}
+@font-face{font-family:'Vollkorn';src:url('fonts/Vollkorn-600.ttf') format('truetype');font-weight:600;font-display:swap}
+@font-face{font-family:'JBMono';src:url('fonts/JetBrainsMono-400.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'JBMono';src:url('fonts/JetBrainsMono-700.ttf') format('truetype');font-weight:700;font-display:swap}
+
+:root{
+  /* ── плашки: сплошные земляные, без единого градиента ───────── */
+  --paper:#EDE3C9;        /* небелёная песочная бумага — подложка */
+  --paper-2:#E2D5B4;      /* вторая бумага, на тон темнее */
+  --ink:#141310;          /* углеродная краска */
+  --olive:#4B5A34;
+  --green:#26301F;
+  --ochre:#C98A22;
+  --chartreuse:#CFD645;
+  --terra:#C1421C;        /* ЕДИНСТВЕННЫЙ акцент */
+  --star:#F2C94C;
+
+  /* шкала: одна геометрическая, шаг 1.5 от 12 px */
+  --s0:12px; --s1:18px; --s2:27px; --s3:40px; --s4:60px; --s5:90px; --s6:136px;
+
+  --dot:4.2px;            /* шаг растра — двигается скроллом */
+  --line:1px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--ink);
+  color:var(--ink);
+  font-family:'JBMono',ui-monospace,Consolas,monospace;
+  font-size:13px;
+  overflow-x:hidden;
+}
+
+/* ── зерно на всём документе: SVG-шум, ноль внешних файлов ───── */
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:60;
+  opacity:.44;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+
+#stars{position:fixed;inset:0;width:100%;height:100%;z-index:50;pointer-events:none}
+
+/* ══ СЕТКА ══ детерминированная: gap 1px, краска проступает снизу */
+.frame{
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  gap:var(--line);
+  background:var(--ink);
+  border-bottom:var(--line) solid var(--ink);
+}
+.cell{background:var(--paper);padding:clamp(14px,1.7vw,26px)}
+
+/* ── линейка ── */
+.rule{
+  position:sticky;top:0;z-index:40;
+  display:flex;flex-wrap:wrap;gap:var(--line);
+  background:var(--ink);border-bottom:var(--line) solid var(--ink);
+}
+.rule-cell{
+  background:var(--paper);padding:7px 12px;flex:1 1 auto;
+  font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;white-space:nowrap;
+}
+.rule-count{background:var(--terra);color:var(--paper);flex:0 0 auto;font-weight:700}
+.rule-geo{flex:2 1 auto}
+
+/* ── знак ── */
+.frame-mark{grid-template-columns:repeat(12,1fr)}
+.cell-mark{grid-column:span 7;background:var(--paper);display:flex;flex-direction:column;justify-content:center;gap:6px}
+.cell-nav{grid-column:span 5;background:var(--paper-2);display:flex;flex-wrap:wrap;align-content:center;gap:2px 18px}
+.cell-nav a{
+  color:var(--ink);text-decoration:none;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  border-bottom:1px solid transparent;padding-bottom:2px;
+}
+.cell-nav a:hover{border-bottom-color:var(--terra)}
+
+.mark{display:inline-flex;align-items:flex-start;text-decoration:none;color:var(--ink);cursor:pointer}
+.mark-name{
+  font-family:'Vollkorn',Georgia,serif;font-weight:900;
+  font-size:clamp(34px,6.2vw,74px);line-height:.92;letter-spacing:-.022em;
+}
+.mark-star{width:clamp(11px,1.5vw,17px);fill:var(--star);stroke:var(--ink);stroke-width:1.6;margin-left:.22em;margin-top:.12em;flex:none}
+.mark-sub{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;opacity:.62}
+.sep{display:inline-block;padding:0 .5em;color:var(--terra)}
+
+/* морфинг: оба написания в DOM, визуальный слой aria-hidden */
+.lay{position:relative;display:inline-block}
+.lay .alt{position:absolute;left:0;top:0;white-space:nowrap}
+.g{display:inline-block;transition:opacity .34s ease,filter .34s ease,transform .34s ease;will-change:transform,opacity,filter}
+.lat .g{opacity:1;filter:blur(0);transform:none}
+.cyr .g{opacity:0;filter:blur(7px);transform:translateY(.14em) scale(1.06)}
+.to .lat .g{opacity:0;filter:blur(7px);transform:translateY(-.14em) scale(.94)}
+.to .cyr .g{opacity:1;filter:blur(0);transform:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ── первый экран ── */
+.cell-h1{grid-column:span 8;display:flex;flex-direction:column;gap:clamp(18px,2.2vw,30px);padding-block:clamp(24px,3.4vw,52px)}
+h1{
+  font-family:'Vollkorn',Georgia,serif;font-weight:900;
+  font-size:clamp(40px,7.3vw,124px);line-height:.86;letter-spacing:-.028em;
+  text-wrap:balance;
+}
+h1 em{font-style:normal}
+.plate-terra{
+  background:var(--terra);color:var(--paper);
+  display:inline-block;padding:0 .12em .06em;margin-left:-.04em;
+}
+.lead{
+  font-family:'Vollkorn',Georgia,serif;font-weight:600;
+  font-size:clamp(17px,1.55vw,23px);line-height:1.35;max-width:34ch;
+}
+.hero-act{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.btn{
+  background:var(--ink);color:var(--paper);text-decoration:none;
+  padding:13px 20px;font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;
+}
+.btn:hover{background:var(--terra)}
+.btn-2{
+  color:var(--ink);text-decoration:none;font-size:11.5px;letter-spacing:.11em;text-transform:uppercase;
+  border-bottom:2px solid var(--ink);padding-bottom:3px;
+}
+.btn-2:hover{border-bottom-color:var(--terra)}
+.geo{font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.tick{color:var(--terra);font-weight:700;padding-right:.7em}
+
+.cell-photo{grid-column:span 4;background:var(--paper-2);display:flex;flex-direction:column;gap:10px}
+.cell-photo figcaption{font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.7}
+.cell-air{grid-column:span 4;background:var(--olive);min-height:clamp(60px,9vw,150px)}
+.cell-spec{grid-column:span 8;background:var(--paper)}
+.cell-spec dl{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--line) clamp(10px,1.6vw,24px)}
+.cell-spec dt{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--terra);margin-bottom:5px}
+.cell-spec dd{font-size:12.5px;line-height:1.35}
+
+/* ── растр: фотография становится печатью, а не пикселями ───── */
+.halftone{position:relative;overflow:hidden;background:var(--ink)}
+.halftone img{display:block;width:100%;height:auto;filter:contrast(1.06) saturate(.94)}
+.halftone::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  mix-blend-mode:multiply;opacity:.55;
+  background-image:radial-gradient(circle at 50% 50%, var(--ink) 0 30%, transparent 34%);
+  background-size:var(--dot) var(--dot);
+}
+.halftone-sm::after{opacity:.42}
+
+/* ── регистры ── */
+.cell-regt{grid-column:span 12;background:var(--paper-2);
+  font-family:'Vollkorn',Georgia,serif;font-weight:900;
+  font-size:clamp(26px,3.4vw,52px);line-height:1;letter-spacing:-.02em}
+.cell-reg{grid-column:span 6;display:flex;flex-direction:column;gap:12px}
+.reg-a{background:var(--paper)}
+.reg-b{background:var(--ochre)}
+.reg-label{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+.reg-a .reg-label{color:var(--olive)}
+.reg-b .reg-label{color:var(--ink)}
+.reg-text{font-family:'Vollkorn',Georgia,serif;font-weight:600;font-size:clamp(15px,1.35vw,20px);line-height:1.35;max-width:34ch}
+.cell-reg .halftone{max-width:min(100%,300px)}
+
+/* ── реестр ── */
+.cell-offhead{grid-column:span 7;background:var(--paper);display:flex;flex-direction:column;justify-content:space-between;gap:18px;padding-block:clamp(22px,3vw,44px)}
+.cell-offhead h2{font-family:'Vollkorn',Georgia,serif;font-weight:900;font-size:clamp(38px,5.6vw,88px);line-height:.88;letter-spacing:-.026em}
+.reg-index{font-size:10.5px;letter-spacing:.14em;color:var(--terra)}
+.cell-offlead{grid-column:span 5;background:var(--chartreuse);display:flex;align-items:flex-end}
+.cell-offlead p{font-family:'Vollkorn',Georgia,serif;font-weight:600;font-size:clamp(15px,1.4vw,21px);line-height:1.36;max-width:40ch}
+
+.card{grid-column:span 4;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
+.card:nth-of-type(2){background:var(--paper-2)}
+.card-idx{font-size:10px;letter-spacing:.14em;color:var(--terra);font-weight:700}
+.card h3{font-family:'Vollkorn',Georgia,serif;font-weight:900;font-size:clamp(24px,2.6vw,40px);line-height:1;letter-spacing:-.02em}
+.card-price{font-size:11.5px;letter-spacing:.04em;line-height:1.5;border-top:var(--line) solid currentColor;padding-top:10px;margin-top:2px}
+.card-price b{font-family:'Vollkorn',Georgia,serif;font-weight:900;font-size:clamp(23px,2.3vw,34px);letter-spacing:-.02em;display:inline-block;vertical-align:-.12em;margin-right:.12em}
+.card-inc{font-size:12px;line-height:1.55;opacity:.82;max-width:38ch}
+
+/* пустая плашка рядом с карточками — тот же приём, что и в первом
+   экране: воздух назначен, а не остался после вёрстки */
+.cell-gap{grid-column:span 4;background:var(--olive);min-height:120px}
+
+.card-hero{grid-column:span 12;background:var(--terra);color:var(--paper);
+  display:grid;grid-template-columns:1fr auto;grid-template-areas:'idx fig' 'ttl fig' 'prc fig' 'inc fig';
+  column-gap:clamp(16px,2.4vw,40px);align-content:start}
+.card-hero .card-idx{grid-area:idx;color:var(--paper)}
+.card-hero h3{grid-area:ttl;font-size:clamp(38px,6.4vw,104px);line-height:.9}
+.card-hero .card-price{grid-area:prc;border-top-color:var(--paper);font-size:13px}
+.card-hero .card-inc{grid-area:inc;opacity:.94;font-size:13px;max-width:46ch}
+.card-fig{grid-area:fig;width:clamp(150px,20vw,300px);display:flex;flex-direction:column;gap:8px}
+.card-fig figcaption{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;opacity:.85}
+.card-hero .sep{color:var(--paper)}
+
+.cell-note{grid-column:span 7;background:var(--paper-2);font-size:12.5px;letter-spacing:.02em;line-height:1.5;display:flex;align-items:center}
+.cell-offcta{grid-column:span 5;background:var(--green);color:var(--paper);text-decoration:none;
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
+  display:flex;align-items:center;justify-content:space-between;gap:16px}
+.cell-offcta:hover{background:var(--ink)}
+.arw{font-size:17px}
+
+/* ── подвал ── */
+.frame-foot{border-bottom:0}
+.frame-foot .cell{grid-column:span 6;background:var(--paper);font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.75}
+.frame-foot .cell:last-child{text-align:right;background:var(--paper-2)}
+
+/* ── прибытие плашек (только ниже первого экрана) ── */
+.reveal{opacity:0;transform:translateY(18px)}
+.reveal.in{opacity:1;transform:none;transition:opacity .42s cubic-bezier(.22,.68,.24,1),transform .42s cubic-bezier(.22,.68,.24,1)}
+
+/* ══ 768 ══ */
+@media (max-width:900px){
+  .cell-mark{grid-column:span 12}
+  .cell-nav{grid-column:span 12}
+  .cell-h1{grid-column:span 12}
+  .cell-photo{grid-column:span 7}
+  .cell-air{grid-column:span 5;min-height:0}
+  .cell-spec{grid-column:span 12}
+  .cell-offhead,.cell-offlead{grid-column:span 12}
+  .card{grid-column:span 6}
+  .card-hero{grid-column:span 12}
+  .cell-gap{display:none}
+  .cell-note,.cell-offcta{grid-column:span 12}
+}
+
+/* ══ 390 ══ типовой вход: ссылка из Telegram ══ */
+@media (max-width:640px){
+  .rule-geo{display:none}
+  .cell-photo,.cell-air,.cell-reg,.card{grid-column:span 12}
+  .cell-air{min-height:54px}
+  .cell-spec dl{grid-template-columns:repeat(2,1fr);gap:16px}
+  .card-hero{grid-template-columns:1fr;grid-template-areas:'idx' 'ttl' 'prc' 'inc' 'fig';row-gap:12px}
+  .card-fig{width:100%;max-width:260px}
+  .cell-reg .halftone{max-width:100%}
+  .frame-foot .cell{grid-column:span 12}
+  .frame-foot .cell:last-child{text-align:left}
+  h1{font-size:clamp(30px,9.2vw,46px)}
+  .card-hero .card-price b,.card-price b{font-size:clamp(19px,5.4vw,26px)}
+  .cell-offcta{justify-content:flex-start}
+}
+
+/* ══ П7: движение выключается целиком, контент не теряется ══ */
+@media (prefers-reduced-motion:reduce){
+  .g{transition:none!important}
+  .reveal{opacity:1!important;transform:none!important;transition:none!important}
+}

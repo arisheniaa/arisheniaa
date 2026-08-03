@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"C:/Users/Аришения/OneDrive/Рабочий стол/Claude Projects/Мой сайт\" 2>&1 | head -50; echo \"---SKILL---\"; ls -R \"C:/Users/Аришения/.claude/skills/design-pipeline\" 2>&1 | head -60)"
+    ]
+  }
+}

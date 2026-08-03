@@ -1,0 +1,216 @@
+<style>
+  :root{
+    --sand:#e8d5a3; --sand-deep:#d9bd7a; --green:#7d8f5e; --green-deep:#4a5940;
+    --paper:#fbf8f0; --ink:#2b2a24;
+    --star:#f2c94c;
+  }
+  *{box-sizing:border-box}
+  .wrap{
+    font:16px/1.55 Georgia,'Times New Roman',serif;
+    color:var(--ink);
+    background:
+      radial-gradient(120% 90% at 12% 8%, var(--sand) 0%, transparent 55%),
+      radial-gradient(110% 100% at 88% 96%, var(--green) 0%, transparent 58%),
+      linear-gradient(168deg,#fdfaf3 0%,var(--paper) 42%,#f4f1e4 100%);
+    padding:clamp(20px,4vw,56px);
+    position:relative;
+    overflow:hidden;
+    min-height:100%;
+  }
+  /* зерно — SVG-шум, без внешних файлов */
+  .wrap::after{
+    content:'';position:absolute;inset:0;pointer-events:none;z-index:5;
+    opacity:.5;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.42'/%3E%3C/svg%3E");
+  }
+  .wrap>*{position:relative;z-index:6}
+
+  h1.t{font-size:clamp(19px,2.4vw,26px);font-weight:400;margin:0 0 4px;letter-spacing:.01em}
+  .sub{font-size:14px;opacity:.62;margin:0 0 30px;max-width:62ch}
+  .sub code{font:12px/1 ui-monospace,Consolas,monospace;background:#0000000d;padding:2px 5px;border-radius:3px}
+
+  .card{
+    background:#fffdf7cc;
+    border:1px solid #2b2a2416;
+    border-radius:2px;
+    padding:clamp(18px,2.6vw,30px);
+    margin-bottom:18px;
+    box-shadow:0 1px 0 #ffffff80 inset;
+  }
+  .card h2{font-size:13px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;opacity:.5;margin:0 0 3px}
+  .card .why{font-size:13.5px;opacity:.7;margin:0 0 20px;max-width:70ch}
+  .card .why b{font-weight:400;color:#000;opacity:.85}
+
+  /* ——— общая сцена имени ——— */
+  .stage{
+    display:flex;align-items:baseline;justify-content:center;
+    min-height:clamp(64px,9vw,104px);
+    margin:6px 0 14px;
+    cursor:pointer;user-select:none;
+  }
+  .name{
+    font-size:clamp(34px,7.4vw,76px);
+    letter-spacing:-.012em;
+    white-space:nowrap;
+    display:inline-flex;
+  }
+  .g{display:inline-block;position:relative;will-change:transform,opacity,filter}
+  /* оба написания в DOM: кириллица видна поиску и скринридеру всегда */
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  .hint{font-size:12px;text-align:center;opacity:.42;letter-spacing:.06em}
+
+  /* 1. послойное растворение — слои наложены целиком, буквы внутри слоя */
+  .lay{position:relative;display:inline-block}
+  .lay .alt{position:absolute;left:0;top:0;white-space:nowrap}
+  .m1 .g{transition:opacity .34s ease, filter .34s ease, transform .34s ease}
+  .m1.to .lat .g{opacity:0;filter:blur(7px);transform:translateY(-.14em) scale(.94)}
+  .m1 .cyr .g{opacity:0;filter:blur(7px);transform:translateY(.14em) scale(1.06)}
+  .m1.to .cyr .g{opacity:1;filter:blur(0);transform:none}
+
+  /* 2. перекидное табло */
+  .m2 .col{display:inline-block;position:relative;overflow:hidden;height:1.1em;vertical-align:top}
+  .m2 .roll{display:block;transition:transform .5s cubic-bezier(.76,0,.18,1)}
+  .m2.to .roll{transform:translateY(-1.1em)}
+  .m2 .roll span{display:block;height:1.1em;line-height:1.1em}
+
+  /* 3. расшифровка */
+  .m3 .g{transition:opacity .12s linear}
+
+  /* 4. сжатие через ноль */
+  .m4 .g{transition:transform .3s cubic-bezier(.7,0,.3,1),opacity .3s ease;transform-origin:50% 50%}
+  .m4 .cyr .g{transform:scaleX(0);opacity:0}
+  .m4.to .lat .g{transform:scaleX(0);opacity:0}
+  .m4.to .cyr .g{transform:scaleX(1);opacity:1}
+
+  .verdict{font-size:13px;line-height:1.6;border-top:1px solid #2b2a2414;padding-top:14px;margin-top:4px;opacity:.78}
+  .verdict b{font-weight:400;color:#000}
+  .tag{display:inline-block;font:11px/1 ui-monospace,Consolas,monospace;letter-spacing:.04em;
+       padding:3px 7px;border:1px solid currentColor;border-radius:2px;margin-right:6px;vertical-align:1px}
+  .ok{color:#4a5940}.warn{color:#9a6b2f}
+
+  .star{position:absolute;z-index:4;pointer-events:none}
+  .note{font-size:12.5px;opacity:.55;margin-top:26px;max-width:74ch;line-height:1.65}
+  @media (prefers-reduced-motion:reduce){
+    .m1 .g,.m2 .roll,.m3 .g,.m4 .g{transition:none!important}
+  }
+</style>
+
+<div class="wrap">
+  <!-- несуразные звёзды: намеренно неровные, не пятиугольные -->
+  <svg class="star" style="top:5%;left:6%;width:34px" viewBox="0 0 40 40"><path d="M21 2 L25.5 15.5 L38 17.5 L27 25 L31.5 38 L19.5 30 L7 37 L11 24 L2 15 L15.5 14.5 Z" fill="var(--star)" opacity=".85"/></svg>
+  <svg class="star" style="top:22%;right:9%;width:19px" viewBox="0 0 40 40"><path d="M20 3 L23 16 L37 20 L24 24 L20 37 L17 25 L3 19 L16 15 Z" fill="#fff" opacity=".9"/></svg>
+  <svg class="star" style="bottom:9%;left:14%;width:25px" viewBox="0 0 40 40"><path d="M18 1 L24 14 L39 15 L28 24 L33 39 L18 31 L4 38 L9 23 L1 13 L14 13 Z" fill="var(--star)" opacity=".55"/></svg>
+  <svg class="star" style="bottom:26%;right:5%;width:14px" viewBox="0 0 40 40"><path d="M20 4 L22 18 L36 21 L21 25 L19 36 L16 24 L4 20 L17 16 Z" fill="#fff" opacity=".75"/></svg>
+
+  <h1 class="t">arisheniaa → аришения</h1>
+  <p class="sub">Четыре способа сделать переход без строки «читается так-то». Нажмите на имя — оно переключится. Ещё раз — вернётся. Во всех четырёх кириллица <b>лежит в разметке</b> с самого начала: <code>&lt;span class="sr"&gt;аришения&lt;/span&gt;</code> — то есть поиск и скринридер видят её всегда, независимо от анимации. Это требование П8 методологии, без него приём был бы красивым и бесполезным.</p>
+
+  <div class="card">
+    <h2>1 · Послойное растворение</h2>
+    <p class="why">Буквы латиницы уходят вверх, размываясь; кириллица приходит снизу и наводится на резкость. Каждая буква на <b>28 мс позже предыдущей</b> — волна слева направо.</p>
+    <div class="stage"><span class="name m1" id="m1"></span></div>
+    <p class="hint">нажмите</p>
+    <p class="verdict"><span class="tag ok">рекомендую</span> Мягко, и это главное — вы просили мягче. Расфокус прямо цитирует объектив: имя как будто наводят на резкость. Ложится в «плёночное» без всякой натуги. Риск: на очень длинном имени волна успевает надоесть — 28 мс на девять букв это 250 мс, ещё нормально.</p>
+  </div>
+
+  <div class="card">
+    <h2>2 · Перекидное табло</h2>
+    <p class="why">Каждая буква — окошко, внутри столбик из двух глифов. Столбик проматывается вверх. Механика вокзального табло, но <b>все окошки едут одновременно</b>, без стука.</p>
+    <div class="stage"><span class="name m2" id="m2"></span></div>
+    <p class="hint">нажмите</p>
+    <p class="verdict"><span class="tag ok">сильный</span> Самое внятное: видно, что буква <i>заменяется</i>, а не исчезает. Читается как «то же имя, другими буквами» — ровно то, что нужно сказать. Механика физическая, а не цифровая, и это работает на конфликт. Риск: табло — узнаваемый приём, у него есть привкус ретро-аэропорта; на тёплой палитре звучит скорее как печатная машинка, но проверить надо на живом шрифте.</p>
+  </div>
+
+  <div class="card">
+    <h2>3 · Расшифровка</h2>
+    <p class="why">Буквы быстро перебирают случайные знаки и оседают на кириллице — слева направо. <b>Шесть кадров по 55 мс</b> на букву.</p>
+    <div class="stage"><span class="name m3" id="m3"></span></div>
+    <p class="hint">нажмите</p>
+    <p class="verdict"><span class="tag warn">осторожно</span> Технически бодро и заметно. Но приём родом из хакерско-терминальной эстетики, и он <b>холодный</b> — прямо против вашей правки «помягче, почеловечнее». Оставил для полноты: сравнив, легче понять, чего вы не хотите. Плюс он мешает прочитать имя, а имя — единственное слово, которое обязано прочитаться с первого раза.</p>
+  </div>
+
+  <div class="card">
+    <h2>4 · Сжатие через ноль</h2>
+    <p class="why">Буква сплющивается по горизонтали до нуля и разворачивается уже кириллической — как перевёрнутая карточка. <b>По 300 мс</b>, с задержкой 30 мс на букву.</p>
+    <div class="stage"><span class="name m4" id="m4"></span></div>
+    <p class="hint">нажмите</p>
+    <p class="verdict"><span class="tag warn">на подумать</span> Чище всех по идее: буква буквально <i>поворачивается другой стороной</i>. Но сплющивание — жёсткий, механический жест, и на серифной гарнитуре он щёлкает. Может ожить на более округлом шрифте; сейчас скорее третий-четвёртый выбор.</p>
+  </div>
+
+  <p class="note"><b>Что дальше.</b> Это черновик на системной гарнитуре — не выбор шрифта и не выбор палитры, только механика перехода. На Ф2 каждое из трёх направлений покажет свой вариант на своей гарнитуре, и там же решится, где переход живёт: в логотипе, в первом экране или в обоих. Скажите, какой из четырёх ближе — и что в нём поправить. Если ни один, скажите это тоже: механик больше, чем четыре.</p>
+</div>
+
+<script>
+(function(){
+  var LAT='arisheniaa', CYR='аришения';
+  var POOL='абвгдежзиклмнопрстухцчшщыэюя';
+
+  // разбить слово на буквы-спаны со ступенчатой задержкой
+  function letters(word,step){
+    var h='';
+    for(var i=0;i<word.length;i++)
+      h+='<span class="g" style="display:inline-block;transition-delay:'+(i*step)+'ms">'+word[i]+'</span>';
+    return h;
+  }
+  // Оба написания лежат ЦЕЛЫМИ словами, а не буквами вперемешку.
+  // Визуальный слой помечен aria-hidden; читаемый текст — один чистый узел.
+  // Ширину держит КИРИЛЛИЦА — она шире латиницы (358 против 340 px на этой гарнитуре).
+  // Если бы ширину держала латиница, после перехода имя сдвинулось бы на 18 px.
+  function layers(step){
+    return '<span class="lay" aria-hidden="true">'
+         +   '<span class="cyr">'+letters(CYR,step)+'</span>'
+         +   '<span class="alt lat">'+letters(LAT,step)+'</span>'
+         + '</span><span class="sr">аришения</span>';
+  }
+
+  // 1 — послойное растворение
+  (function(){
+    var el=document.getElementById('m1');
+    el.innerHTML=layers(28);
+    el.parentNode.addEventListener('click',function(){el.classList.toggle('to')});
+  })();
+
+  // 2 — перекидное табло
+  (function(){
+    var el=document.getElementById('m2'), n=Math.max(LAT.length,CYR.length), h='';
+    for(var i=0;i<n;i++){
+      h+='<span class="col"><span class="roll" style="transition-delay:'+(i*22)+'ms">'
+       +   '<span>'+(LAT[i]||' ')+'</span><span>'+(CYR[i]||' ')+'</span>'
+       + '</span></span>';
+    }
+    el.innerHTML='<span aria-hidden="true">'+h+'</span><span class="sr">аришения</span>';
+    el.parentNode.addEventListener('click',function(){el.classList.toggle('to')});
+  })();
+
+  // 3 — расшифровка
+  (function(){
+    var el=document.getElementById('m3'), n=Math.max(LAT.length,CYR.length), on=false, busy=false, sp=[];
+    var h='';for(var i=0;i<n;i++) h+='<span class="g">'+(LAT[i]||'')+'</span>';
+    el.innerHTML='<span aria-hidden="true">'+h+'</span><span class="sr">аришения</span>';
+    sp=el.querySelectorAll('.g');
+    el.parentNode.addEventListener('click',function(){
+      if(busy) return; busy=true;
+      var target=on?LAT:CYR; on=!on;
+      sp.forEach(function(s,i){
+        var frames=6, k=0;
+        setTimeout(function(){
+          var t=setInterval(function(){
+            k++;
+            if(k>=frames){clearInterval(t); s.textContent=target[i]||'';
+              if(i===sp.length-1) busy=false;}
+            else s.textContent=POOL[Math.floor(Math.random()*POOL.length)];
+          },55);
+        }, i*45);
+      });
+    });
+  })();
+
+  // 4 — сжатие через ноль
+  (function(){
+    var el=document.getElementById('m4');
+    el.innerHTML=layers(30);
+    el.parentNode.addEventListener('click',function(){el.classList.toggle('to')});
+  })();
+})();
+</script>

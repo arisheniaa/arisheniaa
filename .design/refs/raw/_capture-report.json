@@ -1,0 +1,189 @@
+[
+ {
+  "slug": "oatly",
+  "url": "https://www.oatly.com",
+  "polus": "mat",
+  "files": [
+   "mat-oatly--d-hero.png",
+   "mat-oatly--d-dense.png"
+  ],
+  "ok": true,
+  "notes": [
+   "баннер закрыт: button:has-text(\"Decline\")"
+  ]
+ },
+ {
+  "slug": "dinamo",
+  "url": "https://abcdinamo.com",
+  "polus": "mat",
+  "files": [
+   "mat-dinamo--d-hero.png",
+   "mat-dinamo--d-dense.png"
+  ],
+  "ok": true,
+  "notes": []
+ },
+ {
+  "slug": "risotto",
+  "url": "https://risottostudio.com",
+  "polus": "mat",
+  "files": [
+   "mat-risotto--d-hero.png",
+   "mat-risotto--d-dense.png"
+  ],
+  "ok": true,
+  "notes": [
+   "баннер закрыт: button:has-text(\"OK\")"
+  ]
+ },
+ {
+  "slug": "poolsuite",
+  "url": "https://poolsuite.net",
+  "polus": "mat",
+  "files": [
+   "mat-poolsuite--d-hero.png",
+   "mat-poolsuite--d-dense.png"
+  ],
+  "ok": true,
+  "notes": []
+ },
+ {
+  "slug": "creativeindep",
+  "url": "https://thecreativeindependent.com",
+  "polus": "mat",
+  "files": [
+   "mat-creativeindep--d-hero.png",
+   "mat-creativeindep--d-dense.png"
+  ],
+  "ok": true,
+  "notes": []
+ },
+ {
+  "slug": "aesop",
+  "url": "https://www.aesop.com/us/",
+  "polus": "pal",
+  "files": [
+   "pal-aesop--d-hero.png",
+   "pal-aesop--d-dense.png"
+  ],
+  "ok": true,
+  "notes": []
+ },
+ {
+  "slug": "jacquemus",
+  "url": "https://www.jacquemus.com",
+  "polus": "pal",
+  "files": [
+   "pal-jacquemus--d-hero.png",
+   "pal-jacquemus--d-dense.png"
+  ],
+  "ok": true,
+  "notes": []
+ },
+ {
+  "slug": "thesill",
+  "url": "https://www.thesill.com",
+  "polus": "pal",
+  "files": [
+   "pal-thesill--d-hero.png",
+   "pal-thesill--d-dense.png"
+  ],
+  "ok": true,
+  "notes": []
+ },
+ {
+  "slug": "greatjones",
+  "url": "https://greatjonesgoods.com",
+  "polus": "pal",
+  "files": [
+   "pal-greatjones--d-hero.png",
+   "pal-greatjones--d-dense.png"
+  ],
+  "ok": true,
+  "notes": [
+   "баннер закрыт: button:has-text(\"OK\")"
+  ]
+ },
+ {
+  "slug": "gumroad",
+  "url": "https://gumroad.com",
+  "polus": "nai",
+  "files": [
+   "nai-gumroad--d-hero.png",
+   "nai-gumroad--d-dense.png"
+  ],
+  "ok": true,
+  "notes": []
+ },
+ {
+  "slug": "figmaconfig",
+  "url": "https://config.figma.com",
+  "polus": "nai",
+  "files": [
+   "nai-figmaconfig--d-hero.png",
+   "nai-figmaconfig--d-dense.png"
+  ],
+  "ok": true,
+  "notes": [
+   "баннер закрыт: button:has-text(\"OK\")"
+  ]
+ },
+ {
+  "slug": "wfolio",
+  "url": "https://wfolio.ru",
+  "polus": "anti",
+  "files": [
+   "anti-wfolio--d-hero.png",
+   "anti-wfolio--d-dense.png",
+   "anti-wfolio--m-hero.png"
+  ],
+  "ok": true,
+  "notes": [
+   "баннер закрыт: button:has-text(\"Отклонить\")",
+   "баннер закрыт: button:has-text(\"Отклонить\")"
+  ]
+ },
+ {
+  "slug": "tildaphoto",
+  "url": "https://tilda.cc/ru/",
+  "polus": "anti",
+  "files": [
+   "anti-tildaphoto--d-hero.png",
+   "anti-tildaphoto--d-dense.png",
+   "anti-tildaphoto--m-hero.png"
+  ],
+  "ok": true,
+  "notes": [
+   "баннер закрыт: button:has-text(\"Отклонить\")",
+   "баннер закрыт: button:has-text(\"Отклонить\")"
+  ]
+ },
+ {
+  "slug": "locomotive",
+  "url": "https://locomotive.ca",
+  "polus": "scr",
+  "files": [
+   "scr-locomotive--d-hero.png",
+   "scr-locomotive--d-dense.png"
+  ],
+  "ok": true,
+  "notes": [
+   "баннер закрыт: button:has-text(\"OK\")"
+  ]
+ },
+ {
+  "slug": "makemepulse",
+  "url": "https://makemepulse.com",
+  "polus": "cur",
+  "files": [
+   "cur-makemepulse--d-hero.png",
+   "cur-makemepulse--d-dense.png",
+   "cur-makemepulse--m-hero.png"
+  ],
+  "ok": true,
+  "notes": [
+   "баннер закрыт: button:has-text(\"Deny\")",
+   "баннер закрыт: button:has-text(\"Deny\")"
+  ]
+ }
+]
