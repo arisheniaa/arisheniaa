@@ -298,5 +298,131 @@ for (const [w, h] of [
   await shot(`page-full-${w}`, { full: true, width: w, height: h, wait: 1800, act: scrollThrough });
 }
 
+/* ─── 12. РЕДАКЦИЯ 3 (Ф29, FACTS.md — не лок) — семь новых пунктов ───
+   Прокрутки внутри `act` используют `behavior: 'instant'` явно: числовая форма
+   `scrollTo(x, y)` наследует CSS `scroll-behavior: smooth` (`html`, styles.css)
+   и на длинных дистанциях просто не успевает доехать за паузу кадра —
+   ровно та находка, что уже задокументирована в `scripts/selfcheck.mjs`. */
+console.log('редакция 3 (Ф29):');
+
+const clearHeaderShot = (sel, offset = 160) => async (page) => {
+  await page.evaluate(
+    ([s, off]) => {
+      const el = document.querySelector(s);
+      const y = el.getBoundingClientRect().top + window.scrollY - off;
+      window.scrollTo({ top: Math.max(0, y), left: 0, behavior: 'instant' });
+    },
+    [sel, offset],
+  );
+  await page.waitForTimeout(350);
+};
+
+/* 12.1 Настроение диптиха (п.1) — «тихое» начало и «странное» окончание
+   прохода секции «Как получается кино»: полотно на глаз должно отличаться
+   по цвету/интенсивности между двумя кадрами. */
+const moodScroll = (frac) => async (page) => {
+  await page.evaluate((f) => {
+    const el = document.querySelector('[data-mood-scope]');
+    const r = el.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const start = window.scrollY + r.top - vh;
+    const end = window.scrollY + r.bottom;
+    window.scrollTo({ top: start + (end - start) * f, left: 0, behavior: 'instant' });
+  }, frac);
+  await page.waitForTimeout(500);
+};
+await shot('mood-01-quiet', { width: 1280, height: 900, act: moodScroll(0.02) });
+await shot('mood-02-strange', { width: 1280, height: 900, act: moodScroll(0.98) });
+
+/* 12.2 Курсор-метка «тяни» (п.2) — над верхним кадром рэка, вместо
+   системного grab/grabbing. */
+await shot('rack-hint-tyani', {
+  clip: '.rack',
+  act: async (page) => {
+    const box = await page.locator('.rack-stack').boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 6 });
+    await page.waitForTimeout(250);
+  },
+});
+
+/* 12.3 3D-тилт карточки услуги (п.3) — наклон и блик по краю кадра под
+   курсором, кроп по самому кадру. */
+await shot('tilt-01-hover', {
+  width: 1280,
+  height: 900,
+  act: async (page) => {
+    await clearHeaderShot('#uslugi', 160)(page);
+    const box = await page.locator('.tilt-frame').first().boundingBox();
+    await page.mouse.move(box.x + box.width * 0.15, box.y + box.height * 0.15, { steps: 6 });
+    await page.waitForTimeout(300);
+  },
+  clip: '.tilt-frame',
+});
+
+/* 12.4 Боковой индикатор разделов (п.4) — вверху страницы и после прокрутки
+   к середине, чтобы было видно, что активная звезда переезжает. */
+await shot('section-stars-01-top', { width: 1400, height: 900, clip: '.section-stars' });
+await shot('section-stars-02-mid', {
+  width: 1400,
+  height: 900,
+  clip: '.section-stars',
+  act: async (page) => {
+    await page.evaluate(() =>
+      window.scrollTo({ top: document.body.scrollHeight * 0.55, left: 0, behavior: 'instant' }),
+    );
+    await page.waitForTimeout(500);
+  },
+});
+
+/* 12.5 EXIF-подпись плёночного кадра (п.5) — только слово «плёнка»
+   (сужение по OQ-21, см. `FilmCaption.tsx`). */
+await shot('film-exif-caption', {
+  width: 1280,
+  height: 900,
+  act: async (page) => {
+    await clearHeaderShot('.film-tag', 160)(page);
+    const box = await page.locator('.film-tag').boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 6 });
+    await page.waitForTimeout(900);
+  },
+  clip: '.film-tag',
+});
+
+/* 12.6 Цена за кликом (п.6) — приглушённая цифра и разворот по клику,
+   один и тот же кадр карточки в обоих состояниях. */
+await shot('price-plate-01-closed', {
+  width: 1280,
+  height: 900,
+  act: clearHeaderShot('.price-plate', 160),
+  clip: '.price-plate',
+});
+await shot('price-plate-02-open', {
+  width: 1280,
+  height: 900,
+  act: async (page) => {
+    await clearHeaderShot('.price-plate', 160)(page);
+    await page.locator('.price-plate').first().click();
+    await page.waitForTimeout(500);
+  },
+  clip: '.price-plate',
+});
+
+/* 12.7 Асимметричный разлёт папок (п.7) — кадр СРЕДИ полёта (180 мс из
+   400–470 мс перехода): обе дочерние папки уже видны, но под разными углами
+   и на разном расстоянии от родителя — после полной остановки они лягут
+   ровно, разница живёт в пути, не в покое (см. styles.css). */
+await shot('folders-05-asymmetric-mid', {
+  clip: '.delivery',
+  // wait: 0 — `shot()` иначе добавляет свою паузу (по умолчанию 900 мс)
+  // ПОСЛЕ `act`, и переход (400–470 мс) успел бы полностью осесть,
+  // а кадр как раз обязан поймать его НА ЛЕТУ.
+  wait: 0,
+  act: async (page) => {
+    await scrollThrough(page);
+    await page.locator('.folder-parent').click();
+    await page.waitForTimeout(180);
+  },
+});
+
 await browser.close();
 console.log(`\nснято кадров: ${made.length}, каталог: .design/hybrid/shots/`);
