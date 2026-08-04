@@ -13,61 +13,39 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ─── Гарнитуры ───────────────────────────────────────────────────────────
-   ТЕЛО САЙТА — БЕЗ ЗАСЕЧЕК, ИМЯ В ШАПКЕ — АНТИКВА. Лок, «Типографика»:
-   «общий текст сайта — без засечек» отменяет антикву как несущий приём
-   «везде, КРОМЕ имени в шапке, которое остаётся антиквой из направления C
-   по отдельному прямому одобрению». То есть исключение названо в локе явно,
-   и класс `.t-name` — единственное место, где засечки живут.
+   ТЕЛО САЙТА — БЕЗ ЗАСЕЧЕК. ИМЯ В ШАПКЕ — ТОЖЕ БЕЗ ЗАСЕЧЕК, ИСПРАВЛЕНО Ф35.
 
-   Первая версия набрала имя тем же Golos Text, что и весь сайт, на основании
-   того, что в коде C имя стояло Golos. Это была ошибка чтения: гарнитура,
-   которую владелица одобрила («и по расположению вверху и по размеру тоже
-   всё устраивает»), в C называется `--font-display` и это Vollkorn 900
-   (`directions/c/README.md`, «Гарнитуры»). Возвращено.
+   Раньше здесь стояла запись, что имя в шапке — единственное место антиквы
+   (Vollkorn 900) «по отдельному прямому одобрению владелицы», и что версия
+   на Golos Text была «ошибкой чтения». Это было НАОБОРОТ: прямая сверка с
+   исходником направления C по просьбе владелицы («шрифт и размер никнейма
+   точно как в варианте C») показала обратное. `directions/c/README.md`,
+   таблица «Гарнитуры»: «Дисплей — Vollkorn 900 (**H1/H2**)» / «Текст —
+   Golos Text 400, 500» — Vollkorn в C относится ТОЛЬКО к крупным заголовкам.
+   Разметка самого имени в C (`directions/c/src/App.tsx`, обе точки —
+   шапка и вторая копия ниже) — `<NameMorph className="text-[1.0625rem]
+   font-medium tracking-tight">` и `<NameMorph className="text-[0.9375rem]">`,
+   ни разу без переопределения `font-family`: имя наследует обычный текстовый
+   Golos Text, антиквы там не было никогда. Прежняя правка на Vollkorn была
+   основана на неверном чтении таблицы гарнитур C (спутали общее «Дисплей»
+   со шрифтом конкретно имени), а версия на Golos Text была исходно верной.
+   `.t-name` больше не собственная гарнитура — обычный текст сайта, стиль ниже.
 
    Golos Text — ParaType, кириллица-first, переменная ось wght 400–900.
    JetBrains Mono — кириллица есть, проверена в направлении C.
-   Vollkorn 900 — брусковая антиква, SIL OFL; взяты ровно два подрезанных
-   файла из C (кириллица и латиница по `unicode-range`), потому что имя —
-   единственный текст этой гарнитурой на сайте, и тянуть весь набор
-   начертаний ради одной строки незачем.
-   Все три self-hosted, все OFL. Кириллица проверена на РУССКОМ боевом
-   тексте, не на латинской панграмме: `shots/font-proof.png`, и на самом
-   имени в кадрах `shots/name-*.png` — там кириллица и латиница стоят
-   одной гарнитурой рядом. */
+   Обе self-hosted, обе OFL. Кириллица проверена на РУССКОМ боевом тексте,
+   не на латинской панграмме: `shots/font-proof.png`. */
 @import '@fontsource-variable/golos-text/wght.css';
 @import '@fontsource-variable/jetbrains-mono/wght.css';
 
-/* Vollkorn 900 — только для `.t-name`. Файлы из `directions/c/public/fonts`,
-   подрезка по unicode-range оттуда же: кириллица отдельным файлом, поэтому
-   при показе латиницы `arisheniaa` кириллический файл даже не скачивается,
-   а к моменту морфинга он уже нужен и приходит. */
-@font-face {
-  font-family: 'Vollkorn';
-  font-style: normal;
-  font-weight: 900;
-  font-display: swap;
-  src: url('/fonts/vollkorn-900-n-13.woff2') format('woff2');
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-}
-@font-face {
-  font-family: 'Vollkorn';
-  font-style: normal;
-  font-weight: 900;
-  font-display: swap;
-  src: url('/fonts/vollkorn-900-n-17.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
-    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
-    U+FEFF, U+FFFD;
-}
+/* Vollkorn 900 (Ф35: снят из `.t-name`, файлы `@font-face` и переменная
+   `--font-display` удалены — имя в шапке больше не отдельная гарнитура,
+   см. комментарий выше). Ни одна роль на сайте больше не использует антикву
+   нигде — правило лока «типографика без засечек» теперь без исключений. */
 
 @theme {
   --font-sans: 'Golos Text Variable', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
-  /* Антиква. Ровно одна роль на сайте — имя в шапке (лок, «Типографика»).
-     Фолбэк Georgia — как в C: если Vollkorn не пришёл, имя остаётся антиквой,
-     а не проваливается в гротеск тела и не теряет исключение из правила. */
-  --font-display: 'Vollkorn', Georgia, 'Times New Roman', serif;
 
   /* ─── Движение. Числа, не эпитеты ─── */
   --ease-out: cubic-bezier(0.16, 0.84, 0.28, 1);
@@ -323,21 +301,18 @@
     line-height: 1.12;
     letter-spacing: -0.02em;
   }
-  /* ИМЯ В ШАПКЕ — единственная антиква на сайте (лок, «Типографика»:
-     «кроме имени в шапке, которое остаётся антиквой из направления C»).
-     Гарнитура — `--font-display`, то есть Vollkorn 900 из C.
-     Кегль поднят до 1.5rem против 1.0625rem у гротеска: брусковая антиква
-     в 900 при том же кегле читается мельче гротеска в 500 из-за плотности
-     и засечек, и на 1920 имя терялось. Позиция и звезда-компаньон — из C
-     без изменений.
-     Трекинг не отрицательный: у Vollkorn 900 засечки уже смыкают строку,
-     и минус превращал «аришения» в слипшуюся ленту. */
+  /* ИМЯ В ШАПКЕ — ИСПРАВЛЕНО Ф35, антиквы больше нет нигде на сайте (см.
+     комментарий у гарнитур в начале файла: прежняя запись про «имя как
+     исключение из правила без засечек» опиралась на неверное чтение
+     таблицы гарнитур C). Значения — точно как в шапке C
+     (`directions/c/src/App.tsx`): `1.0625rem`, `font-weight: 500`,
+     `letter-spacing` отрицательный (`tracking-tight` Tailwind = -0.025em). */
   .t-name {
-    font-family: var(--font-display);
-    font-size: clamp(1.25rem, 1.05rem + 0.62vw, 1.75rem);
-    font-weight: 900;
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    font-weight: 500;
     line-height: 1;
-    letter-spacing: 0;
+    letter-spacing: -0.025em;
   }
   .t-lead {
     font-size: var(--step-1);
@@ -671,6 +646,59 @@
     backdrop-filter: blur(9px);
   }
 
+  /* ═══ СТРЕЛКА-ПОДСКАЗКА НА «ПРИДУМАТЬ СЪЁМКУ» (Ф33 п.3, редакция 4 фичи
+     «Придумать съёмку», `NavHint.tsx`) ═══════════════════════════════════
+     `position: fixed`, координаты пишет JS (`left`/`top` — реальное
+     положение пункта навигации/кнопки «Разделы» на экране, измерено
+     `getBoundingClientRect`). `transform: translate(-50%, ...)` центрирует
+     стрелку под точкой, а не её левый край. Появление — `data-show`,
+     тот же приём, что у `.rack-hint`/`.film-tag-caption`: класс/атрибут
+     ставится JS на кадр позже монтирования, чтобы CSS-переход имел от чего
+     оттолкнуться (переход не запускается, если начальное и конечное
+     состояние применились в один кадр). */
+  .nav-hint {
+    position: fixed;
+    z-index: 55;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    transform: translate(-50%, 6px);
+    padding: 0.5em 0.85em 0.56em;
+    background: color-mix(in srgb, var(--ink) 86%, transparent);
+    color: var(--paper-hi);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 320ms var(--ease-out),
+      transform 320ms var(--ease-out);
+  }
+  .nav-hint[data-show] {
+    opacity: 1;
+    transform: translate(-50%, 12px);
+    pointer-events: auto;
+  }
+  .nav-hint svg {
+    flex: none;
+    color: var(--star-gold);
+    animation: nav-hint-bob 1.6s ease-in-out infinite;
+  }
+  @keyframes nav-hint-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-3px);
+    }
+  }
+
   /* ═══ ССЫЛКИ ═══════════════════════════════════════════════════════════
      Кнопочная фурнитура на этом сайте не используется: отклик несут линия
      и нажатие. Отклик — на нажатии, не на отпускании. */
@@ -963,8 +991,12 @@
   .tilt-frame,
   .tilt-glint,
   .film-tag-caption,
-  .section-star {
+  .section-star,
+  .nav-hint {
     transition: none !important;
+  }
+  .nav-hint svg {
+    animation: none !important;
   }
   /* Линия активного пункта навигации при выключенном движении не выезжает,
      а просто стоит: иначе она осталась бы в scaleX(0), то есть невидимой, и

@@ -10,8 +10,16 @@
  * автозапуск через 10 000 мс, ручной триггер «нажми», кириллический слой на
  * экране, крючок `?morph=slow`, обёртка ссылкой на `#main`.
  *
- * Что осталось из C: `--font-display` (Vollkorn 900) через класс `.t-name`,
- * кегль и позиция шапки, звезда-компаньон слева от имени.
+ * ГАРНИТУРА ШАПКИ — ИСПРАВЛЕНО Ф35, БЫЛА ОШИБКА. `.t-name` какое-то время
+ * стоял на `--font-display` (Vollkorn 900) — это читалось как перенос облика
+ * C, но при прямой сверке с исходником C (`directions/c/README.md`, таблица
+ * гарнитур: «Дисплей — Vollkorn 900 (H1/H2)» / «Текст — Golos Text 400, 500»;
+ * `directions/c/src/App.tsx`, шапка: `<NameMorph className="text-[1.0625rem]
+ * font-medium tracking-tight">` — без переопределения `font-family`, то есть
+ * обычный текстовый Golos Text, не антиква) выяснилось: имя в шапке C стояло
+ * рядовым текстом, Vollkorn там относился только к крупным H1/H2. Возвращено
+ * к тому, что реально было — `.t-name` больше не самостоятельная гарнитура,
+ * стиль ниже.
  *
  * Почему НЕ ССЫЛКА: Ф28 дословно — «пусть оно не будет кликабельным». Раньше
  * имя было обёрнуто в `<a href="#main">`. Переход на начало страницы не потерян:
@@ -31,10 +39,9 @@ const LAT = 'arisheniaa';
 export function Name({ className = '' }: { className?: string }) {
   return (
     <p className={`m-0 flex items-baseline gap-[0.55rem] text-[color:var(--ink)] ${className}`}>
-      {/* Семиугольная звезда-компаньон из C. `size={17}` — кегль шапки гибрида,
-          в C было 18 при меньшем кегле имени. */}
+      {/* Семиугольная звезда-компаньон — размер 18, точно как в C (Ф35). */}
       <StarMark
-        size={17}
+        size={18}
         className="shrink-0 translate-y-[0.1em] text-[color:var(--star-gold)]"
       />
       <span className="t-name whitespace-nowrap">{LAT}</span>
