@@ -283,8 +283,17 @@
     line-height: 0.88;
     letter-spacing: -0.04em;
   }
+  /* РЕДАКЦИЯ 5 (Ф36 п.6). Дословно: «главные размеры надписей типа "что
+     можно у меня снять" и "как рождается кино" и подобные - сделай чуть
+     меньше». Обе названные строки (`home:offer.title`, `home:cinema.title`)
+     и никакой другой заголовок на странице набраны именно этим классом
+     (проверено по факту в `App.tsx`, а не по памяти о разметке — FACTS.md
+     ошибочно называет их класс `.t-h2`, в коде это `.t-h1`; см. README § 10).
+     Значит «подобные» здесь ничего не добавляет: класс уже и есть точное
+     множество из двух названных примеров. Уменьшено умеренно («чуть
+     меньше», не «сильно») — примерно на 20% по потолку и по низу вилки. */
   .t-h1 {
-    font-size: clamp(1.95rem, 1rem + 4.2vw, 4.5rem);
+    font-size: clamp(1.7rem, 0.95rem + 3.4vw, 3.6rem);
     font-weight: 750;
     line-height: 0.98;
     letter-spacing: -0.03em;
@@ -364,45 +373,45 @@
     line-height: 1.28;
   }
 
-  /* ═══ ЦЕНА ЗА КЛИКОМ (Ф29 п.6, FACTS.md — не лок) ═════════════════════════
-     `.plate` остаётся плашкой краски (см. выше), но теперь ещё и кнопкой:
-     `PricePlate.tsx` оборачивает те же классы `.plate.t-num` в `<button>`.
-     Цифра приглушена фильтром до клика, состав (город, «за час» и т. п.)
-     читается сразу — ровно требование «состав без итоговой цифры». */
+  /* ═══ ПЛАШКА ЦЕНЫ — ДВЕРЦА СНИЗУ ВВЕРХ (Ф36 п.8, ОТМЕНА Ф29 п.6) ═════════
+     `.plate` остаётся плашкой краски (см. выше), но больше НЕ кнопка:
+     владелица прямо просит показывать цену сразу, без клика — открывать по
+     клику больше нечего, `PricePlate.tsx` рендерит `<span>`.
+
+     «ДВЕРЦА» — `clip-path`, не blur: закрытое состояние прижимает видимую
+     область к верхнему краю (`inset(100% 0 0 0)` — нулевая высота), открытие
+     уводит эту границу вверх, обнажая цифры СНИЗУ ВВЕРХ. Триггер — тот же
+     `.reveal`/`is-sharp`, что двигает всю остальную страницу (`reveal.ts`):
+     нового JS нет, только CSS-правило на уже существующий переключатель
+     класса (правило «движение из примитивов» — не пишем анимацию с нуля там,
+     где есть готовый примитив). Текст в DOM не меняется НИКОГДА (см.
+     комментарий в `PricePlate.tsx`) — меняется только это, визуальное;
+     `clip-path` не прячет содержимое от скринридера, доступность бесплатно,
+     тот же принцип, что раньше был у `blur`. */
   .price-plate {
-    cursor: pointer;
-    border: 0;
     font: inherit;
     text-align: left;
-    transition: transform var(--dur-press) ease-out;
   }
-  .price-plate:hover {
-    background: color-mix(in srgb, var(--plate) 88%, var(--paper-hi));
-  }
-  .price-plate:active {
-    transform: scale(0.985);
-  }
-  /* Приглушённая цифра: блюр + просадка непрозрачности и лёгкое сжатие по
-     вертикали — «разворачивается», а не просто проявляется. Кривая с
-     перелётом (`--ease-spring`) на transform — та самая «пружина» задания;
-     opacity идёт отдельной, более простой кривой, потому что прозрачность
-     не «пружинит» на глаз, только форма. Текст в DOM не меняется НИКОГДА
-     (см. комментарий в `PricePlate.tsx`) — meняется только это, визуальное. */
   .price-plate-digits {
     display: inline-block;
-    filter: blur(6px);
-    opacity: 0.4;
-    transform-origin: left center;
-    transform: scaleY(0.72) scaleX(0.95) translateY(1px);
-    transition:
-      filter 380ms var(--ease-spring),
-      opacity 260ms var(--ease-out),
-      transform 420ms var(--ease-spring);
+    clip-path: inset(100% 0 0 0);
+    transition: clip-path 520ms var(--ease-spring);
+    transition-delay: 120ms;
   }
-  .price-plate[data-open] .price-plate-digits {
-    filter: blur(0);
-    opacity: 1;
-    transform: none;
+  .reveal.is-sharp .price-plate-digits {
+    clip-path: none;
+  }
+  /* Элементы, видимые в первом кадре (`is-instant`, `reveal.ts`) не должны
+     доигрывать «дверцу» уже ПОСЛЕ загрузки — правило П7, «движения в первом
+     кадре нет». Здесь она открывается мгновенно, вместе с остальным блоком. */
+  .reveal.is-instant .price-plate-digits {
+    transition: none !important;
+  }
+  /* Крючок съёмки `?priceplate=closed` (`PricePlate.tsx`) — держит дверцу
+     закрытой независимо от `.reveal`/`is-sharp`. На продукт не влияет. */
+  .price-plate-digits[data-force-closed] {
+    clip-path: inset(100% 0 0 0) !important;
+    transition: none !important;
   }
 
   /* ═══ ТИЛТ КАРТОЧЕК УСЛУГ (Ф29 п.3, FACTS.md — не лок) ════════════════════

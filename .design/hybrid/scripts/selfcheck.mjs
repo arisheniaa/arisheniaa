@@ -13,15 +13,20 @@
  *  · reduced-motion не теряет контента — сравнивается длина текста и число
  *    картинок с обычным режимом;
  *  · ошибки консоли и pageerror;
- *  · РЕДАКЦИЯ 3 (Ф29, раздел 5 ниже) — семь новых измеримых проверок, по одной
- *    на пункт: тилт карточек реально поворачивает кадр, цена реально скрыта и
- *    реально появляется по клику, курсор-метка реально меняет видимость и не
- *    более системный grab/grabbing, боковой индикатор реально светится на
- *    активной секции, EXIF-подпись реально появляется и не несёт выдуманных
- *    технических деталей, папки отдачи реально раскрываются несимметрично,
- *    настроение полотна реально меняется непрерывно при проходе диптиха, и
- *    в src/ нет ни одного звукового API (владелица прямо попросила «без
- *    звуков» — прежний черновой пакет включал звук затвора).
+ *  · РЕДАКЦИЯ 3 (Ф29, раздел 5 ниже) — семь измеримых проверок, по одной на
+ *    пункт: тилт карточек реально поворачивает кадр, цена — см. правку ниже,
+ *    курсор-метка реально меняет видимость и не более системный grab/
+ *    grabbing, боковой индикатор реально светится на активной секции,
+ *    EXIF-подпись реально появляется и не несёт выдуманных технических
+ *    деталей, папки отдачи реально раскрываются несимметрично, настроение
+ *    полотна реально меняется непрерывно при проходе диптиха, и в src/ нет
+ *    ни одного звукового API (владелица прямо попросила «без звуков» —
+ *    прежний черновой пакет включал звук затвора);
+ *  · РЕДАКЦИЯ 5 (Ф36 п.8, раздел 5.2 ниже, ОТМЕНА Ф29 п.6) — цена плашки
+ *    больше НЕ ждёт клика: закрыта до попадания в кадр, «дверца» реально
+ *    открывается один раз при скролле (clip-path на `.reveal`/`is-sharp`,
+ *    не blur за клик-гейтом), текст дословно в DOM независимо от состояния,
+ *    формат «город — цена/час» реально на странице.
  *
  * Выход кодом 1 при любом провале. Проба на «умеет ли краснеть» — флаг
  * `--redproof`: подставляет заведомо отсутствующую строку в список дословных,
@@ -48,20 +53,15 @@ const VERBATIM = [
   'Создаю ваше кино',
   'Снимаю в Москве и Туле',
   'Как получается кино',
-  'Придумано заранее',
-  'Найдено на месте',
   'нажми на меня',
   'на цифру',
   'на плёнку',
   'Творческая',
-  'Помогу подготовиться к съёмке',
   'Вы всегда можете связаться со мной, кликнув сюда.',
-  // Ф28: навигация, состав и подписи дословно
+  // Ф28: навигация, состав и подписи дословно (Ф36 п.1 правит состав — см. ниже)
   'Главная',
-  'Работы',
   'Обо мне',
   'Что снимаю',
-  'Подготовка к съёмке',
   'Контакты',
   // Ф28: два слова контактов
   'телеграм',
@@ -70,10 +70,38 @@ const VERBATIM = [
   'Пришлю ссылочку на папку, где будут ваши фотографии. Если у вас была ещё плёнка, то папки будет две.',
   // имя — только латиница (Ф28)
   'arisheniaa',
+  // РЕДАКЦИЯ 5 (Ф36 п.1) — навигация правлена
+  'С чего начать',
+  // Ф36 п.2 — второе предложение лида, переписанное под её пример
+  'Создадим ваше кино',
+  'запечатлим его в статичных кадрах',
+  // Ф36 п.5 — новый текст диптиха «Как получается кино», дословно, строчными
+  'Иногда образ и реквизит собирается необычным способом',
+  'взяла у деда шапку-ушанку и бабушкину шаль',
+  'а для эльфийской съемки даже сшила платье!',
+  'по планам утром должен быть туман',
+  'вот где рождается настоящая киношность...',
+  // Ф36 п.7 — новая вводная строка блока услуг
+  'на ваш выбор классика и творчество',
+  // Ф36 п.8 — карточки услуг переименованы, новая подпись, новая 4-я карточка
+  'Индивидуальная',
+  'Парная',
+  '30 снимков за час в авторской обработке',
+  'Плёночная',
+  'сделаем пленочные воспоминания',
+  // Ф36 п.9 + Ф37 п.1–2 — новый заголовок и текст всех четырёх шагов
+  'С чего начать и как это всё устроено',
+  'начните с самого простого',
+  'может создадим идею вместе',
+  // новый факт — размер предоплаты 2 000 ₽ (Ф36 п.9, впервые назван)
+  'внесете предоплату в размере 2 000 рублей',
+  'во время съемки я подскажу как встать',
+  'Отбираю кадры самостоятельно',
+  'фотографии на Диске хранятся месяц',
   ...(RED ? ['ТАКОЙ СТРОКИ В COPY НЕТ'] : []),
 ];
 
-/** Ф28 сняла это со страницы. Каждая строка — с причиной снятия. */
+/** Строки, которых на странице быть не должно, с причиной снятия. */
 const FORBIDDEN = [
   ['Пишите, даже если ещё не решили', 'home:cta.title — снят Ф28'],
   ['самозанят', 'юрстатус — запрещён Ф17, дефект сборки по Ф28'],
@@ -82,6 +110,13 @@ const FORBIDDEN = [
   ['VK', 'заглушка контактов — снята Ф28, «больше ничего добавлять не нужно»'],
   ['Шесть кадров', 'секция home:grid — выключена Ф28'],
   ['аришения', 'кириллическое имя на экране — снято Ф28, «оставь его на латинице»'],
+  // РЕДАКЦИЯ 5 (Ф36/Ф37) — снятое этой правкой
+  ['Работы', 'нав-пункт «Работы» снят Ф36 п.1'],
+  ['Придумано заранее', 'метка-заголовок диптиха снята Ф36 п.5'],
+  ['Найдено на месте', 'метка-заголовок диптиха снята Ф36 п.5'],
+  ['Один человек', 'карточка переименована в «Индивидуальная» Ф36 п.8'],
+  ['Весь прайс и условия', 'ссылка под карточками услуг снята Ф36 п.8'],
+  ['Помогу подготовиться к съёмке', 'секция FAQ выключена Ф37 п.4'],
   ...(RED ? [['Создаю ваше кино', 'ПРОБА КРАСНОТЫ: H1 обязан быть на странице']] : []),
 ];
 
@@ -472,38 +507,43 @@ const browser = await chromium.launch();
   await ctx.close();
 }
 
-/* ─── 5.2. Цена скрыта по умолчанию и появляется по клику (Ф29 п.6) ─── */
+/* ─── 5.2. Цена открыта сразу, «дверца» отыгрывает один раз (Ф36 п.8,
+   ОТМЕНА Ф29 п.6). Владелица: «сделай плашку как дверцу, открывающуюся
+   снизу вверх, чтобы было сразу видно стоимость и город, а не только
+   город» — проверка перевёрнута против прежней (была: скрыта до клика). ─── */
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
   await page.goto(BASE, { waitUntil: 'networkidle' });
-  const btn = page.locator('.price-plate').first();
-  await clearHeader(btn);
-  /* Одна плашка держит ДВЕ цифры (Москва и Тула — «6 000 ₽ ... 4 000 ₽ ...»),
-     то есть два `.price-plate-digits` внутри одной кнопки. Проверяется первая
-     — обе управляются одним и тем же `data-open`, поведение идентично. */
-  const digits = btn.locator('.price-plate-digits').first();
+  const plate = page.locator('.price-plate').first();
 
-  const blurBefore = await digits.evaluate((el) => getComputedStyle(el).filter);
-  const expandedBefore = await btn.getAttribute('aria-expanded');
+  // Больше не кнопка: открывать по клику нечего.
+  const tag = await plate.evaluate((el) => el.tagName);
+  note(RED ? tag === 'BUTTON' : tag !== 'BUTTON', `.price-plate — не <button> (получен <${tag.toLowerCase()}>)`);
+  const hasExpanded = await plate.evaluate((el) => el.hasAttribute('aria-expanded'));
+  note(!hasExpanded, 'на плашке нет aria-expanded — открывать нечего, дверца не гейт');
+
+  /* Одна плашка держит ДВЕ цифры (Москва и Тула), то есть два
+     `.price-plate-digits` внутри одного узла. Проверяется первая. */
+  const digits = plate.locator('.price-plate-digits').first();
+
+  // ДО прокрутки к плашке (Offer — ниже первого экрана): дверца ЗАКРЫТА.
+  const closedClip = await digits.evaluate((el) => getComputedStyle(el).clipPath);
   note(
-    RED ? !/blur\(/.test(blurBefore) : /blur\(/.test(blurBefore) && !/blur\(0/.test(blurBefore),
-    `цифра приглушена ДО клика: filter=${blurBefore}, aria-expanded=${expandedBefore}`,
+    RED ? closedClip === 'none' : closedClip !== 'none',
+    `дверца закрыта до попадания в кадр: clip-path=${closedClip}`,
   );
 
-  await btn.click();
-  await page.waitForTimeout(500);
-  const blurAfter = await digits.evaluate((el) => getComputedStyle(el).filter);
-  const expandedAfter = await btn.getAttribute('aria-expanded');
-  note(
-    RED ? !/blur\(0/.test(blurAfter) : /blur\(0/.test(blurAfter),
-    `цифра проявляется ПОСЛЕ клика: filter=${blurAfter}, aria-expanded=${expandedAfter}`,
-  );
-  note(expandedAfter === 'true', 'aria-expanded переключился в true после клика');
+  await clearHeader(plate);
+  await page.waitForTimeout(700); // 520 мс перехода + 120 мс задержки с запасом
+  const openClip = await digits.evaluate((el) => getComputedStyle(el).clipPath);
+  note(RED ? openClip !== 'none' : openClip === 'none', `дверца открыта после входа в кадр: clip-path=${openClip}`);
 
-  /* Дословность: полная строка цены стоит в DOM ОБА раза — приглушение
-     визуальное (filter), а не удаление текста. Проверяем на ЗАКРЫТОЙ плашке
-     соседней карточки (не кликали), чтобы доказать «скрыто и всё равно там». */
+  /* Дословность: полная строка цены стоит в DOM ВСЕГДА — «дверца» визуальная
+     (clip-path), а не удаление текста, независимо от того, успела она
+     открыться или нет. Проверяем на СОСЕДНЕЙ плашке (не той, к которой
+     скроллили целенаправленно), тот же принцип доказательства, что был у
+     прежнего blur: приглушение/дверца не должны прятать текст от DOM. */
   const closedPlateText = await page
     .locator('.price-plate')
     .nth(1)
@@ -511,6 +551,12 @@ const browser = await chromium.launch();
   note(
     /\d[\d ]*₽/.test(closedPlateText),
     `цена целиком в DOM даже в закрытом состоянии (получено: «${closedPlateText}»)`,
+  );
+
+  // Новый формат — город впереди цены (Ф36 п.8): «Москва — ... ₽/час».
+  note(
+    /Москва.*₽\/час.*Тула.*₽\/час/.test(closedPlateText),
+    `формат цены «город — цена/час» (получено: «${closedPlateText}»)`,
   );
   await ctx.close();
 }
@@ -730,6 +776,104 @@ const browser = await chromium.launch();
   note(
     opacities.b > opacities.a,
     `у конца диптиха «странный» слой ярче «тихого» (a=${opacities.a}, b=${opacities.b})`,
+  );
+  await ctx.close();
+}
+
+/* ═══════════════════ 6. РЕДАКЦИЯ 5 (Ф36 + Ф37 п.1–4, FACTS.md) ═══════════
+   Измеримые проверки структуры, не только текста: сколько кадров в рэке,
+   порядок и состав навигации, позиция подписи у папок, и что якорь навигации
+   не ведёт в никуда после выключения FAQ. */
+
+/* ─── 6.1. Рэк — 12 кадров, altar в числе первых видимых (Ф36 п.3 + Ф38) ─── */
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  const count = await page.evaluate(
+    () => document.querySelector('.rack-stack')?.querySelectorAll('[data-layer]').length,
+  );
+  note(RED ? count !== 12 : count === 12, `в рэке 12 кадров (получено ${count})`);
+
+  // счётчик рэка отражает то же число — «01 / 12», не старое «01 / 08»
+  const counterText = await page.evaluate(() => {
+    const stack = document.querySelector('.rack-stack');
+    const counter = stack?.parentElement?.querySelector('.rack-next')?.parentElement;
+    return (counter?.textContent || '').replace(/\s+/g, ' ').trim();
+  });
+  note(counterText.includes('/ 12'), `счётчик рэка показывает «/ 12» (получено «${counterText}»)`);
+
+  // altar.webp — среди первых ДВУХ слоёв стопки (Ф38: «в первом
+  // перелистывании снимков»), не в хвосте пула из двенадцати.
+  const altarDepth = await page.evaluate(() => {
+    const layers = [...document.querySelectorAll('.rack-stack [data-layer] img')];
+    return layers.findIndex((img) => img.getAttribute('src')?.includes('altar'));
+  });
+  note(
+    RED ? altarDepth < 0 || altarDepth > 1 : altarDepth >= 0 && altarDepth <= 1,
+    `altar.webp среди первых двух кадров стопки (позиция ${altarDepth})`,
+  );
+  await ctx.close();
+}
+
+/* ─── 6.2. Навигация: состав и порядок (Ф36 п.1) ─── */
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  const labels = await page.evaluate(() =>
+    [...document.querySelectorAll('header nav[aria-label="Разделы сайта"] .nav-link')].map(
+      (a) => a.textContent.trim(),
+    ),
+  );
+  const expected = ['Главная', 'Обо мне', 'Что снимаю', 'Придумать съёмку', 'С чего начать', 'Контакты'];
+  const matches = labels.join('|') === expected.join('|');
+  note(
+    RED ? !matches : matches,
+    `навигация: состав и порядок дословно (получено: ${labels.join(' · ')})`,
+  );
+  note(!labels.includes('Работы'), '«Работы» в навигации нет (снята Ф36 п.1)');
+  await ctx.close();
+}
+
+/* ─── 6.3. Якорь «С чего начать» ведёт на реальную секцию, не в никуда
+   (находка координатора при выключении FAQ, README § 10) ─── */
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  const href = await page
+    .locator('header nav[aria-label="Разделы сайта"] .nav-link', { hasText: 'С чего начать' })
+    .getAttribute('href');
+  const anchor = (href || '').split('#')[1];
+  const targetExists = await page.evaluate(
+    (id) => !!document.getElementById(id),
+    anchor,
+  );
+  note(RED ? !targetExists : targetExists, `якорь «${href}» указывает на существующий узел (#${anchor})`);
+  // Ровно один узел с этим id — не два одноимённых якоря (Faq() сохранил бы
+  // мину, если бы не снял id при выключении).
+  const dupeCount = await page.evaluate((id) => document.querySelectorAll(`#${id}`).length, anchor);
+  note(dupeCount === 1, `#${anchor} встречается ровно один раз в документе (найдено ${dupeCount})`);
+  await ctx.close();
+}
+
+/* ─── 6.4. Пояснение под папками отдачи стоит НАД папкой, не под (Ф37 п.3) ─── */
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  const order = await page.evaluate(() => {
+    const root = document.querySelector('.delivery');
+    if (!root) return null;
+    const kids = [...root.children];
+    const noteIdx = kids.findIndex((k) => k.tagName === 'P');
+    const stageIdx = kids.findIndex((k) => k.classList.contains('delivery-stage'));
+    return { noteIdx, stageIdx };
+  });
+  note(
+    RED ? order.noteIdx > order.stageIdx : order.noteIdx < order.stageIdx,
+    `пояснение (<p>) стоит в DOM раньше .delivery-stage (note=${order?.noteIdx}, stage=${order?.stageIdx})`,
   );
   await ctx.close();
 }

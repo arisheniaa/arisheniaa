@@ -388,22 +388,26 @@ await shot('film-exif-caption', {
   clip: '.film-tag',
 });
 
-/* 12.6 Цена за кликом (п.6) — приглушённая цифра и разворот по клику,
-   один и тот же кадр карточки в обоих состояниях. */
+/* 12.6 Цена — «дверца» на входе в кадр, ОТМЕНА Ф29 п.6 (редакция 5, Ф36 п.8).
+   ЗАКРЫТЫЙ кадр снят через крючок `?priceplate=closed` (`PricePlate.tsx`):
+   `Locator.screenshot()` сам прокручивает элемент во вьюпорт перед кадром,
+   а прокрутка — ровно то, что открывает дверцу, так что без крючка «кадр
+   закрытого состояния» снимал бы уже открытое (находка, записана в
+   `PricePlate.tsx`). ОТКРЫТЫЙ кадр — обычная страница, прокрутка к плашке
+   и пауза на переход (520 мс + 120 мс задержки). */
 await shot('price-plate-01-closed', {
+  url: `${BASE}?priceplate=closed`,
   width: 1280,
   height: 900,
   act: clearHeaderShot('.price-plate', 160),
+  wait: 300,
   clip: '.price-plate',
 });
 await shot('price-plate-02-open', {
   width: 1280,
   height: 900,
-  act: async (page) => {
-    await clearHeaderShot('.price-plate', 160)(page);
-    await page.locator('.price-plate').first().click();
-    await page.waitForTimeout(500);
-  },
+  act: clearHeaderShot('.price-plate', 160),
+  wait: 800,
   clip: '.price-plate',
 });
 
