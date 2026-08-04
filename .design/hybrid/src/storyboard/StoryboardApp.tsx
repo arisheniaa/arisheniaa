@@ -314,13 +314,6 @@ function Results({
         </p>
       )}
 
-      {result.relaxedMaterial && (
-        <p className="t-body mt-[0.9rem] max-w-[46ch] text-[color:var(--ink-soft)]">
-          Точных кадров под цифру/плёнку для этого набралось мало — показываю более широкий
-          подбор.
-        </p>
-      )}
-
       {result.relaxedGender && (
         <p className="t-body mt-[0.9rem] max-w-[50ch] text-[color:var(--ink-soft)]">
           Кадров с пометкой «мужская» в архиве совсем немного — показываю более широкий подбор по

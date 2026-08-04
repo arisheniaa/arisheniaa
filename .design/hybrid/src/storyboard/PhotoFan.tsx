@@ -129,7 +129,6 @@ function FanItem({
   onHot: (v: boolean) => void;
 }) {
   const [broken, setBroken] = useState(false);
-  const caption = [p.формат, p.материал, p.место].filter(Boolean).join(' · ');
 
   return (
     <figure
@@ -165,9 +164,12 @@ function FanItem({
           <p className="t-mono p-3 text-[color:var(--ink-mute)]">Кадр временно недоступен</p>
         )}
       </div>
-      {caption && (
-        <figcaption className="t-mono mt-[0.5rem] text-[color:var(--ink-mute)]">{caption}</figcaption>
-      )}
+      {/* Видимой подписи под кадром намеренно нет (Ф37, дословно: «не подписывай
+          фотографии. пусть под снимками-референсами будет пусто»). Те же факты
+          остаются в `data-*` атрибутах на этом узле и в `alt` у `<img>` — не
+          удалены вместе с подписью, потому что доказательство самопроверки
+          («подбор реально фильтрует по ответам») и текст для читателя — разные
+          вещи; первое не должно пострадать из-за решения про второе. */}
     </figure>
   );
 }
