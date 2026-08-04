@@ -111,25 +111,42 @@ const SECT = 'relative px-[var(--gutter)]';
    ссылка на 404 хуже ссылки на секцию. Соответствие — в таблице `NAV` ниже,
    каждый переходный адрес помечен `stub: true`, чтобы его нельзя было принять
    за готовый раздел при следующей правке. Это заявленный долг (README). */
+/* Ссылки — с ведущим «/», не голым «#…». На ЭТОЙ странице ведущий слэш ничего
+   не меняет (путь `/` совпадает с текущим, переход внутристраничный, без
+   перезагрузки — фрагментная навигация по спецификации). Но те же подписи
+   теперь используются и с новой страницы `storyboard.html` (фича «Придумать
+   съёмку», добавлена ниже) — оттуда голый `#uslugi` увёл бы в никуда (такого
+   узла на той странице нет), а `/#uslugi` корректно возвращает на главную и
+   прокручивает к разделу. Один список ссылок работает с обеих страниц. */
 const NAV: { label: string; href: string; stub: boolean }[] = [
   // «Главная» — начало страницы. Раньше туда вело имя; Ф28 сделала имя
   // некликабельным, и переход наверх достался этому пункту.
-  { label: 'Главная', href: '#main', stub: false },
+  { label: 'Главная', href: '/#main', stub: false },
   // «Работы» — «там будут собраны мои фотографии» (Ф28). Собранного раздела с
   // фотографиями на сайте сейчас ровно один: рэк на первом экране, восемь
   // кадров восьми съёмок. Секция «Шесть кадров», куда этот пункт вёл бы
   // естественнее, снята той же Ф28.
-  { label: 'Работы', href: '#raboty', stub: true },
-  { label: 'Обо мне', href: '#o-mne', stub: true },
+  { label: 'Работы', href: '/#raboty', stub: true },
+  { label: 'Обо мне', href: '/#o-mne', stub: true },
   // «Что снимаю» — «тут будут услуги: индивидуальная, парная и творческая»
   // (Ф28). Это в точности секция `home:offer` — «Что можно у меня снять».
-  { label: 'Что снимаю', href: '#uslugi', stub: false },
+  { label: 'Что снимаю', href: '/#uslugi', stub: false },
+  // «Придумать съёмку» — НОВЫЙ пункт (`BRIEF-STORYBOARD.md`), формулировка
+  // подтверждена владелицей дословно. Полноценная страница, не модалка на
+  // главной (раздел 5 брифа) — `storyboard.html`, вторая точка входа сборки
+  // (см. `vite.config.mts`), не хэш-якорь этой страницы.
+  { label: 'Придумать съёмку', href: '/storyboard.html', stub: false },
   // «Подготовка к съёмке» — переименованный FAQ (Ф27), теперь и в навигации.
-  { label: 'Подготовка к съёмке', href: '#podgotovka', stub: false },
-  { label: 'Контакты', href: '#kontakt', stub: false },
+  { label: 'Подготовка к съёмке', href: '/#podgotovka', stub: false },
+  { label: 'Контакты', href: '/#kontakt', stub: false },
 ];
 
-function Header() {
+/* Экспортирован (не только используется в `Page` этого файла): страница
+   `storyboard.html` (фича «Придумать съёмку») переиспользует этот же `Header`
+   и `Footer` дословно — правило «общее раньше частного», один источник
+   правды для шапки/навигации/подвала на весь сайт, не два похожих файла,
+   которые разойдутся при следующей правке. */
+export function Header() {
   const [set, setSet] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -272,7 +289,7 @@ function Hero() {
               </a>
               {/* Вела в «Шесть кадров» (`#kadry`); секция снята Ф28, и адрес
                   переставлен на рэк — единственную собранную подборку кадров. */}
-              <a className="link-minor t-body" href="#raboty">
+              <a className="link-minor t-body" href="/#raboty">
                 {copy.hero.ctaSecondary}
               </a>
             </div>
@@ -383,7 +400,7 @@ export function Grid() {
         </div>
 
         <p className="reveal mt-[clamp(3rem,8vh,6rem)]">
-          <a className="link-major t-h3" href="#kadry">
+          <a className="link-major t-h3" href="/#kadry">
             {copy.grid.link}
           </a>
         </p>
@@ -526,7 +543,7 @@ function Offer() {
         </div>
 
         <p className="reveal mt-[clamp(3rem,9vh,6rem)]">
-          <a className="link-major t-h3" href="#uslugi">
+          <a className="link-major t-h3" href="/#uslugi">
             {copy.offer.cta}
           </a>
         </p>
@@ -670,7 +687,7 @@ function AboutTeaser() {
               {/* `home:about.link` — «Обо мне». Ведёт на будущую страницу
                   «Обо мне», которой ещё нет; до неё адрес — эта же секция,
                   как и у одноимённого пункта навигации. */}
-              <a className="link-minor t-body" href="#o-mne">
+              <a className="link-minor t-body" href="/#o-mne">
                 {copy.about.link}
               </a>
             </p>
@@ -781,7 +798,7 @@ function Cta() {
 
    `<footer>` сохранён как лендмарк: самопроверка требует ровно один, и
    выкидывать лендмарк ради пустоты нельзя — линейка внизу это тоже подвал. */
-function Footer() {
+export function Footer() {
   return (
     <footer className={`${SECT} pb-[clamp(2rem,5vh,3.2rem)] pt-[clamp(1.5rem,4vh,2.6rem)]`}>
       <div className={WRAP}>

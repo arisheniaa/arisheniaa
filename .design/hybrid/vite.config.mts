@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Сборка гибрида.
@@ -25,9 +26,29 @@ import tailwindcss from '@tailwindcss/vite';
  *
  * Расширение `.mts`, а не `.ts`: в `package.json` стоит `"type": "commonjs"`,
  * и конфиг с ESM-синтаксисом Vite грузил через legacy-загрузчик с предупреждением.
+ *
+ * ВТОРАЯ ТОЧКА ВХОДА — `storyboard.html` (фича «Придумать съёмку»,
+ * `BRIEF-STORYBOARD.md`). Это НЕ клиентский роутер: лок не одобрял новые
+ * зависимости роутинга, а `window.location.pathname`-разбор внутри одного
+ * бандла означал бы, что все компоненты обеих страниц (включая рэк, полотно,
+ * звёзды главной) грузятся в один JS-чанк для читателя, который открыл только
+ * бриф. Второй `.html`-файл — встроенная возможность Vite для многостраничных
+ * сборок: два независимых входа, каждый со своим чанком. В dev-режиме Vite
+ * отдаёт любой `.html` в корне проекта без этой записи; `rollupOptions.input`
+ * нужен только для `vite build`, иначе `npm run build` включит в `dist/`
+ * один `index.html` и молча потеряет вторую страницу — типовая ловушка,
+ * которую страница показывает нормально в `dev`, но не после сборки.
  */
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: { host: '127.0.0.1', port: 5176, strictPort: true },
   preview: { host: '127.0.0.1', port: 5176, strictPort: true },
+  build: {
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        storyboard: fileURLToPath(new URL('./storyboard.html', import.meta.url)),
+      },
+    },
+  },
 });

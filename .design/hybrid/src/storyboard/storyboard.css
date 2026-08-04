@@ -1,0 +1,104 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   ФИЧА «ПРИДУМАТЬ СЪЁМКУ» — стили квиза и раскадровки.
+   Токены (--paper, --ink, --star-*, --ease-*, .t-*, .frame, .link-*) — из
+   `../styles.css`, импортированного первым (`main.tsx`). Здесь только то,
+   чего в общем словаре ещё нет: плитки вопроса, ряд прогресс-звёзд, переход
+   между шагами квиза.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@layer components {
+  /* ═══ ПЛИТКИ ВОПРОСА ═══
+     Не боксы-карточки со скруглением и тенью (та же логика, что и у кадра —
+     Р4, «кадр/объект интерфейса — без лишней фурнитуры»): плоская заливка,
+     контурная рамка волосяной толщины, отклик — цвет плашки цены при выборе. */
+  .sb-tiles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(0.6rem, 1.6vw, 1rem);
+  }
+  .sb-tile {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 0.85em 1.15em;
+    font-family: inherit;
+    font-size: var(--step-0);
+    font-weight: 560;
+    line-height: 1.3;
+    text-align: left;
+    overflow-wrap: break-word;
+    color: var(--ink);
+    background: color-mix(in srgb, var(--paper-hi) 55%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+    cursor: pointer;
+    transition:
+      background 180ms var(--ease-out),
+      border-color 180ms var(--ease-out),
+      color 180ms var(--ease-out),
+      transform var(--dur-press) ease-out;
+  }
+  .sb-tile:hover {
+    border-color: var(--ink);
+  }
+  .sb-tile:active {
+    transform: scale(0.985);
+  }
+  .sb-tile[aria-pressed='true'] {
+    background: var(--plate);
+    color: var(--plate-ink);
+    border-color: var(--plate);
+  }
+
+  /* ═══ ПРОГРЕСС — «ЗАЖИГАЮЩИЕСЯ ЗВЁЗДЫ» ═══
+     Идея из RESEARCH-COMPETITORS.md, разрешена локом на усмотрение
+     исполнителя (BRIEF-STORYBOARD.md § 7). Силуэт `tiny8` — тот же путь,
+     что у фоновой россыпи и бокового индикатора разделов главной. */
+  .sb-progress {
+    display: flex;
+    gap: clamp(0.45rem, 1.4vw, 0.75rem);
+    align-items: center;
+  }
+  .sb-progress-star {
+    width: 15px;
+    height: 15px;
+    color: color-mix(in srgb, var(--ink) 26%, transparent);
+    transition:
+      color 240ms var(--ease-out),
+      filter 240ms var(--ease-out),
+      transform 240ms var(--ease-out);
+  }
+  .sb-progress-star[data-lit] {
+    color: var(--star-gold);
+    filter: drop-shadow(0 0 5px var(--star-gold));
+    transform: scale(1.12);
+  }
+
+  /* ═══ ПЕРЕХОД МЕЖДУ ШАГАМИ КВИЗА ═══
+     Свой лёгкий fade (см. комментарий в `StoryboardApp.tsx`, `FadeStep`):
+     общий `.reveal` главной наблюдает узлы один раз при монтировании и не
+     подходит для машины шагов, где узлы конкретного шага появляются заново
+     при каждом переключении. */
+  .sb-step {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity 420ms var(--ease-out),
+      transform 420ms var(--ease-out);
+  }
+  .sb-step.is-in {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-step {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .sb-tile,
+  .sb-progress-star {
+    transition: none !important;
+  }
+}

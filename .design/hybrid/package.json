@@ -9,7 +9,9 @@
     "preview": "vite preview --port 5176 --strictPort",
     "tsc": "tsc --noEmit",
     "photos": "node scripts/export-photos.mjs",
-    "shots": "node scripts/shots.mjs"
+    "shots": "node scripts/shots.mjs",
+    "storyboard:photos": "node scripts/export-storyboard-photos.mjs",
+    "storyboard:selfcheck": "node scripts/selfcheck-storyboard.mjs"
   },
   "type": "commonjs",
   "devDependencies": {
