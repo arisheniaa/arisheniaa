@@ -10,6 +10,7 @@ import { TiltFrame } from './Tilt';
 import { PricePlate } from './PricePlate';
 import { FilmCaption } from './FilmCaption';
 import { SectionStars } from './SectionStars';
+import { NavHint } from './NavHint';
 
 /**
  * ГЛАВНАЯ. Гибрид направлений B и C по `DIRECTION-LOCK.md`.
@@ -73,6 +74,10 @@ function Page() {
           сам, поэтому положение в дереве не важно; стоит здесь, рядом с
           другими сквозными слоями шапки/подвала. */}
       <SectionStars />
+      {/* Стрелка-подсказка на «Придумать съёмку» (Ф33 п.3, редакция 4 фичи
+          «Придумать съёмку») — тоже сквозной слой поверх страницы, читает
+          `#hero`/`#kontakt` сама, см. `NavHint.tsx`. */}
+      <NavHint />
       <main id="main" className="relative z-10">
         <Hero />
         <Cinema />
@@ -118,7 +123,7 @@ const SECT = 'relative px-[var(--gutter)]';
    съёмку», добавлена ниже) — оттуда голый `#uslugi` увёл бы в никуда (такого
    узла на той странице нет), а `/#uslugi` корректно возвращает на главную и
    прокручивает к разделу. Один список ссылок работает с обеих страниц. */
-const NAV: { label: string; href: string; stub: boolean }[] = [
+const NAV: { label: string; href: string; stub: boolean; id?: string }[] = [
   // «Главная» — начало страницы. Раньше туда вело имя; Ф28 сделала имя
   // некликабельным, и переход наверх достался этому пункту.
   { label: 'Главная', href: '/#main', stub: false },
@@ -135,7 +140,9 @@ const NAV: { label: string; href: string; stub: boolean }[] = [
   // подтверждена владелицей дословно. Полноценная страница, не модалка на
   // главной (раздел 5 брифа) — `storyboard.html`, вторая точка входа сборки
   // (см. `vite.config.mts`), не хэш-якорь этой страницы.
-  { label: 'Придумать съёмку', href: '/storyboard.html', stub: false },
+  // `id` — только у этой ссылки: адресуется стрелкой-подсказкой `NavHint.tsx`
+  // (Ф33 п.3), которой нужно измерить реальное положение пункта на экране.
+  { label: 'Придумать съёмку', href: '/storyboard.html', stub: false, id: 'nav-link-storyboard' },
   // «Подготовка к съёмке» — переименованный FAQ (Ф27), теперь и в навигации.
   { label: 'Подготовка к съёмке', href: '/#podgotovka', stub: false },
   { label: 'Контакты', href: '/#kontakt', stub: false },
@@ -170,6 +177,7 @@ export function Header() {
   const links = NAV.map((n) => (
     <li key={n.label}>
       <a
+        id={n.id}
         className="nav-link"
         href={n.href}
         data-stub={n.stub ? '' : undefined}
@@ -237,6 +245,7 @@ export function Header() {
 function Hero() {
   return (
     <section
+      id="hero"
       className={`${SECT} flex min-h-[100svh] flex-col justify-center pb-[clamp(3rem,8vh,6rem)] pt-[clamp(6rem,14vh,9rem)]`}
     >
       <Stars count={18} seed={7} scale="mixed" />
