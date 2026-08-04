@@ -4,6 +4,7 @@ import { Gradient, Grain } from '../Gradient';
 import { Header, Footer } from '../App';
 import { Stars } from '../Stars';
 import { ProgressStars } from './ProgressStars';
+import { PinterestBoards } from './PinterestBoards';
 import { buildQuestions } from './questions';
 import type { QuestionDef } from './questions';
 import { pickStoryboard, normalizeOccasionTags } from './pick';
@@ -312,6 +313,10 @@ function QuestionScreen({
           </button>
         ))}
       </div>
+
+      {/* Правка Ф31/Ф32 — виджет только на вопросе «образ», дополняет
+          плитки-ответы выше, не заменяет их (раздел 2 брифа). */}
+      {q.id === 'образ' && <PinterestBoards />}
 
       <button
         type="button"

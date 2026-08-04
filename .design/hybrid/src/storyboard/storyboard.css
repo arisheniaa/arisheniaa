@@ -73,6 +73,42 @@
     transform: scale(1.12);
   }
 
+  /* ═══ PINTEREST — ДОСКИ НА ВОПРОСЕ «ОБРАЗ» ═══
+     Правка Ф31/Ф32. Вкладки мельче и тише плиток-ответов (`.sb-tile`) —
+     это дополнение к ответу, не альтернативный способ ответить (раздел 2
+     брифа: «приоритет — реальные фото владелицы»). `.sb-pin-frame` берёт
+     `.frame` из общего словаря (край на пустоте, без рамки/тени) — тот же
+     принцип, что у фотографий сайта, наведённый на чужой встраиваемый
+     виджет: кадр даём мы, содержимое — Pinterest. */
+  .sb-pin-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em 0.9em;
+  }
+  .sb-pin-tab {
+    padding: 0.3em 0;
+    font-family: inherit;
+    font-size: var(--step--1);
+    color: var(--ink-mute);
+    background: none;
+    border: none;
+    border-bottom: 1px solid transparent;
+    cursor: pointer;
+    transition: color 180ms var(--ease-out), border-color 180ms var(--ease-out);
+  }
+  .sb-pin-tab:hover {
+    color: var(--ink);
+  }
+  .sb-pin-tab[aria-selected='true'] {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+  .sb-pin-frame {
+    min-height: 320px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--paper-hi) 45%, transparent);
+  }
+
   /* ═══ ПЕРЕХОД МЕЖДУ ШАГАМИ КВИЗА ═══
      Свой лёгкий fade (см. комментарий в `StoryboardApp.tsx`, `FadeStep`):
      общий `.reveal` главной наблюдает узлы один раз при монтировании и не

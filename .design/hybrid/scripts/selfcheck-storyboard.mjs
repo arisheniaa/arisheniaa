@@ -209,6 +209,51 @@ const browser = await chromium.launch();
   await ctx.close();
 }
 
+/* ─── 3b. Pinterest-виджет реально смонтирован на вопросе «образ» (Ф31/Ф32) ───
+   Проверяем СВОЙ DOM (контейнер, вкладки, их число, переключение), не
+   содержимое чужого виджета построчно — это внешние живые данные Pinterest,
+   не код этого проекта, и по определению самопроверки не наш предмет
+   измерения. */
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  await answerQuiz(page, ['Без повода', 'Двое', 'Не важно', 'Неважно']);
+
+  const pinContainer = page.locator('.sb-pin');
+  const hasPinContainer = (await pinContainer.count()) > 0;
+  note(RED ? !hasPinContainer : hasPinContainer, 'контейнер Pinterest-виджета смонтирован на вопросе «образ»');
+
+  const tabs = page.locator('.sb-pin-tab');
+  const tabCount = await tabs.count();
+  note(RED ? tabCount !== 6 : tabCount === 6, `шесть вкладок досок (получено ${tabCount})`);
+
+  const firstSelected = await tabs.nth(0).getAttribute('aria-selected');
+  note(RED ? firstSelected !== 'true' : firstSelected === 'true', 'первая вкладка активна по умолчанию');
+
+  if (tabCount > 1) {
+    await tabs.nth(1).click();
+    await page.waitForTimeout(150);
+    const nowSelected = await tabs.nth(1).getAttribute('aria-selected');
+    const stillFirst = await tabs.nth(0).getAttribute('aria-selected');
+    note(
+      RED ? nowSelected !== 'true' : nowSelected === 'true' && stillFirst !== 'true',
+      'клик по вкладке переключает активную доску (не остаются активны обе)',
+    );
+  }
+
+  const embedLink = page.locator('.sb-pin-frame a[data-pin-do="embedBoard"]');
+  const hasEmbedLink = (await embedLink.count()) > 0;
+  note(RED ? !hasEmbedLink : hasEmbedLink, 'ссылка встраивания использует официальный тип embedBoard Pinterest');
+  const href = hasEmbedLink ? await embedLink.getAttribute('href') : '';
+  note(
+    RED ? !href.startsWith('https://ru.pinterest.com/arisheniaa/') : href.startsWith('https://ru.pinterest.com/arisheniaa/'),
+    `ссылка ведёт на доску владелицы (получено: ${href})`,
+  );
+
+  await ctx.close();
+}
+
 /* ─── 4. Скачанный файл действительно несёт подпись-ссылку ─── */
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
@@ -242,10 +287,16 @@ const browser = await chromium.launch();
   const p = await download.path();
   const buf = fs.readFileSync(p);
   note(buf.length > 2000, `скачанный файл весит больше 2 КБ (${buf.length} байт) — не пустышка`);
-  note(
-    buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47,
-    'скачанный файл — валидный PNG (сигнатура 89 50 4E 47)',
-  );
+  /* PDF, было PNG — Ф31 (FACTS.md). Сигнатура PDF — «%PDF-» в первых байтах
+     файла (спецификация ISO 32000), не 89 50 4E 47 (PNG). Подпись-визитка
+     проверена ВЫШЕ перехватом fillText — она рисуется в canvas ДО того, как
+     canvas.toDataURL() уходит в jsPDF, так что этот перехват доказывает
+     содержимое итогового PDF так же надёжно, как доказывал PNG раньше. */
+  const isPdfSignature =
+    buf[0] === 0x25 && buf[1] === 0x50 && buf[2] === 0x44 && buf[3] === 0x46 && buf[4] === 0x2d;
+  note(RED ? !isPdfSignature : isPdfSignature, 'скачанный файл — валидный PDF (сигнатура %PDF-)');
+  const name = download.suggestedFilename();
+  note(RED ? !name.endsWith('.pdf') : name.endsWith('.pdf'), `имя файла оканчивается на .pdf (получено: ${name})`);
   await ctx.close();
 }
 

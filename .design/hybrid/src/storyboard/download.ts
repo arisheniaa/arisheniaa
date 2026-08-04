@@ -1,25 +1,33 @@
+import { jsPDF } from 'jspdf';
 import type { StoryboardPhoto } from './types';
 
 /**
  * ФИНАЛ — ТОЛЬКО СКАЧИВАНИЕ (`BRIEF-STORYBOARD.md` § 4). Клиентский экспорт
- * раскадровки в PNG через `<canvas>`, без сервера и без базы данных. Подпись-
+ * раскадровки через `<canvas>`, без сервера и без базы данных. Подпись-
  * визитка внизу файла — обязательное требование раздела: «на картинке/PDF
  * внизу — имя/ник владелицы и ссылка на Telegram (@arisheniaa)».
  *
- * ФОРМАТ: PNG, не PDF. Раздел 4 брифа допускает «картинку/PDF» — это «или»,
- * не оба сразу. PDF без сервера и без новой зависимости означал бы либо
- * `window.print()` (свой набор проблем: пользователь должен вручную выбрать
- * «Сохранить как PDF» в системном диалоге печати, это не один клик и не
- * гарантированный файл), либо библиотеку вроде jsPDF — а лок не одобряет
- * новые зависимости без необходимости. Canvas → PNG даёт один клик, один
- * файл, ноль новых пакетов. Находка для показа владелице: если ей нужен
- * именно PDF-путь — это `window.print()` с отдельным print-стилем поверх
- * уже готового `renderStoryboardCanvas`, а не переделка с нуля.
+ * ФОРМАТ: PDF, было PNG — правка Ф31 (`FACTS.md`). Первая версия выбрала PNG
+ * («лок не одобряет новые зависимости без необходимости», раздел 4 брифа
+ * допускал «картинку/PDF» как «или», не оба сразу) — это было предположение
+ * билдера при отсутствии прямого ответа владелицы, не лок. Владелица
+ * ответила прямо: «скачивание в PDF (обязательно должен быть брендирован
+ * моим никнеймом)» — необходимость новой зависимости названа явно, `jsPDF`
+ * добавлен `npm install`, не скопирован вручную.
  *
- * Подпись рисуется РЕАЛЬНЫМ вызовом `fillText`, а не как decorative-слой —
- * это буквально то, что превращает файл в «визитку, которая переживает
- * закрытие вкладки» (раздел 4): текст впечатан в пиксели, которые уходят
- * на диск пользователя вместе с фотографиями.
+ * Раскладка кадров и подпись-визитка не переделывались — `renderStoryboardCanvas`
+ * ниже тот же, что рисовал PNG; PDF-путь оборачивает готовый canvas одним
+ * `addImage`, не дублирует вёрстку раскадровки на другом языке разметки.
+ * Размер страницы — по пропорциям самого canvas (`unit: 'px'`, `format:
+ * [width, height]`), не A4: raskadrovka — не документ с полями, а цельный
+ * кадр, обрезать его под чужие пропорции значило бы либо оставлять пустые
+ * поля, либо резать фотографии по краю.
+ *
+ * Подпись рисуется РЕАЛЬНЫМ вызовом `fillText` в canvas, а не как
+ * decorative-слой — это буквально то, что превращает файл в «визитку,
+ * которая переживает закрытие вкладки» (раздел 4): текст впечатан в пиксели
+ * canvas, которые `addImage` переносит в PDF один в один, не отдельным
+ * PDF-текстовым слоем поверх.
  */
 
 export const SIGNATURE_NAME = 'аришения';
@@ -126,17 +134,17 @@ export async function renderStoryboardCanvas(photos: StoryboardPhoto[]): Promise
 
 export async function downloadStoryboard(
   photos: StoryboardPhoto[],
-  filename = 'raskadrovka.png',
+  filename = 'raskadrovka.pdf',
 ): Promise<void> {
   const canvas = await renderStoryboardCanvas(photos);
-  const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
-  if (!blob) throw new Error('canvas.toBlob вернул null');
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  const dataUrl = canvas.toDataURL('image/png');
+
+  const doc = new jsPDF({
+    orientation: canvas.width >= canvas.height ? 'l' : 'p',
+    unit: 'px',
+    format: [canvas.width, canvas.height],
+    compress: true,
+  });
+  doc.addImage(dataUrl, 'PNG', 0, 0, canvas.width, canvas.height);
+  doc.save(filename);
 }
