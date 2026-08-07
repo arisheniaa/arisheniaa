@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
+import type { RefObject } from 'react';
 import { STAR_PATHS, STAR_TONES } from './star-paths';
 import type { StarShape, StarTone } from './star-paths';
 
@@ -91,8 +92,23 @@ export type StarsProps = {
   shapes?: StarShape[];
   /** размерный ранг: 'fine' — мелкая фоновая россыпь, 'mixed' — три размера, 'bold' — крупные */
   scale?: 'fine' | 'mixed' | 'bold';
-  /** какие тона разрешены в этой секции */
+  /**
+   * Какие тона разрешены в этой секции. Тон выбирается РАВНОВЕРОЯТНО из
+   * массива, поэтому повтор значения — это вес, а не опечатка: `[1, 1, 2]`
+   * читается «жёлтых вдвое больше, чем бордовых». Ф39 п.8 просит именно
+   * перевес («побольше желтых звездочек»), а не единственный тон, и заводить
+   * ради этого отдельное поле весов было бы лишней сущностью — семантика
+   * «список с повторами» здесь и есть список весов.
+   */
   tones?: StarTone[];
+  /**
+   * Узел, вокруг которого звёзды расступаются (Ф39 п.2). Звезда, чей дом
+   * попал в прямоугольник этого узла ИЛИ в полосу прямо под ним до низа
+   * секции, выталкивается вбок — к ближнему свободному краю. «Убери
+   * звёздочки из-под фотографии, лучше пусть они будут вокруг» — дословно.
+   * Не задан (обычный случай) — россыпь как была, ни одной лишней операции.
+   */
+  avoid?: RefObject<HTMLElement | null>;
   className?: string;
 };
 
@@ -113,6 +129,7 @@ export function Stars({
   shapes = ALL_SHAPES,
   scale = 'mixed',
   tones = ALL_TONES,
+  avoid,
   className = '',
 }: StarsProps) {
   const host = useRef<HTMLDivElement>(null);
@@ -187,11 +204,81 @@ export function Stars({
     let W = box.clientWidth || 1;
     let H = box.clientHeight || 1;
 
+    /* ЗОНА ИСКЛЮЧЕНИЯ (Ф39 п.2) — «убери под моей фотографией звёздочки,
+       лучше пусть они будут вокруг».
+
+       Считается по ЖИВОМУ прямоугольнику узла, а не по доле от секции: доля
+       была бы догадкой о раскладке, которая врёт на первой же смене колонок,
+       а `getBoundingClientRect` знает, где фотография стоит на самом деле —
+       и на 1920, и на 360, и после смены шрифта.
+
+       Дом каждой звезды пересчитывается ОДИН РАЗ на раскладку (здесь и по
+       `ResizeObserver`), а не каждый кадр: положение фотографии между
+       кадрами не меняется, а `paint` крутится в rAF, и лишний
+       `getBoundingClientRect` там стоил бы принудительного пересчёта
+       раскладки на каждом кадре.
+
+       Куда выталкиваем: к ближайшему краю зоны из четырёх, но только если
+       за этим краем звезда останется внутри секции. Иначе берём следующее
+       по дешевизне направление — так на широком экране звёзды уходят вбок
+       (слева и справа от фотографии есть место), а на узком, где кадр во всю
+       ширину, — вверх и вниз. Разброс вдоль края берётся из `rot` самой
+       звезды: без него все вытолкнутые встали бы в одну линию по границе
+       зоны, что заметнее исходной проблемы. `rot` уже детерминирован
+       (`rng(seed)`), поэтому россыпь остаётся той же при каждой загрузке. */
+    let homes = stars.map((s) => ({ x: s.hx, y: s.hy }));
+
+    const relayout = () => {
+      W = box.clientWidth || 1;
+      H = box.clientHeight || 1;
+      const node = avoid?.current ?? null;
+      if (!node) {
+        homes = stars.map((s) => ({ x: s.hx, y: s.hy }));
+        return;
+      }
+      const b = box.getBoundingClientRect();
+      const a = node.getBoundingClientRect();
+      const PAD = 26;
+      const x0 = a.left - b.left - PAD;
+      const x1 = a.right - b.left + PAD;
+      const y0 = a.top - b.top - PAD;
+      /* Низ зоны — не низ фотографии, а ещё половина её высоты вниз: именно
+         это место владелица назвала «под фотографией». Ниже звёзды снова
+         разрешены — их же и просили оставить «вокруг». */
+      const y1 = a.bottom - b.top + a.height * 0.5;
+
+      homes = stars.map((s) => {
+        const x = s.hx * W;
+        const y = s.hy * H;
+        if (x <= x0 || x >= x1 || y <= y0 || y >= y1) return { x: s.hx, y: s.hy };
+
+        // разброс вдоль края, детерминированный: 0..1 из угла поворота звезды
+        const j = s.rot / 360;
+        const M = 4; // не липнем к самому краю секции
+        const options = [
+          { d: x - x0, nx: x0 - j * Math.max(0, x0 - M), ny: y },
+          { d: x1 - x, nx: x1 + j * Math.max(0, W - M - x1), ny: y },
+          { d: y - y0, nx: x, ny: y0 - j * Math.max(0, y0 - M) },
+          { d: y1 - y, nx: x, ny: y1 + j * Math.max(0, H - M - y1) },
+        ].sort((p, q) => p.d - q.d);
+
+        for (const o of options) {
+          if (o.nx >= M && o.nx <= W - M && o.ny >= M && o.ny <= H - M) {
+            return { x: o.nx / W, y: o.ny / H };
+          }
+        }
+        // некуда — оставляем дома, лучше звезда на месте, чем за краем секции
+        return { x: s.hx, y: s.hy };
+      });
+    };
+    relayout();
+
     const paint = () => {
       for (let i = 0; i < stars.length; i++) {
         const s = stars[i];
         const g = groups[i];
         if (!g) continue;
+        const home = homes[i];
         /* Курсорный доворот меняет и МАСШТАБ — ровно как в C (`scale = 1 +
            glow * 0.55`): там звезда под курсором не только светилась, но и
            подрастала. Здесь коэффициент мягче, 0.28: у C звёзды дрейфовали по
@@ -200,7 +287,7 @@ export function Stars({
         const k = (s.size / 100) * (1 + s.glow * 0.28);
         g.setAttribute(
           'transform',
-          `translate(${(s.hx * W + s.x).toFixed(2)} ${(s.hy * H + s.y).toFixed(2)}) ` +
+          `translate(${(home.x * W + s.x).toFixed(2)} ${(home.y * H + s.y).toFixed(2)}) ` +
             `rotate(${(s.rot + s.rr).toFixed(2)}) scale(${k.toFixed(4)}) translate(-50 -50)`,
         );
 
@@ -229,8 +316,7 @@ export function Stars({
     };
 
     const ro = new ResizeObserver(() => {
-      W = box.clientWidth || 1;
-      H = box.clientHeight || 1;
+      relayout();
       paint();
     });
     ro.observe(box);
@@ -277,9 +363,10 @@ export function Stars({
       const tx = e.clientX - b.left;
       const ty = e.clientY - b.top;
       const now = performance.now();
-      for (const s of stars) {
-        const dx = s.hx * W + s.x - tx;
-        const dy = s.hy * H + s.y - ty;
+      for (let i = 0; i < stars.length; i++) {
+        const s = stars[i];
+        const dx = homes[i].x * W + s.x - tx;
+        const dy = homes[i].y * H + s.y - ty;
         const d = Math.hypot(dx, dy) || 1;
         if (d > 260) continue;
         const k = (1 - d / 260) * 600;
@@ -311,15 +398,16 @@ export function Stars({
       lastScroll = sy;
       const drag = Math.max(-22, Math.min(22, -scrollVel * 1.4));
 
-      for (const s of stars) {
+      for (let i = 0; i < stars.length; i++) {
+        const s = stars[i];
         let tx = 0;
         let ty = drag;
         /* Цель свечения — как в C: квадрат близости к курсору, `f = (1 - d/R)²`.
            Затухание к цели тоже из C: `glow += (tg - glow) * min(1, dt * 7)`. */
         let tg = 0;
         if (hasPointer) {
-          const dx = s.hx * W + s.x - px;
-          const dy = s.hy * H + s.y - py;
+          const dx = homes[i].x * W + s.x - px;
+          const dy = homes[i].y * H + s.y - py;
           const d = Math.hypot(dx, dy);
           if (d < REACH && d > 0.001) {
             const push = (1 - d / REACH) * 64;
@@ -355,7 +443,7 @@ export function Stars({
       window.removeEventListener('pointerdown', onDown);
       window.removeEventListener('pointerleave', onLeave);
     };
-  }, [stars]);
+  }, [stars, avoid]);
 
   return (
     <div

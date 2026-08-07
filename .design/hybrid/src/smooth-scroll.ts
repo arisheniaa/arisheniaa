@@ -1,0 +1,209 @@
+import { useEffect } from 'react';
+
+/**
+ * ПЛАВНЫЙ СКРОЛЛ КОЛЕСОМ — Ф39 п.14, «сделай более плавный скролл».
+ *
+ * ЧТО УЖЕ БЫЛО И ПОЧЕМУ ЭТОГО НЕ ХВАТИЛО. `html { scroll-behavior: smooth }`
+ * (`styles.css`) стоит с самого начала, но он отвечает ТОЛЬКО за переходы по
+ * якорям — клик по пункту навигации доезжает плавно. Колесо мыши он не
+ * трогает вовсе: браузер отдаёт странице дискретные скачки (в Windows — три
+ * строки, ~100 px за щелчок), и ступеньки видно именно на этом сайте, где
+ * почти всё движение завязано на прокрутку: наводка кадров на резкость
+ * (`reveal.ts`), настроение градиента (`Gradient.tsx`), отставание звёзд
+ * (`Stars.tsx`). Рывок колеса дёргает их все разом.
+ *
+ * ЧТО ДЕЛАЕТ ЭТОТ ХУК. Перехватывает `wheel`, копит цель и подводит к ней
+ * страницу экспоненциально (доля остатка за кадр). Скачок в 100 px
+ * превращается в ~25 кадров хода, промежуточные значения получают и скраб
+ * резкости, и градиент, и звёзды — им ничего не надо менять, они и так
+ * читают `window.scrollY` каждый кадр.
+ *
+ * ЧЕГО ХУК НЕ ТРОГАЕТ (сознательно — это и есть граница безопасности):
+ *  · ТАЧ. Событие `wheel` палец не порождает вовсе, инерция экрана остаётся
+ *    родной. Перехватывать `touchmove` значило бы переписывать физику,
+ *    которую система уже делает лучше;
+ *  · КЛАВИАТУРУ, полосу прокрутки, `scrollIntoView` и якоря. Все они
+ *    двигают страницу мимо нас, и `onScroll` просто подтягивает цель к
+ *    факту — иначе следующий щелчок колеса телепортировал бы страницу
+ *    туда, где мы думали, что находимся;
+ *  · ЗУМ (`ctrl`/`cmd` + колесо) — уходит браузеру нетронутым;
+ *  · ВЛОЖЕННЫЕ СКРОЛЛЕРЫ. Если под курсором есть свой вертикально
+ *    прокручиваемый предок — отдаём событие ему. Иначе колесо над таким
+ *    блоком прокручивало бы страницу, а сам блок стоял;
+ *  · `prefers-reduced-motion` — хук не подключается совсем.
+ *
+ * ПОЧЕМУ НЕ БИБЛИОТЕКА (Lenis и подобные). Тот же довод, что уже записан в
+ * `reveal.ts` про ScrollTrigger: лестница от дешёвого к дорогому. Здесь нет
+ * ни параллакса с несколькими скоростями, ни горизонтальных секций, ни
+ * привязки к таймлайну — нужна одна экспонента и четыре исключения выше.
+ * Отклонение от стека фиксируется тем, что этого отклонения нет.
+ */
+
+/** Доля оставшегося расстояния, проходимая за кадр. 0.16 — это ~430 ms до
+ *  полной остановки после одного щелчка на 60 Гц и ~85 ms отставания от
+ *  непрерывного жеста тачпада: плавно, но ещё не «плывёт». */
+const LERP = 0.16;
+/** Ниже этого расстояния добираем одним присвоением и гасим цикл. */
+const EPS = 0.4;
+
+/** Есть ли между узлом события и корнем свой вертикальный скроллер. */
+function insideScrollable(node: EventTarget | null): boolean {
+  let el = node instanceof Element ? node : null;
+  while (el && el !== document.body && el !== document.documentElement) {
+    if (el.scrollHeight - el.clientHeight > 2) {
+      const oy = getComputedStyle(el).overflowY;
+      if (oy === 'auto' || oy === 'scroll') return true;
+    }
+    el = el.parentElement;
+  }
+  return false;
+}
+
+export function useSmoothScroll() {
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let target = window.scrollY;
+    /** ведём ли прокрутку МЫ прямо сейчас (нужно, чтобы `onScroll` не
+     *  затирал цель нашими же промежуточными кадрами) */
+    let driving = false;
+    let raf = 0;
+    /** куда мы поставили страницу на прошлом кадре; −1 = ещё не ставили */
+    let lastWritten = -1;
+
+    const limit = () =>
+      Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+
+    /** Отдать управление обратно браузеру. */
+    const release = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      driving = false;
+      lastWritten = -1;
+      target = window.scrollY;
+    };
+
+    /* `behavior: 'instant'` обязателен: на `html` стоит `scroll-behavior:
+       smooth`, и обычный `scrollTo` запускал бы РОДНУЮ плавную анимацию на
+       каждый наш кадр — две анимации на одну ось, каждая со своей целью. */
+    const jump = (top: number) => {
+      window.scrollTo({ top, behavior: 'instant' });
+      lastWritten = window.scrollY; // фактическое, а не запрошенное: край страницы обрезает
+    };
+
+    /* НАХОДКА (Ф40, «сделай ссылки снова кликабельными, в том числе и в
+       навигации»). Первая версия хука вела прокрутку до тех пор, пока не
+       дойдёт до цели, и не проверяла, не увёл ли страницу кто-то ещё. Клик
+       по пункту навигации запускает РОДНУЮ плавную прокрутку к якорю
+       (`scroll-behavior: smooth`), и если в этот момент наш цикл ещё жив
+       после недавнего движения колеса — он каждый кадр возвращает страницу
+       к своей цели. Снаружи это выглядит ровно как «ссылка не работает»:
+       нажатие проходит, адрес меняется, страница не двигается. Ссылки при
+       этом кликабельны в буквальном смысле — их перехватывал не слой сверху,
+       а спор двух прокруток за одну ось.
+
+       ТРИ ЗАЩИТЫ, каждая закрывает свой способ увести страницу мимо нас:
+        1. РАСХОЖДЕНИЕ. Если страница стоит не там, куда мы её поставили на
+           прошлом кадре, значит её двигает кто-то другой (якорь, клавиатура,
+           полоса прокрутки, `scrollIntoView`) — уходим немедленно. Это
+           главная защита: она ловит любой источник, даже тот, о котором мы
+           не знаем;
+        2. УПОР В КРАЙ. Если наш собственный `scrollTo` не сдвинул страницу
+           ни на пиксель, а до цели ещё далеко, — дальше некуда (низ или верх
+           документа, либо страница укоротилась под нами). Без этой проверки
+           цикл крутился бы вечно, `driving` навсегда оставался бы `true`, и
+           каждая последующая чужая прокрутка отменялась бы уже без шанса на
+           восстановление;
+        3. ЯВНЫЕ НАМЕРЕНИЯ — клик и клавиатура, ниже по файлу. Срабатывают
+           раньше первой защиты, до того как чужая прокрутка вообще началась,
+           поэтому спор не успевает возникнуть даже на один кадр. */
+    const step = () => {
+      const cur = window.scrollY;
+
+      // 1) страницу увёл кто-то другой
+      if (lastWritten >= 0 && Math.abs(cur - lastWritten) > 2) {
+        release();
+        return;
+      }
+
+      const diff = target - cur;
+      if (Math.abs(diff) < EPS) {
+        jump(target);
+        driving = false;
+        raf = 0;
+        return;
+      }
+
+      jump(cur + diff * LERP);
+
+      // 2) упёрлись в край документа — цель недостижима, цикл прекращаем
+      if (Math.abs(window.scrollY - cur) < 0.1) {
+        driving = false;
+        raf = 0;
+        target = window.scrollY;
+        return;
+      }
+
+      raf = requestAnimationFrame(step);
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) return; // зум — не наше дело
+      if (e.deltaY === 0) return; // чисто горизонтальный жест
+      if (insideScrollable(e.target)) return; // у блока свой скролл
+      e.preventDefault();
+
+      /* `deltaMode`: 0 — пиксели (тачпад и почти все мыши), 1 — строки,
+         2 — экраны. Приводим к пикселям, иначе «три строки» пришли бы как
+         тройка и жест стал бы неощутимым. */
+      const px =
+        e.deltaMode === 1
+          ? e.deltaY * 16
+          : e.deltaMode === 2
+            ? e.deltaY * window.innerHeight
+            : e.deltaY;
+
+      // если предыдущий ход уже закончился — стартуем от факта, а не от
+      // старой цели: между жестами страницу могли увезти как угодно
+      if (!driving) target = window.scrollY;
+      target = Math.max(0, Math.min(limit(), target + px));
+
+      if (!driving) {
+        driving = true;
+        raf = requestAnimationFrame(step);
+      }
+    };
+
+    const onScroll = () => {
+      if (!driving) target = window.scrollY;
+    };
+
+    /* Защита 3: явное намерение прокрутить чем-то, кроме колеса. Отпускаем
+       ось ДО того, как чужая прокрутка началась, — на фазе перехвата, чтобы
+       успеть раньше обработчиков страницы. Клик отпускает любой, не только
+       по ссылке: клик сам по себе страницу не двигает, так что лишний отпуск
+       ничего не стоит, а разбирать «ведёт ли эта ссылка на якорь» значило бы
+       гадать за браузер. */
+    const onIntent = () => release();
+    const SCROLL_KEYS = new Set([
+      'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ', 'Spacebar',
+    ]);
+    const onKey = (e: KeyboardEvent) => {
+      if (SCROLL_KEYS.has(e.key)) release();
+    };
+
+    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('click', onIntent, true);
+    window.addEventListener('keydown', onKey, true);
+    window.addEventListener('hashchange', onIntent);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('click', onIntent, true);
+      window.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('hashchange', onIntent);
+    };
+  }, []);
+}

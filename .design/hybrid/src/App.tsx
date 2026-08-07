@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { copy } from './copy';
 import { Gradient, Grain } from './Gradient';
 import { Name } from './Name';
@@ -6,9 +6,16 @@ import { Rack } from './Rack';
 import { Stars } from './Stars';
 import { DeliveryDemo } from './Folders';
 import { useReveal, useFocusScrub } from './reveal';
+import { useSmoothScroll } from './smooth-scroll';
 import { TiltFrame } from './Tilt';
+import { Fan } from './Fan';
 import { PricePlate } from './PricePlate';
-import { FilmCaption } from './FilmCaption';
+/* `FilmCaption` больше не импортируется (Ф40): EXIF-подпись снята с
+   плёночной карточки вместе с одиночным кадром — см. комментарий у веера
+   плёночной ниже. Сам `FilmCaption.tsx` НЕ удалён и остаётся рабочим
+   компонентом; здесь висит эта строка, а не мёртвый импорт, потому что
+   неиспользуемый импорт следующий читатель просто вычистит, не узнав, что
+   компонент жив и ждёт возврата. */
 import { SectionStars } from './SectionStars';
 import { NavHint } from './NavHint';
 
@@ -71,6 +78,18 @@ import { NavHint } from './NavHint';
  *      текст шагов 1–4 (шаги 3–4 — правка Ф37 п.1–2 поверх Ф36);
  *  10. (Ф37 п.3) подпись-пояснение под папками отдачи переехала НАД них;
  *  11. (Ф37 п.4) секция «Помогу подготовиться к съёмке» не рендерится.
+ *
+ * Ф39 (не лок), пять правок владелицы:
+ *   1. «обо мне» поднят сразу после первого экрана — `<AboutTeaser />`
+ *      переставлена в `Page()` из конца страницы за `<Hero />`, порядок секций
+ *      совпал с порядком пунктов навигации; якорь `#o-mne` не менялся;
+ *   2. H1 «Создаю ваше кино» «чуть чуть меньше» — `--step-4` в `styles.css`,
+ *      минус 10% по всей вилке;
+ *   3. две ссылки первого экрана сведены в одну «Написать» на Telegram —
+ *      `copy.hero.ctaSecondary` выключена, см. `Hero()`;
+ *   4. в «Кто снимает» слева встала фотография автора, ссылка «Обо мне» из-под
+ *      текста снята — см. `AboutTeaser()` и `export-photos.mjs`;
+ *   5. новый текст «Кто снимает» — ОЖИДАЕТСЯ, владелица переписывает.
  */
 
 export function App() {
@@ -86,6 +105,8 @@ export function App() {
 function Page() {
   useReveal();
   useFocusScrub();
+  // Ф39 п.14 — плавный ход колеса, см. `smooth-scroll.ts`
+  useSmoothScroll();
 
   return (
     <>
@@ -100,6 +121,13 @@ function Page() {
       <NavHint />
       <main id="main" className="relative z-10">
         <Hero />
+        {/* «Обо мне» — Ф39 п.1: «подними раздел "обо мне" наверх, чтобы он шёл
+            сразу после раздела "главное"». Секция переехала сюда из конца
+            страницы (стояла между `How()` и `Cta()`), порядок остальных не
+            тронут. Теперь порядок секций совпадает с порядком навигации, где
+            «Обо мне» стоит вторым пунктом с Ф36 п.1. Ни сама секция, ни её
+            якорь `#o-mne` не изменились — переехал только узел в дереве. */}
+        <AboutTeaser />
         <Cinema />
         {/* <Grid /> — ВЫКЛЮЧЕНО Ф28: «6 фотографий, которые ты выбрал, я бы
             убрала пока. если что, добавим позже». Компонент и зоны `copy.grid`
@@ -114,7 +142,8 @@ function Page() {
             который вёл сюда из навигации, теперь указывает на `How()`
             (переименована «С чего начать и как это всё устроено», Ф36
             п.9) — см. комментарий у `NAV` ниже и README § 10. */}
-        <AboutTeaser />
+        {/* <AboutTeaser /> — ПЕРЕЕХАЛА наверх, сразу после `<Hero />` (Ф39
+            п.1), см. комментарий там. */}
         <Cta />
       </main>
       <Footer />
@@ -292,7 +321,7 @@ function Hero() {
       <Stars count={18} seed={7} scale="mixed" />
 
       <div className={WRAP}>
-        <div className="grid grid-cols-1 items-end gap-x-[var(--gutter)] gap-y-[clamp(2.4rem,6vw,4rem)] lg:grid-cols-12">
+        <div className="grid grid-cols-1 items-end gap-x-[var(--gap)] gap-y-[clamp(2.4rem,6vw,4rem)] lg:grid-cols-12">
           <div className="lg:col-span-7 lg:col-start-1">
             <p className="reveal t-mono text-[color:var(--ink-mute)]">{copy.hero.geo}</p>
 
@@ -326,16 +355,23 @@ function Hero() {
               style={{ ['--i' as string]: 3 }}
             >
               {/* Ф28 дала настоящий адрес личного Telegram (`@arisheniaa`, не
-                  канал `@byarisheniaa`). Ссылка, которая говорит «Написать в
-                  Telegram», обязана открывать Telegram, а не прокручивать
-                  страницу к блоку контактов, как было до появления адреса.
+                  канал `@byarisheniaa`). Ссылка, которая говорит «Написать»,
+                  обязана открывать Telegram, а не прокручивать страницу к
+                  блоку контактов, как было до появления адреса.
                   РЕДАКЦИЯ 5 (Ф36 п.4): «текст про написать в телеграм сделай
                   чуть меньше» — было `t-h3` (step-2, до 1.95rem), стало
-                  `t-lead` (step-1, до 1.4rem): готовая ступень шкалы между
-                  прежним размером и вторым, менее важным линком (`t-body`,
-                  1.0625rem фиксировано) — не магическое число, а соседняя
-                  ступень той же типографской шкалы (`styles.css`, `--step-*`).
-                  Первая ссылка остаётся крупнее второй — она первична. */}
+                  `t-lead` (step-1, до 1.4rem).
+
+                  Ф39 п.2: обе ссылки первого экрана сведены в одну — «Написать»
+                  одним словом, ведёт туда же. Вторая («Сначала посмотреть
+                  съёмки», вела на рэк `#raboty`) не рендерится, зона
+                  `copy.hero.ctaSecondary` сохранена дормантной. Кегль
+                  `t-lead` НЕ поднят обратно: Ф36 п.4 уменьшила эту ссылку
+                  отдельной просьбой, и то, что сосед исчез, — не повод
+                  молча отменять прошлую правку. Обёртка `flex-wrap` с двумя
+                  зазорами оставлена как есть: на одном ребёнке она ведёт
+                  себя ровно как обычная строка, а возврат второй ссылки не
+                  потребует переписывать раскладку. */}
               <a
                 className="link-major t-lead"
                 href="https://t.me/arisheniaa"
@@ -344,17 +380,33 @@ function Hero() {
               >
                 {copy.hero.ctaPrimary}
               </a>
-              {/* Вела в «Шесть кадров» (`#kadry`); секция снята Ф28, и адрес
-                  переставлен на рэк — единственную собранную подборку кадров. */}
-              <a className="link-minor t-body" href="/#raboty">
-                {copy.hero.ctaSecondary}
-              </a>
             </div>
           </div>
 
+          {/* СТОПКА ИЗ 12 СНИМКОВ — Ф40, «серию из 12 снимков на главной
+              сделай чуть выше и ближе к фразе».
+
+              БЛИЖЕ: колонка старта 9 → 8. Текст занимает 1–7, то есть
+              восьмая — первая свободная: ближе стопку не подвинуть, не
+              заехав на заголовок. Между ними остаётся один гаттер, а не
+              гаттер плюс пустая колонка, как было.
+
+              ВЫШЕ: у ряда стоит `items-end` — стопка равнялась по нижнему
+              краю текстового блока, ровно на одной линии со ссылкой
+              «Написать». Полем снизу поднимаем её над этой линией, не
+              трогая выравнивание всего ряда: `items-center` увёл бы стопку
+              к середине текста, а это уже не «чуть». Величина в `vh`, а не
+              в пикселях: подъём должен считаться от высоты экрана — на
+              низком окне первый экран и так тесный, и фиксированные
+              пиксели съели бы там воздух под стопкой.
+
+              Ф40, второй заход: «подними ещё чуть выше» — 8vh → 15vh,
+              потолок 5 → 9 rem. На окне 720 это ещё 50 px вверх: стопка
+              встаёт верхним краем вровень с началом заголовка, а не ниже
+              его. Дальше поднимать уже нельзя — упрётся в шапку. */}
           <div
             id="raboty"
-            className="reveal scroll-mt-[7rem] lg:col-span-4 lg:col-start-9"
+            className="reveal scroll-mt-[7rem] lg:col-span-4 lg:col-start-8 lg:mb-[clamp(3rem,15vh,9rem)]"
             style={{ ['--i' as string]: 4 }}
           >
             <Rack />
@@ -381,21 +433,49 @@ function Hero() {
    текст остаётся, подписи над ним больше нет. */
 function Cinema() {
   return (
-    <section data-mood-scope className={`${SECT} py-[clamp(5rem,15vh,12rem)]`}>
+    /* Ф40: «в разделе как получается кино тоже — текст должен помещаться в
+       один экран». Раздел был 717 px при окне 720 — формально влезал, на
+       деле упирался в оба края без единого пикселя воздуха, а на окне чуть
+       ниже (ноутбук с открытой панелью закладок) уже не влезал.
+
+       Основной расход был не в тексте, а в полях: 15vh сверху и снизу —
+       216 px из 717, почти треть секции на пустоту. Это было сделано
+       намеренно (диптиху нужен воздух больше, чем остальным), но «один
+       экран» и «самые большие поля на странице» — взаимоисключающие
+       требования, и выбрано первое. 15vh → 8vh, отступ до диптиха 8vh →
+       5vh, сдвиг правой половины 8vh → 4.5vh. Сбитая ось сохранена: правая
+       половина по-прежнему ниже левой, просто не на треть экрана.
+       Меры строк не тронуты — текст набирается ровно так же. */
+    <section data-mood-scope className={`${SECT} py-[clamp(3rem,8vh,7rem)]`}>
       <Stars count={9} seed={19} scale="bold" tones={[2, 0]} shapes={['hands5', 'starfish6', 'spark']} />
 
       <div className={WRAP}>
         <h2 className="reveal t-h1 max-w-[16ch]">{copy.cinema.title}</h2>
 
-        <div className="mt-[clamp(3rem,8vh,6rem)] grid grid-cols-1 gap-x-[var(--gutter)] gap-y-[clamp(2.6rem,7vw,5rem)] lg:grid-cols-12">
+        <div className="mt-[clamp(2rem,5vh,4rem)] grid grid-cols-1 gap-x-[var(--gap)] gap-y-[clamp(2rem,5vw,3.5rem)] lg:grid-cols-12">
+          {/* ПОЛОЖЕНИЕ ПОЛОВИН — 1–5 и 8–12, по краям полосы, две свободные
+              колонки между ними. Ф40 просила сдвинуть обе к центру (2–6 и
+              7–11), и это было сделано; следующим сообщением — «нет нет, два
+              абзаца из как получается кино верни обратно». Возвращено ровно
+              исходное положение. Оставлено записью, чтобы правка не была
+              предложена снова как «недоделанная». */}
           <div className="reveal lg:col-span-5 lg:col-start-1">
             <p className="t-quote max-w-[30ch]">{copy.cinema.a.text}</p>
           </div>
+          {/* Ф40: «второй абзац справа сделай по правому краю». Выключка
+              вправо у правой половины диптиха — тот же приём, что уже стоит
+              у плёночной карточки в услугах: половина прижата к правому
+              краю полосы, и её левый край висел в воздухе. Теперь у пары
+              общий внешний контур — левая выключена влево, правая вправо, —
+              а «рваной» остаётся только середина, где паре и положено
+              расходиться. `ml-auto` нужен потому, что мера в 30 знаков уже
+              колонки: без него выключились бы строки внутри абзаца, а сам
+              абзац остался бы у левого края своей колонки. */}
           <div
-            className="reveal lg:col-span-5 lg:col-start-8 lg:mt-[clamp(2.5rem,8vh,6rem)]"
+            className="reveal lg:col-span-5 lg:col-start-8 lg:mt-[clamp(1.5rem,4.5vh,4rem)]"
             style={{ ['--i' as string]: 1 }}
           >
-            <p className="t-quote max-w-[30ch]">{copy.cinema.b.text}</p>
+            <p className="t-quote ml-auto max-w-[30ch] lg:text-right">{copy.cinema.b.text}</p>
           </div>
         </div>
       </div>
@@ -427,7 +507,7 @@ export function Grid() {
       <div className={WRAP}>
         <h2 className="reveal t-h2">{copy.grid.title}</h2>
 
-        <div className="mt-[clamp(2.5rem,7vh,5rem)] grid grid-cols-1 gap-x-[var(--gutter)] gap-y-[clamp(3rem,9vh,7rem)] lg:grid-cols-12">
+        <div className="mt-[clamp(2.5rem,7vh,5rem)] grid grid-cols-1 gap-x-[var(--gap)] gap-y-[clamp(3rem,9vh,7rem)] lg:grid-cols-12">
           {copy.grid.frames.map((f, i) => {
             const L = GRID_LAYOUT[i];
             return (
@@ -532,7 +612,7 @@ function Offer() {
       <Stars count={11} seed={37} scale="fine" tones={[1, 0]} />
 
       <div className={WRAP}>
-        <div className="grid grid-cols-1 gap-x-[var(--gutter)] gap-y-[clamp(1.4rem,3vw,2.4rem)] lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-x-[var(--gap)] gap-y-[clamp(1.4rem,3vw,2.4rem)] lg:grid-cols-12">
           <h2 className="reveal t-h1 lg:col-span-6 lg:col-start-1">{copy.offer.title}</h2>
           <p
             className="reveal t-lead max-w-[42ch] text-[color:var(--ink-soft)] lg:col-span-5 lg:col-start-8 lg:mt-[0.6rem]"
@@ -542,47 +622,115 @@ function Offer() {
           </p>
         </div>
 
-        {/* два по запросу. Кадры разного размера намеренно: 9 rem против
-            8 rem — ряд из двух одинаковых кадров читался бы как пара карточек.
-            Размеры уменьшены в редакции 5 (Ф36 п.8): фото теперь рядом с
-            текстом, не над ним, крупный кадр столкнул бы текст за колонку. */}
-        <div className="mt-[clamp(3rem,9vh,6rem)] grid grid-cols-1 gap-x-[var(--gutter)] gap-y-[clamp(3rem,8vw,5rem)] md:grid-cols-12">
-          <OfferRow i={0} card={c.portrait} cls="md:col-span-6 md:col-start-1" frame="max-w-[9rem]" />
+        {/* два по запросу. Кадры разного размера намеренно — ряд из двух
+            одинаковых читался бы как пара карточек.
+            Ф36 п.8 уменьшила их до 9/8 rem, когда фото переехало вбок от
+            текста. Ф39 п.5 отменяет это уменьшение: «фотографии рядом с
+            услугами сделай больше размером все-таки» — 14 и 12 rem, плюс
+            половина роста. Разница между кадрами сохранена.
+            Правая карточка расширена с 5 до 6 колонок и подвинута с 8-й на
+            7-ю: при кадре в 12 rem пятиколоночная ячейка оставляла тексту
+            меньше меры, чем «Рекомендуемая длительность» требует, и он
+            сыпался в столбик.
+
+            Ф40: «фотографии у индивидуальной и парной сделай одного
+            размера» — 14 и 12 rem сведены к 14 у обеих. Прежнее правило
+            («ряд из двух одинаковых кадров читается как пара карточек»)
+            владелицей отменено прямо; асимметрию ряда теперь держит
+            единолично сдвиг правой карточки вниз (`md:mt-…`), и её хватает:
+            карточки не стоят на одной линии, значит и на пару одинаковых
+            ячеек не похожи. */}
+        <div className="mt-[clamp(3rem,9vh,6rem)] grid grid-cols-1 gap-x-[var(--gap)] gap-y-[clamp(3rem,8vw,5rem)] md:grid-cols-12">
+          <OfferRow i={0} card={c.portrait} cls="md:col-span-6 md:col-start-1" frame="max-w-[14rem]" />
           <OfferRow
             i={1}
             card={c.duo}
-            cls="md:col-span-5 md:col-start-8 md:mt-[clamp(2rem,6vh,4.5rem)]"
-            frame="max-w-[8rem]"
+            cls="md:col-span-6 md:col-start-7 md:mt-[clamp(2rem,6vh,4.5rem)]"
+            frame="max-w-[14rem]"
           />
         </div>
 
         <div className="rule mt-[clamp(3rem,8vh,5.5rem)]" />
 
-        {/* третья, без запроса: разворот, а не ячейка. Кадр самый крупный из
-            четырёх — 19 rem, — и стоит один против текста. */}
-        <div className="mt-[clamp(3rem,8vh,5.5rem)] grid grid-cols-1 items-center gap-x-[var(--gutter)] gap-y-[clamp(2rem,5vw,3rem)] lg:grid-cols-12">
-          <figure className="reveal m-0 lg:col-span-5 lg:col-start-1">
-            <TiltFrame className="max-w-[19rem] overflow-hidden">
-              <div data-focus="in">
-                <img
-                  src={c.idea.photo}
-                  width={680}
-                  height={907}
-                  alt={c.idea.alt}
-                  className="frame block w-full"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-            </TiltFrame>
-          </figure>
-          <div className="lg:col-span-6 lg:col-start-7">
+        {/* третья, без запроса: разворот, а не ячейка.
+
+            Ф39 п.6: «услуги творческая и пленочная сделай компактнее. мне не
+            нравится что между текстом и фотографией такое большое расстояние.
+            фотографию у творческой чуть уменьши».
+
+            ОТКУДА БРАЛОСЬ РАССТОЯНИЕ — это была не величина зазора, а сетка.
+            Кадр в 19 rem (304 px) стоял в пятиколоночной ячейке шириной ~590 px
+            на 1500-й мере, текст начинался с 7-й колонки: между краем
+            фотографии и первой буквой набегало ~340 px пустоты, из которых
+            почти всё — недобранная ширина ячейки, а не осознанный зазор.
+            Правка убирает саму сетку у этих двух разворотов: `flex`, кадр и
+            текст соседи, зазор задан числом и виден в коде. Разворотами они
+            быть не перестали — ширина блока ограничена, и творческая прижата
+            влево, а плёночная вправо (`ml-auto` ниже), так что чередование
+            сторон, ради которого сетка и стояла, сохранено.
+
+            Кадр 19 → 16 rem («чуть уменьши»). */}
+        {/* Ф40: «в творческой добавь побольше фотографий и сделай анимацию
+            веером, как в интерактиве придумать съемку». Одиночный кадр в
+            `TiltFrame` заменён на веер из шести (`Fan.tsx` — тот же
+            компонент, что на экране результата раскадровки, вариант
+            `compact`; кадры и порядок — `copy.ts`).
+
+            ТИЛТ ПО КУРСОРУ СНЯТ С ЭТОЙ КАРТОЧКИ. Не забыт: у веера курсор
+            уже занят — он разворачивает стопку в ряд и увеличивает кадр под
+            указателем. Наклон плоскости поверх этого был бы вторым ответом
+            на то же движение мыши, и оба читались бы хуже. У остальных трёх
+            карточек `TiltFrame` на месте.
+
+            Блок стал шире (54 → 64 rem): развёрнутому ряду из шести кадров
+            нужно место, иначе он ушёл бы в собственную прокрутку. Кадр и
+            текст при этом остались соседями — то, ради чего Ф39 п.6 убирала
+            отсюда сетку, не потеряно. */}
+        {/* Порог раскладки у ЭТИХ ДВУХ карточек — `lg:` (1024), а не `sm:`
+            (640), как у первых двух. Замерено: на 768 px боковая раскладка
+            оставляла вееру 310 px, и развёрнутый ряд из шести вылезал на
+            123 px — то есть на планшете «раскрылся в ряд» снова означало бы
+            «две карточки под обрезом». Ниже 1024 карточка складывается в
+            столбик, и веер получает всю ширину полосы (687 px на 768) —
+            там помещается девять кадров, запас есть. У первых двух карточек
+            порог остаётся `sm:`: там одиночный кадр, ему хватает и 128 px. */}
+        <div className="offer-card mt-[clamp(3rem,8vh,5.5rem)] flex max-w-[64rem] flex-col gap-y-[clamp(1.2rem,3vw,1.8rem)] lg:flex-row lg:items-center lg:gap-x-[clamp(1.6rem,3.4vw,2.6rem)] lg:gap-y-0">
+          {/* `grow` у веера и фиксированная доля у текста (ниже) — не
+              косметика, а условие, при котором развёрнутый ряд помещается.
+              Пока обе половины делили место «по содержимому», ширина
+              контейнера веера зависела от самого веера: он раскрывался,
+              просил больше, получал меньше, и последняя карточка уезжала
+              под обрез (замерено `scrollWidth` против `clientWidth`: 561
+              против 533). Теперь текст занимает ровно свою долю, а веер —
+              весь остаток, и остаток известен заранее, до раскрытия. */}
+          <div className="reveal min-w-0 grow">
+            <Fan
+              variant="compact"
+              photos={c.idea.photos.map((p) => ({
+                key: p.src,
+                src: p.src,
+                alt: p.alt,
+                w: 700,
+                h: 933,
+              }))}
+              label={`Кадры творческих съёмок, ${c.idea.photos.length} штук — наведите курсор или сфокусируйте, чтобы увидеть все целиком`}
+            />
+          </div>
+          <div className="min-w-0 lg:shrink-0 lg:basis-[21rem]">
             <h3 className="reveal t-h2">{c.idea.name}</h3>
-            <p className="reveal mt-[clamp(1rem,2.4vw,1.6rem)]" style={{ ['--i' as string]: 1 }}>
-              <PricePlate text={c.idea.price} />
-            </p>
+            {/* тот же схлопываемый слот, что у первых двух карточек (Ф40) */}
+            <div className="offer-price">
+              <div>
+                <p
+                  className="reveal mb-[clamp(0.8rem,2vw,1.2rem)] mt-[clamp(0.7rem,1.8vw,1.1rem)]"
+                  style={{ ['--i' as string]: 1 }}
+                >
+                  <PricePlate text={c.idea.price} />
+                </p>
+              </div>
+            </div>
             <p
-              className="reveal t-body mt-[clamp(1.1rem,2.6vw,1.8rem)] max-w-[38ch] text-[color:var(--ink-soft)]"
+              className="reveal t-body max-w-[38ch] text-[color:var(--ink-soft)]"
               style={{ ['--i' as string]: 2 }}
             >
               {c.idea.includes}
@@ -598,35 +746,65 @@ function Offer() {
             `copy.ts`). Кадр здесь мельче всех, 12 rem. Зеркальный разворот к
             творческой: там кадр слева, текст справа, здесь наоборот. Ряда из
             четырёх одинаковых ячеек в секции так и не появляется. */}
-        <div className="mt-[clamp(3rem,8vh,5.5rem)] grid grid-cols-1 items-center gap-x-[var(--gutter)] gap-y-[clamp(2rem,5vw,3rem)] lg:grid-cols-12">
-          <div className="reveal lg:col-span-6 lg:col-start-1">
+        {/* Ф39 п.6, вторая половина — та же правка, что у творческой: сетка
+            снята, кадр и текст стоят соседями. Здесь пустоты было ещё больше:
+            текст занимал колонки 1–6, кадр в 12 rem висел в четырёхколоночной
+            ячейке с 9-й, прижатый к правому краю, — между ними получалось
+            больше половины меры. Блок прижат вправо (`ml-auto`), чтобы
+            зеркальность к творческой не потерялась вместе с сеткой.
+            Кадр 12 → 14 rem («фотографию у пленочной наоборот чуть
+            увеличь»); он по-прежнему мельче кадра творческой (16 rem), как и
+            был, — увеличены оба конца, порядок не перевернулся.
+            `sm:flex-row-reverse` — кадр справа, текст слева: та же сторона,
+            что и до правки, читательский порядок в DOM (сначала имя услуги,
+            потом фотография) при этом сохранён. */}
+        {/* Порог `lg:`, как у творческой, и по той же измеренной причине. */}
+        <div className="offer-card mt-[clamp(3rem,8vh,5.5rem)] ml-auto flex max-w-[64rem] flex-col gap-y-[clamp(1.2rem,3vw,1.8rem)] lg:flex-row-reverse lg:items-center lg:gap-x-[clamp(1.6rem,3.4vw,2.6rem)] lg:gap-y-0">
+          {/* Ф40: «в пленочной сделай такой же веер» — одиночный кадр заменён
+              веером из пяти (`Fan.tsx`, вариант `compact`, кадры в
+              `copy.ts`). Доли те же, что у творческой, и по той же
+              измеренной причине: текст занимает свою, веер забирает
+              остаток. Блок расширен 54 → 64 rem, как и там.
+
+              СНЯТЫ ВМЕСТЕ С ОДИНОЧНЫМ КАДРОМ, оба намеренно:
+               · `TiltFrame` — у веера курсор уже занят разворотом стопки,
+                 наклон был бы вторым ответом на то же движение мыши (то же
+                 решение, что в творческой);
+               · `FilmCaption` — EXIF-подпись «плёнка» (Ф29 п.5) висела на
+                 этом кадре ровно потому, что он был ЕДИНСТВЕННЫМ
+                 подтверждённым плёночным на сайте. Теперь плёночные все
+                 пять, и подпись на каждой карточке веера стала бы пятью
+                 одинаковыми ярлыками — шум вместо детали. Компонент
+                 `FilmCaption.tsx` не удалён, возврат — одна обёртка. То,
+                 что это плёнка, карточка и так говорит именем и текстом. */}
+          <div className="reveal min-w-0 grow" style={{ ['--i' as string]: 1 }}>
+            <Fan
+              variant="compact"
+              photos={copy.offer.film.photos.map((p) => ({
+                key: p.src,
+                src: p.src,
+                alt: p.alt,
+                w: 700,
+                h: 933,
+              }))}
+              label={`Кадры плёночных съёмок, ${copy.offer.film.photos.length} штук — наведите курсор или сфокусируйте, чтобы увидеть все целиком`}
+            />
+          </div>
+          {/* Ф40: «текст у пленочной сделай по правому краю». Выключка вправо
+              здесь не украшение и не случайность в ряду других карточек: это
+              единственный разворот, где кадр стоит СПРАВА от текста
+              (`sm:flex-row-reverse` выше), и левый край текста упирается в
+              пустоту, а правый — в фотографию. Прижав строки к правому краю,
+              текст получает общую вертикаль с кадром. `ml-auto` на самом
+              блоке нужен потому, что мера в 46 знаков уже колонки: без него
+              выключка сдвинула бы только строки внутри блока, а сам блок
+              остался бы слева. */}
+          <div className="reveal min-w-0 text-right lg:shrink-0 lg:basis-[21rem]">
             <h3 className="t-h3">{copy.offer.film.name}</h3>
-            <p className="t-body mt-[clamp(0.8rem,2vw,1.2rem)] max-w-[46ch] text-[color:var(--ink-soft)]">
+            <p className="t-body ml-auto mt-[clamp(0.8rem,2vw,1.2rem)] max-w-[46ch] text-[color:var(--ink-soft)]">
               {copy.offer.film.caption}
             </p>
           </div>
-          <figure
-            className="reveal m-0 lg:col-span-4 lg:col-start-9"
-            style={{ ['--i' as string]: 1 }}
-          >
-            <TiltFrame className="ml-auto max-w-[12rem] overflow-hidden">
-              {/* EXIF-подпись (Ф29 п.5) — только на этом кадре, единственном
-                  подтверждённом как плёночный (`FilmCaption.tsx`). */}
-              <FilmCaption>
-                <div data-focus="in">
-                  <img
-                    src={copy.offer.film.photo}
-                    width={680}
-                    height={907}
-                    alt={copy.offer.film.alt}
-                    className="frame block w-full"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
-              </FilmCaption>
-            </TiltFrame>
-          </figure>
         </div>
 
         {/* «Весь прайс и условия» — ВЫКЛЮЧЕНО Ф36 п.8: «Убрать: ссылку...
@@ -658,15 +836,19 @@ function OfferRow({
   frame: string;
 }) {
   return (
-    <div className={`reveal ${cls}`} style={{ ['--i' as string]: i }}>
+    /* `offer-card` — область наведения плашки цены (Ф40, см. `styles.css`).
+       Стоит на внешнем узле карточки, а не на внутреннем ряду: наводить
+       владелица просит «на тип съемки/услуги», то есть на карточку целиком,
+       включая заголовок и описание, а не только на полосу «фото + текст». */
+    <div className={`offer-card reveal ${cls}`} style={{ ['--i' as string]: i }}>
       <div className="flex flex-col gap-y-[0.8rem] sm:flex-row sm:items-start sm:gap-x-[clamp(1rem,2.6vw,1.6rem)] sm:gap-y-0">
         <figure className="m-0 shrink-0">
           <TiltFrame className={`overflow-hidden ${frame}`}>
             <div data-focus="in">
               <img
                 src={card.photo}
-                width={680}
-                height={907}
+                width={1000}
+                height={1333}
                 alt={card.alt}
                 className="frame block w-full"
                 loading="lazy"
@@ -677,9 +859,18 @@ function OfferRow({
         </figure>
         <div className="min-w-0">
           <h3 className="t-h3">{card.name}</h3>
-          <p className="mt-[0.6rem]">
-            <PricePlate text={card.price} />
-          </p>
+          {/* Схлопываемое место под цену (Ф40) — в покое высота ноль, и
+              описание стоит вплотную под именем услуги, «вместо цен»; по
+              наведению строка раскрывается и описание съезжает вниз.
+              Механика — `.offer-price` в `styles.css`. Отступы плашки
+              стоят внутри обёртки, чтобы исчезать вместе с ней. */}
+          <div className="offer-price">
+            <div>
+              <p className="mb-[0.7rem] mt-[0.6rem]">
+                <PricePlate text={card.price} />
+              </p>
+            </div>
+          </div>
           <p className="t-body mt-[0.7rem] max-w-[28ch] text-[color:var(--ink-soft)]">{card.includes}</p>
         </div>
       </div>
@@ -702,12 +893,18 @@ function OfferRow({
 function How() {
   return (
     <section id="podgotovka" className={`${SECT} scroll-mt-[5rem] py-[clamp(4rem,12vh,9rem)]`}>
-      <Stars count={8} seed={53} scale="fine" />
+      {/* Ф39 п.8 — «добавь ближе к низу побольше желтых звездочек». Это
+          предпоследняя секция страницы, и разгон начинается с неё: число
+          8 → 13, тона с перевесом в жёлтый (повтор значения = вес, см.
+          `StarsProps.tones`). Ранг остаётся `fine`: здесь под звёздами
+          лестница шагов и демонстрация папок, крупные спорили бы с ними за
+          внимание. Самый плотный жёлтый — ниже, в блоке контактов. */}
+      <Stars count={13} seed={53} scale="fine" tones={[1, 1, 0]} />
 
       <div className={WRAP}>
         <h2 className="reveal t-h2 max-w-[26ch]">{copy.how.title}</h2>
 
-        <div className="mt-[clamp(2.5rem,7vh,4.5rem)] grid grid-cols-1 gap-x-[var(--gutter)] lg:grid-cols-12">
+        <div className="mt-[clamp(2.5rem,7vh,4.5rem)] grid grid-cols-1 gap-x-[var(--gap)] lg:grid-cols-12">
           <ol className="m-0 list-none p-0 lg:col-span-7 lg:col-start-1">
             {copy.how.steps.map((s, i) => (
               <li
@@ -766,7 +963,7 @@ export function Faq() {
           {copy.faq.items.map((item, i) => (
             <div
               key={item.q}
-              className="reveal grid grid-cols-1 gap-x-[var(--gutter)] gap-y-[clamp(0.8rem,2vw,1.3rem)] border-t border-[color:color-mix(in_srgb,var(--ink)_16%,transparent)] py-[clamp(1.6rem,4.5vh,3rem)] lg:grid-cols-12"
+              className="reveal grid grid-cols-1 gap-x-[var(--gap)] gap-y-[clamp(0.8rem,2vw,1.3rem)] border-t border-[color:color-mix(in_srgb,var(--ink)_16%,transparent)] py-[clamp(1.6rem,4.5vh,3rem)] lg:grid-cols-12"
               style={{ ['--i' as string]: i % 2 }}
             >
               <dt className="t-h3 lg:col-span-5 lg:col-start-1">{item.q}</dt>
@@ -783,26 +980,127 @@ export function Faq() {
 
 /* ═════════════════════════ КТО СНИМАЕТ ═════════════════════════
    `#o-mne` — переходный адрес пункта «Обо мне» из навигации Ф28: страницы
-   «Обо мне» ещё нет, эта секция — её анонс на главной. */
+   «Обо мне» ещё нет, эта секция — её анонс на главной.
+
+   Ф39, две правки:
+
+   п.3 ФОТОГРАФИЯ АВТОРА СЛЕВА. «в раздел "обо мне" слева добавь мою
+   фотографию» — кадр встал в левую колонку под заголовок, текст ушёл в
+   правую. Заголовок с места не двигался: он и раньше стоял слева, теперь
+   просто не один. Единственная горизонталь (3:2) на всей странице — на
+   рэке и в услугах всё вертикальное; раздел про автора отличается от них
+   не только текстом. Обоснование пропорции — `export-photos.mjs`.
+
+   Правая колонка опущена на `lg:mt-…`: две колонки, начинающиеся с одной
+   высоты, читаются как ячейки таблицы, а здесь это разворот — тот же
+   приём сбитой оси, что в диптихе «Как получается кино» и в услугах.
+
+   `data-focus="in"` — кадр приходит расфокусированным и наводится
+   скроллом, как все прочие кадры страницы (`reveal.ts`). `TiltFrame` тут
+   намеренно НЕ надет: тилт по курсору — язык карточек услуг, где кадр
+   работает товаром, а этот кадр — портрет, и вертеть лицо под мышью не то
+   же самое, что вертеть карточку услуги.
+
+   п.3 (вторая половина) ССЫЛКА «ОБО МНЕ» ПОД ТЕКСТОМ СНЯТА: «ссылку внизу
+   под текстом с надписью "обо мне" убери, думаю хватит той ссылки, что в
+   навигации». Зона `copy.about.link` сохранена дормантной. */
 function AboutTeaser() {
+  /* Ф39 п.2 — звёзды расступаются вокруг фотографии, а не лежат под ней.
+     Ссылка отдаётся в `Stars`, который меряет узел сам (см. «ЗОНА
+     ИСКЛЮЧЕНИЯ» в `Stars.tsx`). Ref именно на `<figure>`, а не на колонку:
+     колонка выше фотографии на высоту заголовка, и зона накрыла бы ещё и
+     «Кто снимает» — под заголовком звёздам ничто не мешает. */
+  const photoRef = useRef<HTMLElement>(null);
+
   return (
-    <section id="o-mne" className={`${SECT} scroll-mt-[5rem] py-[clamp(3rem,9vh,7rem)]`}>
-      <Stars count={7} seed={71} scale="mixed" tones={[1, 2]} />
+    /* Ф40: «текст в разделе обо мне должен помещаться в один экран».
+       Раздел был 784 px при окне 720 — не влезал на 64 px. Собрано из
+       четырёх мест, ни одно из которых не трогает сам текст:
+        · поля секции 9vh → 5vh сверху и снизу (−58);
+        · сдвиг правой колонки вниз 7vh → 3.5vh (−25) — ось всё ещё сбита,
+          просто мягче;
+        · правая колонка расширена с 6 колонок до 7 (стартует с той же
+          шестой, доходит до края) — это и даёт двум мерам ниже место
+          вырасти, без него они упирались в 539 px колонки;
+        · меры строк шире: лид 26 → 30 знаков (−1 строка), абзацы 40 → 54
+          (−93). Сорок знаков было ниже комфортного диапазона чтения
+          (45–75), так что строка стала не только короче по числу, но и
+          лучше по мере. */
+    <section id="o-mne" className={`${SECT} scroll-mt-[5rem] py-[clamp(2rem,5vh,4rem)]`}>
+      <Stars count={7} seed={71} scale="mixed" tones={[1, 2]} avoid={photoRef} />
       <div className={WRAP}>
-        <div className="grid grid-cols-1 gap-x-[var(--gutter)] gap-y-[clamp(1.2rem,3vw,2rem)] lg:grid-cols-12">
-          <h2 className="reveal t-h2 lg:col-span-3 lg:col-start-1">{copy.about.title}</h2>
-          <div className="lg:col-span-7 lg:col-start-5">
-            <p className="reveal t-quote max-w-[46ch]" style={{ ['--i' as string]: 1 }}>
-              {copy.about.text}
+        <div className="grid grid-cols-1 gap-x-[var(--gap)] gap-y-[clamp(1.6rem,4vw,2.4rem)] lg:grid-cols-12">
+          {/* Ф40 (последнее сообщение): «увеличь фотографию немного» —
+              колонка 4 → 5, и кадр растёт вместе с ней (своей ширины у него
+              нет, он занимает колонку целиком): 346 → 442 px на окне 1280.
+              Правая колонка съехала с шестой на седьмую, чтобы освободить
+              место, — пустая колонка между ними осталась ровно одна, как и
+              была. Тексту это ничего не стоило: он в том же сообщении
+              сократился на треть. */}
+          <div className="lg:col-span-5 lg:col-start-1">
+            <h2 className="reveal t-h2">{copy.about.title}</h2>
+            <figure
+              ref={photoRef}
+              className="reveal m-0 mt-[clamp(1.3rem,3.2vw,2.2rem)]"
+              style={{ ['--i' as string]: 1 }}
+            >
+              <div data-focus="in" className="overflow-hidden">
+                <img
+                  src={copy.about.photo}
+                  width={1200}
+                  height={800}
+                  alt={copy.about.alt}
+                  className="frame block w-full"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            </figure>
+          </div>
+          {/* ═══ ТЕКСТ: ЛИД КРУПНО, ТРИ АБЗАЦА МЕЛКО ═══
+              Ф39 (третье сообщение): «раздел выглядит несуразно из-за
+              большого текста… чтобы выглядело стильно и лаконично, было
+              понятно и приятно глазу. можно делить текст».
+
+              ЧТО БЫЛО НЕ ТАК. Одна строка на 570 знаков стояла сплошным
+              куском одного кегля: тринадцать строк без единой зацепки для
+              глаза. Дело было не в объёме — объём её, и он остаётся, — а в
+              том, что у текста не было ни начала, ни ступеней. Кегль тут
+              лечит мало: крупный даёт стену, мелкий — простыню.
+
+              ЧТО СДЕЛАНО — иерархия вместо однородности, ровно теми же
+              средствами, что уже работают на странице:
+               · ЛИД (первое предложение, `copy.about.lead`) набран `t-quote`
+                 узкой мерой в 26 знаков — это «Я — arisheniaa» и семь лет
+                 стажа, то есть ответ на вопрос заголовка. Он один и держит
+                 верх блока, как реплики в диптихе «Как получается кино»;
+               · ТРИ АБЗАЦА (`copy.about.body`) — `t-body` мерой 40 знаков,
+                 по одной мысли на абзац, с воздухом между. Ни один не длиннее
+                 четырёх строк, и между ними есть куда выдохнуть;
+               · волосяная линейка отделяет лид от абзацев — тот же приём,
+                 что делит услуги и шаги, ничего нового на странице.
+              Текст не сокращён и не переписан: деление идёт по её точкам,
+              склейка частей пробелами даёт исходную строку знак в знак. */}
+          <div className="lg:col-span-6 lg:col-start-7 lg:mt-[clamp(1.5rem,3.5vh,3rem)]">
+            <p className="reveal t-quote max-w-[30ch]" style={{ ['--i' as string]: 2 }}>
+              {copy.about.lead}
             </p>
-            <p className="reveal mt-[clamp(1.4rem,3vw,2.2rem)]" style={{ ['--i' as string]: 2 }}>
-              {/* `home:about.link` — «Обо мне». Ведёт на будущую страницу
-                  «Обо мне», которой ещё нет; до неё адрес — эта же секция,
-                  как и у одноимённого пункта навигации. */}
-              <a className="link-minor t-body" href="/#o-mne">
-                {copy.about.link}
-              </a>
-            </p>
+
+            <div className="rule mt-[clamp(1.1rem,2.6vh,1.7rem)] max-w-[54ch]" />
+
+            <div className="mt-[clamp(1.1rem,2.6vh,1.7rem)] max-w-[54ch]">
+              {copy.about.body.map((para, i) => (
+                <p
+                  key={i}
+                  className={`reveal t-body text-[color:var(--ink-soft)] ${
+                    i > 0 ? 'mt-[clamp(0.7rem,1.8vh,1.1rem)]' : ''
+                  }`}
+                  style={{ ['--i' as string]: 3 + i }}
+                >
+                  {para}
+                </p>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -841,7 +1139,12 @@ function Cta() {
       aria-label="Контакты"
       className={`${SECT} scroll-mt-[5rem] pt-[clamp(4rem,12vh,9rem)] pb-[clamp(5rem,15vh,11rem)]`}
     >
-      <Stars count={13} seed={97} scale="mixed" />
+      {/* Ф39 п.8, самый низ страницы — здесь жёлтого больше всего: 13 → 24
+          звезды, три жёлтых на одну бордовую. Чёрный тон (`0`) из этой
+          секции убран совсем: под ним последняя фраза и два контакта на
+          пустоте, и чёрная россыпь рядом с текстом читается как сор, а не
+          как свет. */}
+      <Stars count={24} seed={97} scale="mixed" tones={[1, 1, 1, 2]} />
       <div className={WRAP}>
         <div className="mx-auto max-w-[44rem] text-center">
           <p className="reveal t-h2 mx-auto max-w-[24ch] text-balance">

@@ -37,15 +37,32 @@
     color: var(--ink);
     background: color-mix(in srgb, var(--paper-hi) 55%, transparent);
     border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+    /* Ф40 — «закругли все прямоугольники на сайтах». Радиус общий с плашкой
+       цены и панелью навигации (`--radius-ui`, `../styles.css`), не своё
+       число: у квиза и главной один язык поверхностей. */
+    border-radius: var(--radius-ui);
     cursor: pointer;
+    /* Ф39 п.13 — «сделай реакцию элементов раскадровки на курсор более
+       плавным». 180 → 320 ms и `--ease-soft` вместо `--ease-out`: на
+       выезжающей кривой (0.16, 0.84…) отклик срывается с места и почти
+       мгновенно приходит в конечное состояние — при 180 ms это читается
+       щелчком, а не наведением. `--ease-soft` (`styles.css`) трогается
+       мягче с обоих концов, поэтому та же длительность ощущается плавнее.
+       `transform` при нажатии НЕ замедлен и остаётся на `--dur-press`
+       (100 ms): нажатие обязано отвечать мгновенно — это уже не «реакция на
+       курсор», а подтверждение клика, и растягивать его значит делать
+       интерфейс вялым, а не плавным. */
     transition:
-      background 180ms var(--ease-out),
-      border-color 180ms var(--ease-out),
-      color 180ms var(--ease-out),
+      background 320ms var(--ease-soft),
+      border-color 320ms var(--ease-soft),
+      color 320ms var(--ease-soft),
       transform var(--dur-press) ease-out;
   }
   .sb-tile:hover {
     border-color: var(--ink);
+    /* наведение теперь ещё и слегка подсвечивает плитку — одно движение
+       цвета на 320 ms заметнее, чем одна меняющаяся рамка */
+    background: color-mix(in srgb, var(--paper-hi) 85%, transparent);
   }
   .sb-tile:active {
     transform: scale(0.985);
@@ -67,6 +84,7 @@
     font-size: var(--step--1);
     background: var(--plate);
     color: var(--plate-ink);
+    border-radius: var(--radius-ui); /* Ф40 */
     cursor: default;
   }
 
@@ -174,88 +192,14 @@
     opacity: 0.62;
   }
 
-  /* ═══ КАРТОЧНЫЙ ВЕЕР (Ф33 п.2, редакция 4, `PhotoFan.tsx`) ══════════════
-     Родственно стопке рэка главной (`.rack-stack`) эстетически — `.frame`
-     без рамки/тени, но физика другая: там перетаскивание, здесь реакция на
-     курсор/фокус без перетаскивания. Три состояния описаны в `PhotoFan.tsx`.
-
-     ПОКОЙ — карточки внахлёст (отрицательный `margin-left` перекрывает
-     соседа больше чем наполовину), лёгкий поворот по `--i` для «стопки от
-     руки», а не ровной пачки. РАЗВОРОТ (`[data-expanded]`) — margin уходит в
-     ноль, ширина растёт: обычный `flex`, а не абсолютные координаты —
-     раскладка сама пересчитывает соседей, никакой ручной арифметики
-     translateX по проценту ширины. */
-  .sb-fan {
-    display: flex;
-    align-items: flex-end;
-    outline: none;
-    padding: 0.3rem;
-    margin: -0.3rem;
-    max-width: 100%;
-    /* Контейнер сам решает переполнение — прокруткой ВНУТРИ себя, а не
-       вытеснением всей страницы вбок (`documentElement.scrollWidth` от этого
-       не меняется). Актуально в развёрнутом состоянии на среднеширокой
-       раскладке, где 6–7 карточек в ряд шире контейнера. */
-    overflow-x: auto;
-  }
-  /* Тач/reduced-motion (`data-mode="flat"`, `useFanMode()` в `PhotoFan.tsx`)
-     — веер уже развёрнут перманентно; здесь безопаснее ПЕРЕНОС строк, чем
-     горизontальная прокрутка: жест «свайпнуть вбок внутри виджета» не
-     гарантирован на тач-экране так же надёжно, как горизонтальный скролл
-     мышью на десктопе, а перенос показывает все фото сразу без какого-либо
-     жеста вовсе — именно то, что требует правило «без потери контента». */
-  .sb-fan[data-mode='flat'] {
-    flex-wrap: wrap;
-    overflow: visible;
-  }
-  .sb-fan-item {
-    /* НАХОДКА (не мнение — поймано измерением `getComputedStyle`): `<figure>`
-       раньше нёс утилитарный класс Tailwind `m-0` (как у старого `ResultFrame`).
-       Утилиты Tailwind v4 живут в `@layer utilities`, а этот файл — в
-       `@layer components`; порядок слоёв `theme, base, components, utilities`
-       делает utilities СИЛЬНЕЕ components НЕЗАВИСИМО ОТ СПЕЦИФИЧНОСТИ
-       селектора — `m-0` обнулял `margin-left` этого правила молча, стопка
-       переставала перекрываться (`margin-left` всегда 0px), а разница между
-       «покоем» и «разворотом» пропадала. Поэтому здесь margin сбрасывается
-       СВОИМ правилом (`margin: 0`), без утилитарного класса на узле. */
-    margin: 0;
-    position: relative;
-    flex: none;
-    width: clamp(5rem, 15vw, 7.5rem);
-    margin-left: clamp(-5.6rem, -11vw, -3.6rem);
-    /* небольшой разброс наклона по индексу — «стопка от руки», не ровная
-       пачка (тот же дух, что `TILT` у `useRack.ts`, числа проще — веер не
-       перетаскивают, деталь чисто декоративная) */
-    transform: rotate(calc(var(--i, 0) * 3deg - 6deg));
-    z-index: var(--z, 1);
-    transition:
-      margin-left 460ms var(--ease-out),
-      width 460ms var(--ease-out),
-      transform 460ms var(--ease-out);
-  }
-  .sb-fan-item:first-child {
-    margin-left: 0;
-  }
-  .sb-fan[data-expanded] .sb-fan-item {
-    margin-left: clamp(0.5rem, 1.4vw, 0.9rem);
-    width: clamp(6.5rem, 13vw, 9.5rem);
-    transform: none;
-    z-index: 1;
-  }
-  .sb-fan[data-expanded] .sb-fan-item:first-child {
-    margin-left: 0;
-  }
-  /* Наведение/фокус на КОНКРЕТНУЮ фотографию внутри развёрнутого ряда —
-     увеличивается относительно соседей (требование дословно). Работает
-     только когда ряд уже развёрнут (`data-hot` ставит `PhotoFan.tsx` только
-     при `expanded`/`alwaysExpanded`, см. компонент). */
-  .sb-fan[data-expanded] .sb-fan-item[data-hot] {
-    width: clamp(9rem, 19vw, 13.5rem);
-    z-index: 20;
-  }
-  .sb-fan-item figcaption {
-    font-size: 0.625rem;
-  }
+  /* ═══ КАРТОЧНЫЙ ВЕЕР — ПЕРЕЕХАЛ В `../styles.css` (Ф40) ═════════════════
+     Правил `.sb-fan*` больше нет в этом файле. Тот же веер понадобился
+     карточке «Творческая» на главной («сделай анимацию веером, как в
+     интерактиве придумать съемку»), а этот файл подключён только на
+     `storyboard.html`. Механика уехала в `../Fan.tsx`, стили — в общий
+     `../styles.css`, рядом с `.frame` и `.rack-stack`, с которыми веер и
+     делит язык. Имена классов сохранили приставку `sb-`: по ним меряет
+     `scripts/selfcheck-storyboard.mjs`, см. комментарий в `Fan.tsx`. */
 
   /* ═══ PINTEREST — ДОСКИ НА ЭКРАНЕ РЕЗУЛЬТАТА (правка Ф34, была на вопросе
      «образ» до правки — Ф31/Ф32) ═══
@@ -278,7 +222,8 @@
     border: none;
     border-bottom: 1px solid transparent;
     cursor: pointer;
-    transition: color 180ms var(--ease-out), border-color 180ms var(--ease-out);
+    /* Ф39 п.13, та же правка, что у плиток: 180 → 320 ms, `--ease-soft`. */
+    transition: color 320ms var(--ease-soft), border-color 320ms var(--ease-soft);
   }
   .sb-pin-tab:hover {
     color: var(--ink);
@@ -291,6 +236,10 @@
     min-height: 320px;
     overflow: hidden;
     background: color-mix(in srgb, var(--paper-hi) 45%, transparent);
+    /* Ф40. Здесь `overflow: hidden` обязателен и стоял до правки: внутри
+       живёт чужая разметка виджета Pinterest, и без обрезки её собственные
+       прямые углы вылезли бы поверх скругления. */
+    border-radius: var(--radius-ui);
   }
 
   /* ═══ ПЕРЕХОД В СТАДИЮ РЕЗУЛЬТАТА ═══
