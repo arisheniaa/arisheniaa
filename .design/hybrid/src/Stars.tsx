@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import type { RefObject } from 'react';
+import { onFrame } from './raf';
 import { STAR_PATHS, STAR_TONES } from './star-paths';
 import type { StarShape, StarTone } from './star-paths';
 
@@ -386,17 +387,67 @@ export function Stars({
     let lastScroll = window.scrollY;
     let scrollVel = 0;
 
-    let raf = 0;
-    let prev = performance.now();
+    /* ═══ ДВА ВЫКЛЮЧАТЕЛЯ (Ф43) — «сайт ещё виснет» ══════════════════════
+       На главной шесть полей звёзд, и каждое до этой правки крутило свой
+       `requestAnimationFrame` без остановки: считало пружины для 82 звёзд и
+       переписывало атрибуты DOM шестьдесят раз в секунду. При высоте
+       страницы 7000 px одновременно видно примерно один экран из девяти —
+       пять полей из шести двигали то, чего читатель не видит.
+
+       ПЕРВЫЙ ВЫКЛЮЧАТЕЛЬ — ВИДИМОСТЬ. Секция за экраном не считается вовсе.
+       Запас `rootMargin: 25%` даёт полю ожить чуть раньше, чем оно въедет в
+       кадр: иначе первый видимый кадр приходился бы на момент, когда
+       пружины ещё стоят в позиции полугодовой давности, и звёзды дёрнулись
+       бы уже на глазах.
+
+       ВТОРОЙ — ПОКОЙ. Даже видимое поле почти всё время неподвижно: звёзды
+       живут только от курсора, тапа и прокрутки, а цель пружины всегда
+       «дом». Когда все скорости и смещения улеглись ниже порога заметности
+       (0,05 px — это меньше трети пикселя после округления в `paint`), а
+       курсора над секцией нет, кадр пропускается целиком: ни физики, ни
+       записи в DOM. Страница, на которую просто смотрят, не тратит ничего.
+
+       Порог не «на глаз»: `paint` пишет координаты с двумя знаками, а
+       свечение квантовано шагом 0,08 — движение мельче порога всё равно не
+       доехало бы до экрана.
+
+       Оба выключателя — про КОГДА считать, а не про то, ЧТО считать. Ни
+       одно число физики (жёсткость, демпфирование, радиус, тона) не
+       тронуто: движение осталось тем же, исчезла работа впустую. */
+    let visible = false;
+    const vis = new IntersectionObserver(
+      (entries) => {
+        visible = entries[entries.length - 1].isIntersecting;
+        // подхватываем прокрутку, случившуюся пока поле спало, — иначе
+        // первый кадр после пробуждения увидел бы разом весь путь
+        lastScroll = window.scrollY;
+        scrollVel = 0;
+      },
+      { rootMargin: '25% 0px' },
+    );
+    vis.observe(box);
+
+    /** Ниже этого порога движение уже не доезжает до экрана (см. выше). */
+    const STILL = 0.05;
+
     const TAU = Math.PI * 2;
-    const loop = (t: number) => {
-      const dt = Math.min((t - prev) / 1000, 1 / 30);
-      prev = t;
+    const loop = (t: number, dt: number) => {
+      if (!visible) {
+        lastScroll = window.scrollY;
+        return;
+      }
 
       const sy = window.scrollY;
       scrollVel = scrollVel * 0.82 + (sy - lastScroll) * 0.18;
       lastScroll = sy;
       const drag = Math.max(-22, Math.min(22, -scrollVel * 1.4));
+
+      /* Кадр можно пропустить, только если двигать нечего И нечему начать
+         двигаться: нет курсора над полем, прокрутка улеглась, ни одна
+         звезда не смещена и не имеет скорости. Проверяется ДО записи в DOM,
+         но ПОСЛЕ физики — иначе пропустили бы последний кадр возвращения
+         домой и звезда осталась бы в трети пикселя от места. */
+      let moving = hasPointer || Math.abs(drag) > STILL;
 
       for (let i = 0; i < stars.length; i++) {
         const s = stars[i];
@@ -430,14 +481,25 @@ export function Stars({
         const wr = TAU / 0.55;
         s.vr += (wr * wr * (0 - s.rr) - 2 * wr * 1 * s.vr) * dt;
         s.rr += s.vr * dt;
+
+        if (!moving) {
+          moving =
+            Math.abs(s.x) > STILL ||
+            Math.abs(s.y) > STILL ||
+            Math.abs(s.rr) > STILL ||
+            Math.abs(s.vx) > STILL ||
+            Math.abs(s.vy) > STILL ||
+            Math.abs(s.vr) > STILL ||
+            s.glow > 0.004; // квант свечения в `paint` — 0.08, это заведомо ниже
+        }
       }
-      paint();
-      raf = requestAnimationFrame(loop);
+      if (moving) paint();
     };
-    raf = requestAnimationFrame(loop);
+    const stopFrames = onFrame(loop);
 
     return () => {
-      cancelAnimationFrame(raf);
+      stopFrames();
+      vis.disconnect();
       ro.disconnect();
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerdown', onDown);

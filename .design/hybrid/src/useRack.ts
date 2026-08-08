@@ -1,3 +1,4 @@
+import { onFrame } from './raf';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 
@@ -147,13 +148,28 @@ export function useRack(count = 2): RackApi {
       return;
     }
     paint();
-    let raf = 0;
-    let prev = performance.now();
-    const loop = (now: number) => {
-      const dt = Math.min((now - prev) / 1000, 1 / 30);
-      prev = now;
+
+    /* ═══ ПОКОЙ (Ф43) — «сайт ещё виснет» ════════════════════════════════
+       Стопка стоит неподвижно почти всё время: пружины работают только пока
+       её тянут пальцем и пока улетевший кадр возвращается под низ. Прежний
+       цикл всё равно считал двенадцать пружин и перерисовывал стопку
+       шестьдесят раз в секунду — на первом экране, то есть ровно там, где
+       читатель проводит больше всего времени.
+
+       Теперь кадр пропускается, если стопку никто не держит, ничего не
+       летит и все смещения со скоростями улеглись ниже 0,05 px. Порог тот
+       же, что у звёзд, и по той же причине: `paint` округляет координаты, и
+       движение мельче порога до экрана не доезжает.
+
+       Физика не тронута ни одним числом — изменилось только то, считается
+       ли она, когда считать нечего. */
+    const STILL = 0.05;
+
+    const loop = (_now: number, dt: number) => {
       const el = ref.current;
       const W = el?.clientWidth || 1;
+
+      let moving = !!drag.current || flying.current !== null;
 
       for (let i = 0; i < count; i++) {
         const l = L.current[i];
@@ -181,12 +197,18 @@ export function useRack(count = 2): RackApi {
           l.damp = 1;
           l.resp = 0.52;
         }
+
+        if (!moving) {
+          moving =
+            Math.abs(l.x - l.tx) > STILL ||
+            Math.abs(l.y) > STILL ||
+            Math.abs(l.vx) > STILL ||
+            Math.abs(l.vy) > STILL;
+        }
       }
-      paint();
-      raf = requestAnimationFrame(loop);
+      if (moving) paint();
     };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    return onFrame(loop);
   }, [count, paint]);
 
   /* ——— ввод: один код на мышь, палец и стилус ——— */

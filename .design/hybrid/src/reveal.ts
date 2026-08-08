@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { onFrame } from './raf';
 
 /**
  * Вход сцены — «наводка на резкость». Одно движение на всё направление.
@@ -67,11 +68,44 @@ export function useFocusScrub() {
     );
     if (!els.length) return;
 
-    let raf = 0;
+    /* ═══ ПОЛОЖЕНИЕ КЭШИРУЕТСЯ (Ф43) — «сайт ещё виснет» ═════════════════
+       Прежний цикл вызывал `getBoundingClientRect()` для КАЖДОГО кадра
+       страницы на КАЖДОМ кадре анимации, а следом писал этим же элементам
+       `filter` и `transform`. Чтение после записи — принудительный пересчёт
+       раскладки; десять фотографий давали десять пересчётов за кадр, и это
+       поверх шести полей звёзд, писавших в DOM в том же кадре.
+
+       Позиция кадра В ДОКУМЕНТЕ не меняется от прокрутки — меняется только
+       `scrollY`. Меряем один раз, обновляем по `ResizeObserver` (догрузка
+       картинок, поворот экрана, смена раскладки), а положение на экране
+       считаем вычитанием. Ноль обращений к раскладке в кадре.
+
+       Плюс ранний выход, когда страница стоит: скраб — реакция на прокрутку,
+       и без прокрутки ему нечего пересчитывать. */
+    const spots = els.map((el) => {
+      const r = el.getBoundingClientRect();
+      return { el, top: r.top + window.scrollY, h: r.height };
+    });
+    const remeasure = () => {
+      for (const s of spots) {
+        const r = s.el.getBoundingClientRect();
+        s.top = r.top + window.scrollY;
+        s.h = r.height;
+      }
+    };
+    const ro = new ResizeObserver(remeasure);
+    ro.observe(document.body);
+
+    let lastScroll = -1;
     const tick = () => {
+      const sy = window.scrollY;
+      if (sy === lastScroll) return;
+      lastScroll = sy;
+
       const vh = window.innerHeight;
-      for (const el of els) {
-        const r = el.getBoundingClientRect();
+      for (const spot of spots) {
+        const el = spot.el;
+        const r = { top: spot.top - sy, bottom: spot.top + spot.h - sy };
         if (r.bottom < -200 || r.top > vh + 200) continue; // за экраном не считаем
         if (el.dataset.focus === 'in') {
           // 0 когда верх кадра на уровне 100% высоты экрана, 1 — на уровне 70%.
@@ -89,10 +123,13 @@ export function useFocusScrub() {
           el.style.opacity = String(1 - p * 0.45);
         }
       }
-      raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+
+    const stopFrames = onFrame(tick);
+    return () => {
+      stopFrames();
+      ro.disconnect();
+    };
   }, []);
 }
 

@@ -75,6 +75,25 @@ function useFanMode(): 'stack' | 'flat' {
 export function Fan({
   photos,
   label,
+  /**
+   * Когда грузить кадры. НАХОДКА Ф41, поймана замером `performance
+   * .getEntriesByType('resource')` после жалобы «сайт прогружается с
+   * небольшой задержкой»: на главной оказалось 13 картинок с `loading="eager"`,
+   * и десять из них — кадры вееров услуг, то есть примерно на третьем экране
+   * вниз. Они запрашивались наперегонки с первым экраном и отбирали у него
+   * и соединения, и декодирование.
+   *
+   * `eager` здесь стоял с рождения компонента и был ПРАВ в раскадровке:
+   * там веер появляется по нажатию «Начать» уже после прохода квиза, экран
+   * результата рисуется сразу с кадрами, и ленивая загрузка дала бы пустые
+   * рамки в момент показа. На главной веер лежит глубоко внизу, и то же
+   * значение из правильного стало вредным.
+   *
+   * Поэтому не «поправил на lazy», а вынес в параметр со значением по
+   * умолчанию `lazy`: у нового места использования поведение безопасное,
+   * а раскадровка просит `eager` явно и с причиной (`PhotoFan.tsx`).
+   */
+  loading = 'lazy',
   /** `compact` — вариант для карточки услуги на главной: те же три состояния,
    *  меньше размеры (см. `.sb-fan--compact` в `styles.css`). Веер там стоит
    *  рядом с текстом внутри карточки, а не один на всю ширину экрана
@@ -84,6 +103,7 @@ export function Fan({
 }: {
   photos: FanPhoto[];
   label: string;
+  loading?: 'lazy' | 'eager';
   variant?: 'full' | 'compact';
 }) {
   const mode = useFanMode();
@@ -127,6 +147,7 @@ export function Fan({
           p={p}
           index={i}
           total={photos.length}
+          loading={loading}
           hot={hot === p.key}
           canHot={expanded || alwaysExpanded}
           onHot={(v) => setHot(v ? p.key : (cur) => (cur === p.key ? null : cur))}
@@ -140,6 +161,7 @@ function FanItem({
   p,
   index,
   total,
+  loading,
   hot,
   canHot,
   onHot,
@@ -147,6 +169,7 @@ function FanItem({
   p: FanPhoto;
   index: number;
   total: number;
+  loading: 'lazy' | 'eager';
   hot: boolean;
   canHot: boolean;
   onHot: (v: boolean) => void;
@@ -174,7 +197,7 @@ function FanItem({
             height={p.h}
             alt={p.alt}
             className="block w-full"
-            loading="eager"
+            loading={loading}
             decoding="async"
             onError={() => setBroken(true)}
           />

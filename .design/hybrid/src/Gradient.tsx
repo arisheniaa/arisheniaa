@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { onFrame } from './raf';
 
 /**
  * ПОЛОТНО — меш-градиент на всю страницу. Лок, «Цвет»:
@@ -47,12 +48,57 @@ export function Gradient() {
 
     const moodEl = document.querySelector<HTMLElement>('[data-mood-scope]');
 
-    let raf = 0;
+    /* ═══ ЗАМЕРЫ РАСКЛАДКИ КЭШИРУЮТСЯ (Ф43) — «сайт ещё виснет» ══════════
+       Прежний цикл на КАЖДОМ кадре читал `document.documentElement
+       .scrollHeight` и `moodEl.getBoundingClientRect()`. Оба чтения —
+       принудительный пересчёт раскладки: браузер обязан досчитать все
+       отложенные изменения, прежде чем ответить. А отложенные изменения на
+       этой странице были всегда: рядом в том же кадре шесть полей звёзд
+       писали в DOM. Получался классический thrash — пишем, читаем, снова
+       пишем, и каждое чтение заставляет пересчитать всё заново.
+       Шестьдесят раз в секунду, всё время, независимо от того, шевелится ли
+       страница вообще.
+
+       НИ ОДНО ИЗ ЭТИХ ЧИСЕЛ НЕ МЕНЯЕТСЯ ОТ КАДРА К КАДРУ. Высота документа
+       и положение диптиха В ДОКУМЕНТЕ (не на экране) постоянны, пока
+       раскладка та же; от прокрутки меняется только `scrollY`. Поэтому оба
+       меряются один раз и обновляются по `ResizeObserver` на `<body>` —
+       то есть тогда, когда раскладка действительно поехала: догрузилась
+       картинка, сменилась ориентация, раскрылась навигация.
+
+       Положение секции на ЭКРАНЕ выводится арифметикой: `top = offsetTop −
+       scrollY`. Это ровно то, что вернул бы `getBoundingClientRect`, но без
+       единого обращения к раскладке.
+
+       Плюс ранний выход: если прокрутка не сдвинулась с прошлого кадра,
+       считать нечего вовсе. */
+    let docOffset = 0;
+    let moodTop = 0;
+    let moodH = 0;
+
+    const measure = () => {
+      docOffset = document.documentElement.scrollHeight - window.innerHeight;
+      if (moodEl) {
+        const r = moodEl.getBoundingClientRect();
+        moodTop = r.top + window.scrollY; // положение в документе, не на экране
+        moodH = r.height;
+      }
+    };
+    measure();
+
+    const ro = new ResizeObserver(measure);
+    ro.observe(document.body);
+
     let last = -1;
     let lastMood = -1;
+    let lastScroll = -1;
+
     const tick = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      const sy = window.scrollY;
+      if (sy === lastScroll) return; // страница стоит — считать нечего
+      lastScroll = sy;
+
+      const p = docOffset > 0 ? Math.min(1, Math.max(0, sy / docOffset)) : 0;
       const q = Math.round(p * 200) / 200;
       if (q !== last) {
         last = q;
@@ -60,9 +106,9 @@ export function Gradient() {
       }
 
       if (moodEl) {
-        const r = moodEl.getBoundingClientRect();
         const vh = window.innerHeight;
-        const raw = (vh - r.top) / (vh + r.height);
+        const top = moodTop - sy; // то же, что r.top, но без чтения раскладки
+        const raw = (vh - top) / (vh + moodH);
         const mood = Math.min(1, Math.max(0, raw));
         const qm = Math.round(mood * 200) / 200;
         if (qm !== lastMood) {
@@ -70,11 +116,13 @@ export function Gradient() {
           root.style.setProperty('--mood', String(qm));
         }
       }
-
-      raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+
+    const stopFrames = onFrame(tick);
+    return () => {
+      stopFrames();
+      ro.disconnect();
+    };
   }, []);
 
   return (
