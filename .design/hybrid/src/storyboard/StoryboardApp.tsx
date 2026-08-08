@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Gradient, Grain } from '../Gradient';
 import { Header, Footer } from '../App';
-import { useSmoothScroll } from '../smooth-scroll';
+/* `useSmoothScroll` снят и здесь (Ф44) — та же причина, что на главной, см. `App.tsx`. */
 import { Stars } from '../Stars';
 import { ProgressStars } from './ProgressStars';
 import { PinterestBoards } from './PinterestBoards';
@@ -60,7 +60,7 @@ export function StoryboardApp() {
 function StoryboardPage() {
   // Ф39 п.14 — тот же плавный ход колеса, что на главной. Хук, а не копия
   // логики: правило «общее раньше частного», как у `Header`/`Footer` выше.
-  useSmoothScroll();
+  /* useSmoothScroll(); — снят Ф44, перехват колеса переносил прокрутку с композитора на основной поток */
 
   const [photos, setPhotos] = useState<StoryboardPhoto[] | null>(null);
   const [loadError, setLoadError] = useState(false);
