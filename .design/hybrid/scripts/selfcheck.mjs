@@ -782,8 +782,10 @@ const browser = await chromium.launch();
   const page = await ctx.newPage();
   await page.goto(BASE, { waitUntil: 'networkidle' });
   const readMood = () =>
+      /* Ф45: переменная переехала с корня на `.canvas` — на корне её больше
+         нет, и проверка читала бы пустую строку. Читаем там, где пишем. */
     page.evaluate(() =>
-      Number(getComputedStyle(document.documentElement).getPropertyValue('--mood')),
+      Number(getComputedStyle(document.querySelector('.canvas')).getPropertyValue('--mood')),
     );
 
   /* `behavior: 'instant'` явно — иначе `window.scrollTo(x, y)` (числовая

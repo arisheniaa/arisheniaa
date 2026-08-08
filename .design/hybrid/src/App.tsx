@@ -6,10 +6,7 @@ import { Rack } from './Rack';
 import { Stars } from './Stars';
 import { DeliveryDemo } from './Folders';
 import { useReveal, useFocusScrub } from './reveal';
-/* `useSmoothScroll` БОЛЬШЕ НЕ ПОДКЛЮЧЁН (Ф44) — см. причину в `Page()` ниже.
-   Сам файл `smooth-scroll.ts` не удалён: там записан разбор, почему перехват
-   колеса на этой странице вреден, и удалить его значит потерять объяснение
-   вместе с кодом. */
+import { useSmoothScroll } from './smooth-scroll';
 import { TiltFrame } from './Tilt';
 import { Fan } from './Fan';
 import { PricePlate } from './PricePlate';
@@ -136,7 +133,13 @@ function Page() {
      (Ф40, «сделай ссылки снова кликабельными»): нет перехвата — нет и
      спора двух прокруток за одну ось. */
 
-  /* useSmoothScroll(); — снят, см. выше */
+  /* Ф45 ВОЗВРАЩАЕТ ХУК — но уже на расчищенный основной поток, и только для
+     мыши. Полный разбор, что изменено против Ф39 и почему это теперь не
+     повторит Ф44, — в шапке `smooth-scroll.ts`.
+     ЕСЛИ ТЯЖЕСТЬ ПРОКРУТКИ КОГДА-НИБУДЬ ВЕРНЁТСЯ — снимать надо ЭТУ строку
+     первой, до всяких раскопок: она единственная переносит прокрутку с
+     композитора на основной поток. */
+  useSmoothScroll();
 
   return (
     <>

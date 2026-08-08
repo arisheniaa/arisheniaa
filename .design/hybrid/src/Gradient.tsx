@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { onFrame } from './raf';
 
 /**
@@ -42,8 +42,19 @@ import { onFrame } from './raf';
  * (`Stars.tsx`), доведённый до света всей страницы.
  */
 export function Gradient() {
+  const canvas = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const root = document.documentElement;
+    /* ═══ ПЕРЕМЕННЫЕ ПИШУТСЯ НА ПОЛОТНО, А НЕ НА КОРЕНЬ (Ф45) ═════════════
+       `--sp` и `--mood` раньше ставились на `<html>`. Пользовательские
+       свойства НАСЛЕДУЮТСЯ: изменение на корне помечает устаревшим стиль
+       ВСЕГО документа — браузер обязан пересчитать стиль каждого узла на
+       странице, чтобы убедиться, что его это не касается. Двести раз за
+       проход страницы, при полутора тысячах узлов.
+       Обе переменные читают ровно семь элементов, и все семь лежат внутри
+       `.canvas`. Пишем туда — и пересчёт ограничен этими семью. */
+    const root = canvas.current;
+    if (!root) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const moodEl = document.querySelector<HTMLElement>('[data-mood-scope]');
@@ -126,9 +137,20 @@ export function Gradient() {
   }, []);
 
   return (
-    <div className="canvas" aria-hidden="true">
-      <div className="mesh mesh-base" />
-      <div className="mesh mesh-bloom" />
+    <div className="canvas" aria-hidden="true" ref={canvas}>
+      {/* Ф45: пять пятен вместо двух слоёв. Пятна ездят в разные стороны, а
+          один `transform` на слой умеет двигать только всё разом — значит
+          каждому нужен свой слой. Зато движение теперь composited: слой
+          растрируется один раз и дальше просто сдвигается, вместо
+          перерисовки полутора экранов градиентов на каждом шаге прокрутки.
+          Подробности и прежние формулы — `.mesh-spot` в `styles.css`. */}
+      <div className="mesh-spot mesh-s1" />
+      <div className="mesh-spot mesh-s2" />
+      <div className="mesh-spot mesh-s3" />
+      <div className="mesh-spot mesh-b1" />
+      <div className="mesh-spot mesh-b2" />
+      {/* Настроение диптиха — прозрачность по `--mood`, перерисовки не
+          вызывает (см. комментарий у `.mesh-mood-a`), поэтому слои прежние. */}
       <div className="mesh mesh-mood-a" />
       <div className="mesh mesh-mood-b" />
     </div>
