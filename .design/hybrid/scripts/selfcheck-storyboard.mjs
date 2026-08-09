@@ -303,6 +303,7 @@ await section('3. алгоритм по ветвям дерева', async () => 
         placeRaw: e.getAttribute('data-place-raw'),
         look: e.getAttribute('data-look'),
         gender: e.getAttribute('data-gender'),
+        print: e.getAttribute('data-print'),
         series: e.getAttribute('data-series'),
       })),
     );
@@ -313,6 +314,20 @@ await section('3. алгоритм по ветвям дерева', async () => 
   await walkPath(page, ['Вайб имеется', 'Вдвоём', 'Цифра', 'В студии', 'Да, уже есть']);
   let figs = await fanData();
   note(figs.length === 6, `парная+цифра+студия — ровно 6 результатов (получено ${figs.length})`);
+  /* ═══ ОДИН ФАЙЛ — ОДНА КАРТОЧКА (Ф49) ═══════════════════════════════════
+     Владелица: «при выборе "цифра" и "вдвоём" попадается много одинаковых…
+     может они из разных папок, поэтому дублируются?» — так и было. Один
+     снимок лежит в нескольких папках намеренно (подходит и «дома», и «в
+     студии»; десять плёночных парных стоят сразу в двух ветках), манифест
+     строится по путям, и подбор считал их разными кадрами.
+     Проверяем по отпечатку СОДЕРЖИМОГО, а не по имени файла: одинаковые
+     имена в разных папках бывают у разных снимков, а одинаковое содержимое
+     — это буквально один и тот же файл. */
+  const prints = figs.map((f) => f.print).filter(Boolean);
+  note(
+    RED ? new Set(prints).size !== prints.length : new Set(prints).size === prints.length,
+    `ни один файл не показан дважды: ${new Set(prints).size} уникальных отпечатков на ${figs.length} карточек`,
+  );
   note(
     RED ? !figs.every((f) => f.format === 'парная') : figs.every((f) => f.format === 'парная'),
     `все результаты формата «парная» (${figs.map((f) => f.format).join(',')})`,
