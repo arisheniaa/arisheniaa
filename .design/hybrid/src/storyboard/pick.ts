@@ -300,12 +300,20 @@ export function pickStoryboard(
 
   let activeGender = wantsGender;
 
+  /* Ф46 — ветка «Запечатлеть любовь» просит романтические пары и только их.
+     Кадры без состава (манифест до Ф46) фильтр не отбрасывает: там состава
+     нет ни у кого, и строгая проверка обнулила бы выдачу целиком вместо
+     того, чтобы просто не сузить её. Как и с полом — старый манифест теряет
+     уточнение, а не результат. */
+  const wantsBranch = answers.ветка;
+
   const computePool = () =>
     byFormat.filter(
       (p) =>
         (!wantsMaterial || p.материал === answers.материал) &&
         (!activeGender || isMale(p)) &&
-        (!wantsFemale || isFemale(p)),
+        (!wantsFemale || isFemale(p)) &&
+        (!wantsBranch || !p.ветка || p.ветка === wantsBranch),
     );
 
   let pool = computePool();
