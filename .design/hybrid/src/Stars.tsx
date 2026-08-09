@@ -124,6 +124,23 @@ const TONE_ALPHA: Record<StarTone, [number, number]> = {
 const ALL_SHAPES: StarShape[] = ['spark', 'needle8', 'starfish6', 'hands5', 'tiny8'];
 const ALL_TONES: StarTone[] = [0, 1, 2];
 
+/* ═══ БАЗОВОЕ СВЕЧЕНИЕ (Ф50) ═══════════════════════════════════════════════
+   Радиус базового ореола — доля от размера звезды. На вводе С КУРСОРОМ
+   базовый уровень намеренно скромный: звезда разгорается, когда указатель
+   рядом, и именно эта вспышка читается как «горит». На тач-экране указателя
+   нет ни на секунду, вспышке взяться неоткуда, и звёзды всю жизнь стоят на
+   базовом уровне — оттого владелица и увидела на телефоне «не горят», хотя
+   фильтр был на месте.
+
+   Поэтому там, где вспышек не бывает, базовый ореол крупнее: 0.46 против
+   0.32. Это не «ярче, чем на ноутбуке», а «столько же, сколько там в
+   среднем» — на ноутбуке звёзды половину времени подсвечены курсором.
+   Число подобрано как середина между базой и полной вспышкой (0.32 → 0.32 +
+   22/размер), а не на глаз. */
+const CAN_HOVER =
+  typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+const GLOW_BASE = CAN_HOVER ? 0.32 : 0.46;
+
 export function Stars({
   count = 14,
   seed = 7,
@@ -155,7 +172,21 @@ export function Stars({
     const rand = rng(seed);
     const narrow =
       typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches;
-    const n = narrow ? Math.max(4, Math.round(count / 3)) : count;
+    /* Ф50: «звёздочки должны чуть гореть, как на версии на ноутбуке».
+       Свечение на телефоне никуда не пропадало — проверено замером, фильтр
+       `drop-shadow` на месте. Разница в другом, и она двойная:
+
+        1. ЗВЁЗД ВТРОЕ МЕНЬШЕ. Деление на 3 задумывалось против тесноты на
+           360 px, но вместе с числом ушло и общее свечение секции: на
+           ноутбуке 18 огоньков, на телефоне 6. Стало вдвое, а не втрое —
+           тесноты по-прежнему нет (звёзды раскладываются по ячейкам сетки,
+           см. ниже), а поле снова читается как звёздное.
+        2. НА ТАЧЕ НЕТ КУРСОРА, А ЗНАЧИТ НЕТ И ВСПЫШЕК. На ноутбуке звезда
+           под указателем разгорается вдвое и подрастает — глаз видит именно
+           эти вспышки и запоминает их как «горят». На телефоне указателя не
+           существует, звёзды вечно на базовом уровне, оттого и «не горят».
+           Базовый радиус там поднят — см. `GLOW_BASE` ниже. */
+    const n = narrow ? Math.max(6, Math.round(count / 2)) : count;
 
     const cols = Math.max(2, Math.round(Math.sqrt(n * 1.6)));
     const rows = Math.max(2, Math.ceil(n / cols));
@@ -298,7 +329,7 @@ export function Stars({
         const q = Math.round(s.glow / 0.08) * 0.08;
         if (q !== s.glowPainted) {
           s.glowPainted = q;
-          const base = s.size * 0.32;
+          const base = s.size * GLOW_BASE;
           const blur = base + 22 * q;
           const color = STAR_TONES[s.tone];
           g.style.filter =
@@ -526,8 +557,8 @@ export function Stars({
             style={{
               opacity: s.alpha,
               filter:
-                `drop-shadow(0 0 ${(s.size * 0.32).toFixed(1)}px ${STAR_TONES[s.tone]})` +
-                ` drop-shadow(0 0 ${(s.size * 0.32 * 0.34).toFixed(1)}px ${STAR_TONES[s.tone]})`,
+                `drop-shadow(0 0 ${(s.size * GLOW_BASE).toFixed(1)}px ${STAR_TONES[s.tone]})` +
+                ` drop-shadow(0 0 ${(s.size * GLOW_BASE * 0.34).toFixed(1)}px ${STAR_TONES[s.tone]})`,
             }}
           >
             <path d={STAR_PATHS[s.shape]} fill={STAR_TONES[s.tone]} />

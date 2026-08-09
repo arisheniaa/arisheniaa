@@ -696,6 +696,7 @@ function Offer() {
             card={c.duo}
             cls="md:col-span-6 md:col-start-7 md:mt-[clamp(2rem,6vh,4.5rem)]"
             frame="max-w-[14rem]"
+            mobileRight
           />
         </div>
 
@@ -903,10 +904,16 @@ function OfferRow({
   card,
   cls,
   frame,
+  /** Ф50: «хочу чтобы услуга парной съёмки в мобильной версии была по
+   *  правому краю, как плёночная». Только на узком экране — на широком
+   *  карточка стоит в правой колонке сетки, и там равнение и так справа
+   *  по построению. */
+  mobileRight = false,
 }: {
   i: number;
   card: { name: string; price: string; includes: string; photo: string; alt: string };
   cls: string;
+  mobileRight?: boolean;
   /** потолок ширины кадра — Ф28 «уменьши их в размере», Ф36 п.8 уменьшено ещё */
   frame: string;
 }) {
@@ -916,9 +923,18 @@ function OfferRow({
        владелица просит «на тип съемки/услуги», то есть на карточку целиком,
        включая заголовок и описание, а не только на полосу «фото + текст». */
     <div className={`offer-card reveal ${cls}`} style={{ ['--i' as string]: i }}>
-      <div className="flex flex-col gap-y-[0.8rem] sm:flex-row sm:items-start sm:gap-x-[clamp(1rem,2.6vw,1.6rem)] sm:gap-y-0">
+      <div
+        className={`flex flex-col gap-y-[0.8rem] sm:flex-row sm:items-start sm:gap-x-[clamp(1rem,2.6vw,1.6rem)] sm:gap-y-0 ${
+          mobileRight ? 'text-right sm:text-left' : ''
+        }`}
+      >
         <figure className="m-0 shrink-0">
-          <TiltFrame className={`overflow-hidden ${frame}`}>
+          {/* Ф50: кадр прижимается вправо ИМЕННО здесь, а не выравниванием
+              всей колонки (`items-end`). Колонка с `items-end` сжимается до
+              содержимого, и пока ленивая картинка не загрузилась, ширина
+              `<figure>` равна нулю — замерено: 0 px вместо 224. Отступ на
+              самом кадре двигает его вправо, не трогая размеры колонки. */}
+          <TiltFrame className={`overflow-hidden ${frame} ${mobileRight ? 'ml-auto sm:ml-0' : ''}`}>
             <div data-focus="in">
               <img
                 src={card.photo}
@@ -946,7 +962,13 @@ function OfferRow({
               </p>
             </div>
           </div>
-          <p className="t-body mt-[0.7rem] max-w-[28ch] text-[color:var(--ink-soft)]">{card.includes}</p>
+          <p
+            className={`t-body mt-[0.7rem] max-w-[28ch] text-[color:var(--ink-soft)] ${
+              mobileRight ? 'ml-auto sm:ml-0' : ''
+            }`}
+          >
+            {card.includes}
+          </p>
         </div>
       </div>
     </div>
