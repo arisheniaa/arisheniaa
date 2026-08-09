@@ -125,6 +125,25 @@ async function walkPath(page, tiles) {
   await page.waitForTimeout(300);
 }
 
+/* ═══ ОЖИДАНИЯ СЧИТАЮТСЯ ИЗ АРХИВА, А НЕ ЗАШИТЫ ЧИСЛОМ (Ф48) ═══════════════
+   Ф47 записала сюда «2 мужских плёночных кадра» литералом — столько их было
+   в тот день. Владелица доснимала, стало 6, и обе проверки покраснели, хотя
+   подбор отработал ровно по правилу. Тест, который ломается от пополнения
+   архива, ловит не дефект, а факт съёмки.
+
+   Теперь числа выводятся из того же манифеста, что читает страница, по тому
+   же правилу, что и код подбора: сначала расходуются ВСЕ мужские кадры (но
+   не больше `count`), остаток добирается женскими, максимум два. Проверка
+   осталась настоящей — она сверяет ПОВЕДЕНИЕ с правилом, а не с памятью о
+   вчерашнем архиве. */
+const MANIFEST = JSON.parse(fs.readFileSync('public/storyboard/manifest.json', 'utf-8'));
+const MALE_FILM = MANIFEST.filter((p) => p.пол === 'парень' && p.материал === 'пленка').length;
+const EXPECT_FILM = (() => {
+  const male = Math.min(6, MALE_FILM);
+  const fill = Math.min(2, 6 - male);
+  return { male, fill, total: male + fill };
+})();
+
 const browser = await chromium.launch();
 
 /* ─── 1. Прокрутка и лендмарки на всех ширинах — вход / середина самого
@@ -409,8 +428,8 @@ await section('3. алгоритм по ветвям дерева', async () => 
      произошло; ниже отдельно проверено, что оба мужских кадра при этом
      остались в выдаче (бонус их поднял). */
   note(
-    RED ? figs.length > 4 : figs.length === 4,
-    `«парень» на плёнке: 2 мужских кадра плюс добор не больше двух = 4 (получено ${figs.length})`,
+    RED ? figs.length !== EXPECT_FILM.total : figs.length === EXPECT_FILM.total,
+    `«парень» на плёнке: ${EXPECT_FILM.male} мужских + добор ${EXPECT_FILM.fill} = ${EXPECT_FILM.total} (получено ${figs.length})`,
   );
   /* Ф47: ослабление снято, вместо него добор. Проверяем ОБА свойства правила:
      мужские израсходованы полностью («расходуй в первую очередь») и добор не
@@ -418,8 +437,8 @@ await section('3. алгоритм по ветвям дерева', async () => 
   const maleShown = figs.filter((f) => f.gender === 'парень').length;
   const filled = figs.length - maleShown;
   note(
-    RED ? maleShown !== 2 : maleShown === 2,
-    `все плёночные мужские кадры израсходованы: ${maleShown} из 2 существующих`,
+    RED ? maleShown !== EXPECT_FILM.male : maleShown === EXPECT_FILM.male,
+    `все плёночные мужские кадры израсходованы: ${maleShown} из ${MALE_FILM} существующих в архиве`,
   );
   note(
     RED ? filled > 2 : filled <= 2,
