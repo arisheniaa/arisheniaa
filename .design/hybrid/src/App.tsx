@@ -524,7 +524,13 @@ function Cinema() {
             className="reveal lg:col-span-5 lg:col-start-8 lg:mt-[clamp(1.5rem,4.5vh,4rem)]"
             style={{ ['--i' as string]: 1 }}
           >
-            <p className="t-quote ml-auto max-w-[30ch] lg:text-right">{copy.cinema.b.text}</p>
+            {/* Ф52: выключка вправо теперь на ВСЕХ ширинах, не только с `lg:`.
+                Ф40 ограничила её широким экраном, рассудив, что на телефоне
+                половины идут друг под другом и «правой» среди них нет. На деле
+                вторая половина и на узком остаётся ответом первой — пара
+                читается как реплика и отклик, и разное равнение держит эту
+                пару даже в столбик. */}
+            <p className="t-quote ml-auto max-w-[30ch] text-right">{copy.cinema.b.text}</p>
           </div>
         </div>
       </div>
@@ -689,7 +695,15 @@ function Offer() {
             единолично сдвиг правой карточки вниз (`md:mt-…`), и её хватает:
             карточки не стоят на одной линии, значит и на пару одинаковых
             ячеек не похожи. */}
-        <div className="mt-[clamp(3rem,9vh,6rem)] grid grid-cols-1 gap-x-[var(--gap)] gap-y-[clamp(3rem,8vw,5rem)] md:grid-cols-12">
+        {/* Ф52: «расстояние между текстом "на ваш выбор классика и
+            творчество…" и фотографией из индивидуальной сделай меньше, чтобы
+            не бросался в глаза такой большой интервал». Было
+            clamp(3rem, 9vh, 6rem) — до 96 px на высоком экране, и вводная
+            строка отрывалась от карточек, к которым она относится. Стало
+            clamp(1.6rem, 4.5vh, 3rem), вдвое меньше по всей вилке. Зазор
+            МЕЖДУ карточками (`gap-y`) не тронут: там разрыв держит их
+            раздельность, и он про другое. */}
+        <div className="mt-[clamp(1.6rem,4.5vh,3rem)] grid grid-cols-1 gap-x-[var(--gap)] gap-y-[clamp(3rem,8vw,5rem)] md:grid-cols-12">
           <OfferRow i={0} card={c.portrait} cls="md:col-span-6 md:col-start-1" frame="max-w-[14rem]" />
           <OfferRow
             i={1}
