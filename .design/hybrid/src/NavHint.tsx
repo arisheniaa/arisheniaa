@@ -128,7 +128,24 @@ function NavHintTag() {
     const place = () => setPos(measureTarget());
     window.addEventListener('resize', place);
     window.addEventListener('scroll', place, { passive: true });
+
+    /* Ф51: «при нажатии на "разделы" стрелка уже показывала на "придумать
+       съёмку"». Выбирать саму ссылку, как только она станет видимой,
+       `measureTarget` умел и раньше — но пересчёт запускался только
+       прокруткой и изменением размера окна. Раскрытие списка не является ни
+       тем, ни другим: на узком экране список показывается сменой классов на
+       узле списка, размеры окна при этом не меняются, и стрелка продолжала
+       указывать на кнопку «Разделы», под которой уже раскрылся список.
+
+       Наблюдаем за атрибутом класса у списка — он и есть событие раскрытия.
+       Пересчёт отложен на кадр: класс уже сменился, но раскладка ещё не
+       пересчитана, и замер вернул бы положение до раскрытия. */
+    const list = document.getElementById('nav-list');
+    const mo = new MutationObserver(() => requestAnimationFrame(place));
+    if (list) mo.observe(list, { attributes: true, attributeFilter: ['class'] });
+
     return () => {
+      mo.disconnect();
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place);
     };
