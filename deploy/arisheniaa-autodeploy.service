@@ -1,0 +1,18 @@
+[Unit]
+Description=Пересборка сайта arisheniaa при новых коммитах в GitHub
+Documentation=file:/opt/arisheniaa-site/autodeploy.sh
+# Сборка идёт в контейнере, поэтому без docker запускаться бессмысленно.
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/arisheniaa-site/autodeploy.sh
+# Сборка тяжёлая и делит хост с другими проектами: снижаем приоритет, чтобы
+# она не мешала отдавать сайт посетителям.
+Nice=10
+IOSchedulingClass=idle
+# Верхняя граница на случай зависшей загрузки из npm: без неё подвисший
+# запуск блокировал бы все последующие срабатывания таймера.
+TimeoutStartSec=20min
