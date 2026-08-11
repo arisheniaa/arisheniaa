@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Карта сайта. Страниц ровно две — столько же, сколько точек входа у сборки
+  (`rollupOptions.input` в `vite.config.mts`): главная и «Придумать съёмку».
+  Если появится третья, её нужно добавить И сюда, И в конфиг сборки.
+
+  `lastmod` проставлен руками и означает дату последней правки страницы,
+  а не дату выкладки. При заметном изменении текста или состава кадров его
+  стоит обновить; ради правки опечатки — не обязательно.
+
+  `changefreq` и `priority` не указаны намеренно: Яндекс и Google их
+  игнорируют, а поддерживать пришлось бы вручную.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://arisheniaa.ru/</loc>
+    <lastmod>2026-08-10</lastmod>
+  </url>
+  <url>
+    <loc>https://arisheniaa.ru/storyboard.html</loc>
+    <lastmod>2026-08-10</lastmod>
+  </url>
+</urlset>
