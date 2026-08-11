@@ -59,7 +59,11 @@ jobs:
           fail() { echo "::error::$1"; exit 1; }
           grep -q '\.grid{' assets/*.css || fail 'В CSS нет утилит Tailwind — сборка без плагина, страница развалится в одну колонку'
           grep -q 'rack-stack \[data-layer\]' assets/App-*.css || fail 'Пропало правило .rack-stack [data-layer] — проверьте, не сломан ли комментарий в styles.css'
-          for f in index.html storyboard.html robots.txt sitemap.xml og.jpg yandex_9215e07c4779e6c9.html; do
+          # Файлы подтверждения прав в поисковиках проверяются наравне с
+          # остальным: они выглядят необязательным мусором, и именно поэтому
+          # их однажды удалят «за ненадобностью». Пропажа тихая — права
+          # слетают не сразу, а при очередной перепроверке поисковиком.
+          for f in index.html storyboard.html robots.txt sitemap.xml og.jpg yandex_9215e07c4779e6c9.html googlebd265f6afcbd754f.html; do
             [ -s "$f" ] || fail "В сборке нет файла $f"
           done
           echo "Собрано файлов: $(find . -type f | wc -l)"
