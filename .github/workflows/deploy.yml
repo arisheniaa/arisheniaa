@@ -1,0 +1,162 @@
+# ВЫКЛАДКА САЙТА: пуш в `master` → сборка → проверка → сервер.
+#
+# Зачем этот файл появился. 11 августа 2026 обнаружилось, что сайт обогнал
+# репозиторий: на arisheniaa.ru жила работа, которой не было ни в одной ветке
+# (canonical, карточки Open Graph, og.jpg, robots.txt, sitemap.xml), а сборка
+# из чистого клона давала сайт БЕДНЕЕ выложенного. Причина одна: выкладку
+# делали руками из рабочей копии, и что именно ушло на сервер — не знал никто.
+# Этот конвейер убирает ручной шаг: на сервер попадает ровно то, что лежит в
+# `master`, и ничего кроме.
+#
+# Сборка идёт здесь, на стороне GitHub, а не на сервере. Так сервер остаётся
+# простой раздачей статики: ему не нужен ни Node, ни память под сборку, а
+# падение сборки не может уронить работающий сайт — до rsync дело не дойдёт.
+
+name: Выкладка сайта
+
+on:
+  push:
+    branches: [master]
+  # Ручной запуск из вкладки Actions — пригодится, чтобы перевыложить сайт
+  # без правок в коде (например, после возни с сервером).
+  workflow_dispatch:
+
+# Две выкладки разом означали бы два rsync в один каталог. Очередь из одной
+# задачи: следующая ждёт, пока закончится текущая. `cancel-in-progress: false`
+# намеренно — обрывать rsync на середине хуже, чем подождать.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # 24 — та версия, на которой сборка проверена вживую. Vite 8 требует
+          # минимум 20.19; занижать до 20 без нужды не стоит.
+          node-version: 24
+          cache: npm
+          cache-dependency-path: .design/hybrid/package-lock.json
+
+      # `npm ci`, а не `npm install`: ставит строго по package-lock.json и
+      # падает, если lock разошёлся с package.json. Для выкладки это то, что
+      # нужно, — версии зависимостей не должны меняться сами.
+      - name: Установить зависимости
+        run: npm ci --prefix .design/hybrid
+
+      - name: Собрать
+        run: npm run build --prefix .design/hybrid
+
+      # ═══ САМОПРОВЕРКА СБОРКИ ═══════════════════════════════════════════════
+      # «Сборка прошла» — не доказательство. Оба случая ниже уже случались в
+      # этом проекте, и оба давали ЗЕЛЁНУЮ сборку с испорченным сайтом:
+      #
+      # 1. Без плагина @tailwindcss/vite директивы Tailwind уходят в CSS
+      #    необработанными: ни одной утилиты, страница разваливается в колонку.
+      #    Ругается только lightningcss — предупреждением, кодом 0.
+      #    (Подробно — в шапке vite.config.mts.)
+      # 2. Сломанный комментарий в styles.css съедал следующее за ним правило
+      #    `.rack-stack [data-layer]` — у стопки кадров пропадали скругление и
+      #    тень. Молча, без единого предупреждения.
+      #
+      # Поэтому проверяем не выход сборщика, а содержимое dist/.
+      - name: Проверить, что собралось именно то
+        run: |
+          cd .design/hybrid/dist
+          fail() { echo "::error::$1"; exit 1; }
+          grep -q '\.grid{' assets/*.css || fail 'В CSS нет утилит Tailwind — сборка без плагина, страница развалится в одну колонку'
+          grep -q 'rack-stack \[data-layer\]' assets/App-*.css || fail 'Пропало правило .rack-stack [data-layer] — проверьте, не сломан ли комментарий в styles.css'
+          for f in index.html storyboard.html robots.txt sitemap.xml og.jpg yandex_9215e07c4779e6c9.html; do
+            [ -s "$f" ] || fail "В сборке нет файла $f"
+          done
+          echo "Собрано файлов: $(find . -type f | wc -l)"
+
+      # ═══ КЛЮЧ ДОСТУПА ══════════════════════════════════════════════════════
+      # Если секреты не заведены, всё выше уже отработало и сборка проверена —
+      # падает только выкладка, с понятным текстом. Это намеренно: пока связка
+      # не настроена, конвейер всё равно приносит пользу как проверка сборки.
+      - name: Подготовить SSH
+        env:
+          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          if [ -z "$KEY" ] || [ -z "$HOST" ]; then
+            echo "::error::Не заведены секреты выкладки. Нужны DEPLOY_SSH_KEY, DEPLOY_HOST, DEPLOY_USER, DEPLOY_PATH — см. DEPLOY.md, раздел «Связка репозитория с сервером»."
+            exit 1
+          fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          if [ -n "$KNOWN_HOSTS" ]; then
+            # Отпечаток задан заранее — надёжный путь: подмена сервера по
+            # дороге будет замечена.
+            printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            # Иначе спрашиваем отпечаток у самого сервера. Это доверие при
+            # первом соединении; для повышения надёжности заведите секрет
+            # DEPLOY_KNOWN_HOSTS (как — в DEPLOY.md).
+            ssh-keyscan -p "${PORT:-22}" -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          fi
+          chmod 600 ~/.ssh/known_hosts
+
+      # ═══ ЗАЩИТА ОТ ЧУЖОГО КАТАЛОГА ═════════════════════════════════════════
+      # Дальше идёт rsync с `--delete`, то есть с удалением лишнего. Это и есть
+      # смысл затеи — иначе на сервере вечно копятся файлы, которых нет в
+      # репозитории, ровно как случилось с robots.txt. Но при опечатке в
+      # DEPLOY_PATH то же самое `--delete` вычистит чужой каталог.
+      # Поэтому сначала убеждаемся, что по этому пути действительно лежит сайт.
+      - name: Убедиться, что путь ведёт в корень сайта
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          DIR: ${{ secrets.DEPLOY_PATH }}
+          PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${PORT:-22}" -o BatchMode=yes "$USER@$HOST" \
+            "test -f '$DIR/index.html'" \
+          || { echo "::error::В $DIR на сервере нет index.html. Проверьте DEPLOY_PATH: выкладка с удалением лишнего в чужой каталог отменена."; exit 1; }
+
+      - name: Выложить на сервер
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          DIR: ${{ secrets.DEPLOY_PATH }}
+          PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          # Косая черта в конце `dist/` значима: копируется СОДЕРЖИМОЕ папки,
+          # а не она сама. Без неё на сервере появится $DIR/dist/.
+          #
+          # `.well-known` исключён из удаления: туда кладут подтверждения
+          # выпуска сертификатов, и они не имеют отношения к репозиторию.
+          rsync -az --delete --exclude '.well-known/' \
+            -e "ssh -i ~/.ssh/deploy_key -p ${PORT:-22} -o BatchMode=yes" \
+            .design/hybrid/dist/ "$USER@$HOST:$DIR/"
+
+      # ═══ ПРОВЕРКА, ЧТО НА САЙТЕ ОКАЗАЛОСЬ ИМЕННО ЭТО ═══════════════════════
+      # Имена файлов в assets/ — хеши содержимого. Совпали с только что
+      # собранными, значит на сайте лежит ровно эта сборка. Именно эта проверка
+      # поймала бы расхождение 11 августа за секунду.
+      - name: Сверить сайт со сборкой
+        run: |
+          sleep 5
+          собрано=$(grep -oE 'assets/[A-Za-z]+-[A-Za-z0-9_-]+\.(js|css)' .design/hybrid/dist/index.html | sort -u)
+          насайте=$(curl -sS --max-time 30 https://arisheniaa.ru/ | grep -oE 'assets/[A-Za-z]+-[A-Za-z0-9_-]+\.(js|css)' | sort -u)
+          if [ "$собрано" = "$насайте" ]; then
+            echo "Сайт отдаёт эту сборку:"; echo "$собрано"
+          else
+            echo "::error::Сайт отдаёт не то, что собрано."
+            echo "--- собрано ---"; echo "$собрано"
+            echo "--- на сайте ---"; echo "$насайте"
+            echo "Вероятные причины: Caddy раздаёт другой каталог, чем DEPLOY_PATH, либо перед ним кэш."
+            exit 1
+          fi
+
+      - name: Убрать ключ
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
