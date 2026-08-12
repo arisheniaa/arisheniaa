@@ -1,10 +1,9 @@
 // Перегенерирует .design/storyboard-manifest.json из живого архива владелицы
 // (не хранит сами фото — только теги и путь к оригиналу). Сверка по содержимому
-// (sha1), не по имени файла: камера переиспользует номера кадров между разными
-// съёмками, см. FACTS.md Ф30.
+// делается ниже по конвейеру (export-storyboard-photos.mjs, отпечаток Ф49),
+// здесь путь читается как есть.
 import fs from 'node:fs';
 import path from 'node:path';
-import crypto from 'node:crypto';
 
 const ROOT = 'C:\\Users\\Аришения\\OneDrive\\Рабочий стол\\исходники';
 const OUT = path.resolve('.design/storyboard-manifest.json');
@@ -20,84 +19,85 @@ function walk(dir, cb, relParts = []) {
   }
 }
 
-function hashFile(full) {
-  return crypto.createHash('sha1').update(fs.readFileSync(full)).digest('hex');
-}
+/* ═══ АРХИВ ПЕРЕСОБРАН ВЛАДЕЛИЦЕЙ ЗАНОВО, ПОД ЖИВОЙ ЧАТ (не в FACTS.md — см.
+   сообщение коммита) ═══════════════════════════════════════════════════════
+   «Я наконец-то обновила всю папку исходники. теперь в ней все папки лежат
+   правильно» — дерево перевёрнуто по сравнению с тем, что читал этот скрипт
+   раньше (Ф46: `материал/повод/…`, `материал` — первый уровень). Теперь:
 
-// --- дерево материал/формат/место: цифра/ и пленка/, ключ — полный путь, не имя ---
+     БЫЛО (Ф46)                          СТАЛО
+     цифра|пленка/                       вайб имеется/
+       вайб имеется/…                      цифра|пленка/…
+       запечатлеть любовь/…                {в одиночку,вдвоем}/…
+                                          день рождения/
+                                            цифра|пленка/{в студии,дома,на улице}
+                                          запечатлеть любовь/
+                                            цифра|пленка/…
+
+   ПОВОД (вайб имеется / день рождения / запечатлеть любовь) — теперь ПЕРВЫЙ
+   уровень, МАТЕРИАЛ — второй. Раньше был обратный порядок, и скрипт ходил
+   `ROOT/материал/…` — на новом дереве `ROOT/цифра` и `ROOT/пленка` не
+   существуют вовсе (материал есть только ВНУТРИ каждого повода), и старый
+   код молча собирал пустой манифест: `fs.existsSync(materialDir)` — `false`
+   для обоих материалов, `primary` — пустой массив. Не поймано автотестом —
+   это скрипт данных, не часть боевого сайта — поймано только на живом
+   дереве при разборе её просьбы.
+
+   ОТДЕЛЬНЫХ ПАПОК `образ/`/`настроение/` В АРХИВЕ БОЛЬШЕ НЕТ. Раньше это
+   были самостоятельные деревья, и совпадение с основным (`материал/формат/
+   место`) искалось по sha1-отпечатку содержимого файла — второй проход по
+   всему архиву, файл за файлом. Теперь ПОВОД ЖИВЁТ В САМОЙ СТРУКТУРЕ (первый
+   уровень пути), а не в отдельном дереве-тэге — читать его оттуда честнее и
+   на порядок дешевле: один проход, без хеширования полутысячи файлов ради
+   сверки, которой больше не с чем сверяться. `образ` тегом никогда не был
+   частью нового дерева ответов (см. `types.ts` — вопрос про образ в редакции
+   4 бинарный, тег не собирает) — поле остаётся в манифесте пустым массивом,
+   архитектура сохранена, а не удалена (та же причина, что у `pick.ts`,
+   `образ`-бонус остаётся в коде, просто никогда не находит совпадений). */
 const primary = [];
-for (const material of ['цифра', 'пленка']) {
-  const materialDir = path.join(ROOT, material);
-  if (!fs.existsSync(materialDir)) continue;
-  walk(materialDir, (full, name, relParts) => {
-    const format = relParts[0] || null;
-    const place = relParts.length > 1 ? relParts.slice(1).join(' / ') : null;
-    primary.push({ material, format, place, path: full, name, hash: hashFile(full) });
-  });
-}
+walk(ROOT, (full, name, relParts) => {
+  const [occasion, material, ...rest] = relParts;
+  if (!occasion) return; // файл лежит прямо в корне архива — не наш случай, но не должен падать
+  if (material !== 'цифра' && material !== 'пленка') {
+    // не молчим: неожиданная форма пути — вторым уровнем должен быть материал
+    console.warn('пропущен файл (нет материала вторым уровнем пути):', full);
+    return;
+  }
+  primary.push({ occasion, material, place: rest.join(' / ') || null, path: full, name });
+});
 
-// --- фасеты образ/ и настроение/, сверка по sha1 против дерева выше ---
-const hashToPrimary = new Map();
-for (const p of primary) {
-  if (!hashToPrimary.has(p.hash)) hashToPrimary.set(p.hash, []);
-  hashToPrimary.get(p.hash).push(p);
-}
-
-const facetTags = new Map(); // путь primary-записи -> {образ:[], настроение:[]}
-const orphans = { образ: [], настроение: [] }; // фото, которых нет в дереве материал/формат/место
-
-for (const facetName of ['образ', 'настроение']) {
-  const facetDir = path.join(ROOT, facetName);
-  if (!fs.existsSync(facetDir)) continue;
-  walk(facetDir, (full, name, relParts) => {
-    const tag = relParts.join(' / ');
-    const matches = hashToPrimary.get(hashFile(full));
-    if (!matches || matches.length === 0) {
-      orphans[facetName].push({ name, tag, full });
-      return;
-    }
-    for (const m of matches) {
-      if (!facetTags.has(m.path)) facetTags.set(m.path, { образ: [], настроение: [] });
-      facetTags.get(m.path)[facetName].push(tag);
-    }
-  });
-}
-
-// --- итоговый манифест: записи дерева + самостоятельные фото-сироты ---
 const manifest = primary.map((p) => ({
   file: p.name,
   sourcePath: p.path,
   материал: p.material,
-  формат: p.format,
+  /* `формат` здесь — не бакет «индивидуальная/парная/творческая» (это поле
+     ниже по конвейеру, `export-storyboard-photos.mjs`, `classify()`), а
+     ПЕРВЫЙ УРОВЕНЬ ПУТИ ЦЕЛИКОМ — название повода/ветки. Так было и на
+     дереве Ф46 (`classify()` уже читает его как `branch === 'вайб имеется'`
+     и т.д.), только раньше это был второй уровень пути, а не первый — само
+     ИМЯ ПОЛЯ и его смысл для `classify()` не меняются, меняется только то,
+     из какого сегмента пути оно теперь берётся. */
+  формат: p.occasion,
   место: p.place,
-  образ: facetTags.get(p.path)?.образ || [],
-  настроение: facetTags.get(p.path)?.настроение || [],
+  образ: [],
+  /* ПОВОД — ИЗ СТРУКТУРЫ, НЕ ИЗ ОТДЕЛЬНОГО ТЕГА (см. блок-комментарий выше).
+     Один элемент, само название верхней папки: `normalizeOccasion()`
+     (`export-storyboard-photos.mjs`) режет по `' / '`, а здесь этого
+     разделителя в значении нет — тег доезжает без изменений. Ставится ВСЕМ
+     фото без исключения (не только «день рождения»): `pick.ts` всё равно
+     читает поле `настроение` только на ветке `повод === 'день рождения'`
+     (единственная ветка, которая реально идёт в обход фильтра по формату),
+     остальным веткам оно ничего не стоит. */
+  настроение: [p.occasion],
 }));
-
-for (const facetName of ['образ', 'настроение']) {
-  for (const o of orphans[facetName]) {
-    const tagParts = o.tag.split(' / ');
-    const last = tagParts[tagParts.length - 1];
-    const material = last === 'цифра' || last === 'пленка' ? last : null;
-    manifest.push({
-      file: o.name,
-      sourcePath: o.full,
-      материал: material,
-      формат: null,
-      место: null,
-      образ: facetName === 'образ' ? [o.tag] : [],
-      настроение: facetName === 'настроение' ? [o.tag] : [],
-    });
-  }
-}
 
 fs.writeFileSync(OUT, JSON.stringify(manifest, null, 2), 'utf-8');
 
 console.log('manifest written:', OUT, '| total entries:', manifest.length);
-const byFormat = {};
+const byOccasionMaterial = {};
 for (const m of manifest) {
-  const k = `${m.материал} / ${m.формат}`;
-  byFormat[k] = (byFormat[k] || 0) + 1;
+  const k = `${m.формат} / ${m.материал}`;
+  byOccasionMaterial[k] = (byOccasionMaterial[k] || 0) + 1;
 }
-console.log('\nпо материал/формат:');
-for (const [k, v] of Object.entries(byFormat).sort()) console.log(' ', v, '|', k);
+console.log('\nпо поводу/материалу:');
+for (const [k, v] of Object.entries(byOccasionMaterial).sort()) console.log(' ', v, '|', k);
