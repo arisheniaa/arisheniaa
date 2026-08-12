@@ -5,7 +5,7 @@ import { Name } from './Name';
 import { Rack } from './Rack';
 import { Stars } from './Stars';
 import { DeliveryDemo } from './Folders';
-import { useReveal, useFocusScrub } from './reveal';
+import { useReveal, useFocusScrub, usePriceReveal } from './reveal';
 import { useSmoothScroll } from './smooth-scroll';
 import { TiltFrame } from './Tilt';
 import { Fan } from './Fan';
@@ -105,6 +105,9 @@ export function App() {
 function Page() {
   useReveal();
   useFocusScrub();
+  // Плашка цены на тач-устройствах — двусторонний reveal по скроллу
+  // (см. `usePriceReveal()` в `reveal.ts`); на десктопе не действует.
+  usePriceReveal();
   // Ф39 п.14 — плавный ход колеса, см. `smooth-scroll.ts`
   /* ═══ ПЕРЕХВАТ КОЛЕСА СНЯТ (Ф44) ══════════════════════════════════════
      «Все анимации приятны и плавны, но когда листаешь сайт, он всё равно с

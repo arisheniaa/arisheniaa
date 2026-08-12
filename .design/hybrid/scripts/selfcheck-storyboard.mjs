@@ -785,42 +785,130 @@ await section('5. веер — три состояния', async () => {
   await ctx.close();
 });
 
-/* ─── 5b. Веер — тач/reduced-motion не теряет контента (Ф33 п.2) ─── */
-await section('5b. веер — тач/reduced-motion', async () => {
+/* ─── 5b. Веер на тач — перетаскивание (drag), не сетка (правка билдера,
+   не в FACTS.md — см. сообщение коммита) ────────────────────────────────
+   НАХОДКА ПРИ АДАПТАЦИИ ЭТОГО РАЗДЕЛА, а не молчаливая правка (правило
+   методологии: если проверка перестаёт быть применима — задокументировать,
+   не удалить тихо). До правки «веер на тач — перелистывание пальцем»
+   `computeFanMode()` сводил ДВЕ причины к одному режиму `'flat'`: «нет
+   точного курсора» ИЛИ «движение выключено». Этот раздел эмулировал именно
+   первую причину (`matchMedia('hover: hover')` → `false`) и проверял, что
+   веер разложен в сетку — это было ВЕРНО для тогдашнего кода.
+
+   Владелица выбрала для тача рэковскую механику («Стопку можно листать
+   пальцем, как фото на главной»), и `computeFanMode()` развёл причины:
+   тач с разрешённым движением теперь даёт ТРЕТИЙ режим, `'drag'`, а не
+   `'flat'`. Старые две проверки этого раздела («резолвится в flat»,
+   «`data-expanded` стоит перманентно») перестали быть применимы к ПРОСТО
+   тач-эмуляции — они описывают `'flat'`, а простой тач теперь резолвится в
+   `'drag'`. Раздел ниже переписан на два случая:
+    · 5b.1 — тач, движение разрешено → `'drag'`, новая механика (та же
+      физика, что у `Rack.tsx`, `useRack.ts`) — здесь и живёт бывшая
+      проверка «не теряет контента», просто по-другому: все фото — в DOM
+      как `<img>`, доступны перетаскиванием/кнопкой/клавиатурой;
+    · 5b.2 — тач + `prefers-reduced-motion: reduce` ОДНОВРЕМЕННО → всё ещё
+      `'flat'` (регрессионная проверка на конкретно эту комбинацию: именно
+      она осталась не покрыта, если бы кто-то по памяти решил, что «тач
+      всегда далбл drag» — драг-жест требует движения, и при выключенном
+      движении жеста быть не должно, сетка остаётся сеткой). Это тот же
+      сценарий, что уже проверяет отдельный «6b. стрелка — reduced-motion»
+      ниже для другого узла — здесь тот же принцип для веера. */
+function touchEmu() {
+  return (page) =>
+    page.addInitScript(() => {
+      const orig = window.matchMedia.bind(window);
+      window.matchMedia = (q) => {
+        if (q.includes('hover: hover') || q.includes('pointer: fine')) {
+          return {
+            matches: false,
+            media: q,
+            addListener() {},
+            removeListener() {},
+            addEventListener() {},
+            removeEventListener() {},
+            onchange: null,
+            dispatchEvent: () => true,
+          };
+        }
+        return orig(q);
+      };
+    });
+}
+
+await section('5b.1. веер на тач — перетаскивание (drag)', async () => {
   // симулируем устройство без hover тонким указателем (тач-экран): подменяем
-  // matchMedia ДО загрузки страницы, чтобы `useFanMode()` увидел именно это
+  // matchMedia ДО загрузки страницы, чтобы `useFanMode()` увидел именно это.
+  // Движение НЕ выключено (обычный `reducedMotion` контекста) — это и есть
+  // случай «тач, жест разрешён».
   const ctx = await browser.newContext({ viewport: { width: 390, height: 900 } });
   const page = await ctx.newPage();
-  await page.addInitScript(() => {
-    const orig = window.matchMedia.bind(window);
-    window.matchMedia = (q) => {
-      if (q.includes('hover: hover') || q.includes('pointer: fine')) {
-        return {
-          matches: false,
-          media: q,
-          addListener() {},
-          removeListener() {},
-          addEventListener() {},
-          removeEventListener() {},
-          onchange: null,
-          dispatchEvent: () => true,
-        };
-      }
-      return orig(q);
-    };
-  });
+  await touchEmu()(page);
   await page.goto(BASE, { waitUntil: 'networkidle' });
   await walkPath(page, ['Вайб имеется', 'Вдвоём', 'Цифра', 'В студии', 'Да, уже есть']);
 
   const mode = await page.locator('.sb-fan').getAttribute('data-mode');
-  note(RED ? mode !== 'flat' : mode === 'flat', `тач-эмуляция (hover:none) — веер резолвится в режим «flat» (получено: ${mode})`);
-  const expandedAttr = await page.locator('.sb-fan').getAttribute('data-expanded');
-  note(RED ? expandedAttr !== '' : expandedAttr === '', 'тач: `data-expanded` стоит перманентно без жеста — все фото видны сразу');
+  note(RED ? mode !== 'drag' : mode === 'drag', `тач-эмуляция (hover:none), движение разрешено — веер резолвится в режим «drag» (получено: ${mode})`);
+
   const de = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
-  note(RED ? de.sw < de.cw : de.sw === de.cw, `тач на 390px — страница НЕ уезжает вбок из-за развёрнутого веера (scrollWidth ${de.sw}, clientWidth ${de.cw})`);
+  note(RED ? de.sw < de.cw : de.sw === de.cw, `тач на 390px — страница НЕ уезжает вбок из-за веера (scrollWidth ${de.sw}, clientWidth ${de.cw})`);
+
+  // контент не потерян: все фото результата лежат в DOM как <img>, даже те,
+  // что сейчас закрыты нижними слоями стопки (та же гарантия, что раньше
+  // давала развёрнутая сетка — просто другой физический носитель контента)
+  const itemCount = await page.locator('.sb-fan-drag-item').count();
+  const imgCount = await page.locator('.sb-fan-drag-item img').count();
+  note(itemCount > 0 && itemCount === imgCount, `тач-drag: все ${itemCount} карточек несут реальное изображение, ни одна не спрятана из DOM`);
+
+  // доступность — как у Rack.tsx: role/aria-label на контейнере физики,
+  // счётчик и кнопка продвигают стопку тем же принципом, что палец
+  const stack = page.locator('.sb-fan-drag-stack').first();
+  const role = await stack.getAttribute('role');
+  const ariaLabel = await stack.getAttribute('aria-label');
+  note(role === 'group' && !!ariaLabel, `тач-drag: контейнер стопки несёт role=group и aria-label (получено role=${role}, aria-label=${ariaLabel ? 'есть' : 'нет'})`);
+
+  const counterBefore = (await page.locator('.sb-fan-drag-controls .t-mono').first().textContent()).trim();
+  await stack.focus();
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(150);
+  const counterAfter = (await page.locator('.sb-fan-drag-controls .t-mono').first().textContent()).trim();
+  note(
+    RED ? counterAfter === counterBefore : counterAfter !== counterBefore,
+    `тач-drag: ArrowRight с клавиатуры продвигает стопку (счётчик «${counterBefore}» → «${counterAfter}»)`,
+  );
+
+  await page.locator('.sb-fan-drag-controls .rack-next').first().click();
+  await page.waitForTimeout(150);
+  const counterAfterClick = (await page.locator('.sb-fan-drag-controls .t-mono').first().textContent()).trim();
+  note(
+    RED ? counterAfterClick === counterAfter : counterAfterClick !== counterAfter,
+    `тач-drag: кнопка «Следующий кадр» продвигает стопку (счётчик «${counterAfter}» → «${counterAfterClick}»)`,
+  );
+
+  await ctx.close();
+});
+
+await section('5b.2. веер на тач + reduced-motion — остаётся «flat»', async () => {
+  // тач-эмуляция ТА ЖЕ, что в 5b.1, но контекст ещё и с выключенным
+  // движением — регрессионная проверка на сочетание, а не на каждую причину
+  // по отдельности (обе причины уже проверены раздельно: 5. — обычный
+  // мышиный десктоп даёт «stack», 5b.1 — тач без reduced-motion даёт «drag»,
+  // «8. reduced-motion» ниже — мышь с выключенным движением не теряет
+  // контента). Не хватало именно пересечения тач + выключенное движение.
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, reducedMotion: 'reduce' });
+  const page = await ctx.newPage();
+  await touchEmu()(page);
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  await walkPath(page, ['Вайб имеется', 'Вдвоём', 'Цифра', 'В студии', 'Да, уже есть']);
+
+  const mode = await page.locator('.sb-fan').getAttribute('data-mode');
+  note(RED ? mode !== 'flat' : mode === 'flat', `тач + reduced-motion — веер всё ещё резолвится в режим «flat», не «drag» (получено: ${mode})`);
+  const expandedAttr = await page.locator('.sb-fan').getAttribute('data-expanded');
+  note(RED ? expandedAttr !== '' : expandedAttr === '', 'тач + reduced-motion: `data-expanded` стоит перманентно без жеста — все фото видны сразу');
+  const de = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
+  note(RED ? de.sw < de.cw : de.sw === de.cw, `тач + reduced-motion на 390px — страница НЕ уезжает вбок из-за развёрнутого веера (scrollWidth ${de.sw}, clientWidth ${de.cw})`);
   const visibleCount = await page.locator('.sb-fan-item').count();
   const imgCount = await page.locator('.sb-fan-item img').count();
-  note(visibleCount === imgCount, `тач: все ${visibleCount} карточек несут реальное изображение, ни одна не спрятана`);
+  note(visibleCount > 0 && visibleCount === imgCount, `тач + reduced-motion: все ${visibleCount} карточек несут реальное изображение, ни одна не спрятана`);
   await ctx.close();
 });
 
