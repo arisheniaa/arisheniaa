@@ -87,7 +87,13 @@ export function DeliveryDemo({
           `.delivery-stage` на позицию ПЕРЕД ним. Сам текст не тронут, только
           положение относительно папки (было `mt-`, стало `mb-` — тот же
           зазор, инвертирован под новую сторону). */}
-      <p className="t-body mb-[clamp(1.4rem,3vw,2.2rem)] max-w-[30ch] text-[color:var(--ink-soft)]">
+      {/* Мера строки задана НЕ утилитой `max-w-[30ch]`, а правилом
+          `.delivery > p` в `styles.css` (Ф60). Утилиты Tailwind живут в
+          `@layer utilities`, а он сильнее `@layer components` независимо от
+          специфичности селектора — то есть медиазапрос «на телефоне во всю
+          ширину» из компонентного слоя утилиту не переспорил бы и молча не
+          сработал. Те же грабли уже задокументированы у `.sb-fan-item`. */}
+      <p className="t-body mb-[clamp(1.4rem,3vw,2.2rem)] text-[color:var(--ink-soft)]">
         {note}
       </p>
 
