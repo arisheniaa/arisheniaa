@@ -975,7 +975,18 @@ await section('6. стрелка-подсказка', async () => {
   let hintCount = await page.locator('.nav-hint').count();
   note(RED ? hintCount > 0 : hintCount === 0, `на нулевом скролле стрелка НЕ смонтирована (П7): найдено ${hintCount}`);
 
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight * 0.35));
+  /* Прокрутка ЗА ПЕРВЫЙ ЭКРАН по его собственному краю, а не на долю от
+     высоты документа. Прежние «35 % высоты» читали `scrollHeight` в момент,
+     когда раскладка могла быть ещё не досчитана: на недосчитанной высоте
+     35 % приходились внутрь первого экрана, подсказка по своему условию не
+     появлялась вовсе, и проверка ждала её тридцать секунд и падала. Условие
+     показа — «первый экран ушёл из кадра» (`NavHint.tsx`), поэтому и целимся
+     ровно в него: нижний край `#hero` плюс запас. */
+  await page.evaluate(() => {
+      const hero = document.getElementById('hero');
+      const y = hero ? hero.getBoundingClientRect().bottom + window.scrollY + 40 : window.innerHeight * 1.4;
+      window.scrollTo({ top: y, left: 0, behavior: 'instant' });
+    });
   await page.waitForTimeout(700);
   hintCount = await page.locator('.nav-hint').count();
   note(RED ? hintCount === 0 : hintCount === 1, `после прокрутки вниз стрелка появляется (найдено ${hintCount})`);
@@ -1018,7 +1029,18 @@ await section('6b. стрелка — reduced-motion', async () => {
   const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 }, reducedMotion: 'reduce' });
   const page = await ctx.newPage();
   await page.goto(MAIN, { waitUntil: 'networkidle' });
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight * 0.35));
+  /* Прокрутка ЗА ПЕРВЫЙ ЭКРАН по его собственному краю, а не на долю от
+     высоты документа. Прежние «35 % высоты» читали `scrollHeight` в момент,
+     когда раскладка могла быть ещё не досчитана: на недосчитанной высоте
+     35 % приходились внутрь первого экрана, подсказка по своему условию не
+     появлялась вовсе, и проверка ждала её тридцать секунд и падала. Условие
+     показа — «первый экран ушёл из кадра» (`NavHint.tsx`), поэтому и целимся
+     ровно в него: нижний край `#hero` плюс запас. */
+  await page.evaluate(() => {
+      const hero = document.getElementById('hero');
+      const y = hero ? hero.getBoundingClientRect().bottom + window.scrollY + 40 : window.innerHeight * 1.4;
+      window.scrollTo({ top: y, left: 0, behavior: 'instant' });
+    });
   await page.waitForTimeout(200);
   const shown = await page.locator('.nav-hint').getAttribute('data-show');
   note(RED ? shown !== '' : shown === '', `reduced-motion: подсказка видна почти сразу, без ожидания входной анимации (получено data-show: ${JSON.stringify(shown)})`);
