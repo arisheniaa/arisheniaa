@@ -663,7 +663,26 @@ const browser = await chromium.launch();
   note(glintOn > 0.5, `блик по краю кадра появляется при наведении (opacity ${glintOn})`);
 
   await page.mouse.move(4, 4);
-  await page.waitForTimeout(450);
+  /* Ждём, пока матрица перестанет меняться, а не отмеренные 450 мс. Возврат
+     тилта — CSS-переход, и под нагрузкой полного прогона он расходится с
+     фиксированным ожиданием: проверка читала матрицу на полпути домой
+     (0.9978 вместо 1) и падала при исправной механике. Пятый случай той же
+     болезни в этих файлах. Ограничение в 2 с оставлено: если тилт реально
+     завис не дома, проверка обязана упасть, а не ждать вечно. */
+  await page
+    .waitForFunction(
+      () => {
+        const el = document.querySelector('.tilt-frame');
+        if (!el) return false;
+        const cur = getComputedStyle(el).transform;
+        const прежний = window.__тилт;
+        window.__тилт = cur;
+        return прежний === cur;
+      },
+      null,
+      { timeout: 2000, polling: 100 },
+    )
+    .catch(() => {});
   const back = await frame.evaluate((el) => getComputedStyle(el).transform);
   /* Не строковое равенство: CSS-переход интерполирует `matrix3d` через
      тригонометрию и обратно, и «доехавшее» значение отличается от исходного

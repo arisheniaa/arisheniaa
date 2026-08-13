@@ -25,6 +25,12 @@ export function PhotoFan({ photos }: { photos: StoryboardPhoto[] }) {
   const items: FanPhoto[] = photos.map((p) => ({
     key: p.id,
     src: p.src,
+    /* Крупная копия для просмотра по нажатию (Ф61) — то же правило, что у
+       вееров услуг: экспорт кладёт рядом с каждым кадром файл с суффиксом
+       `-full` (`export-storyboard-photos.mjs`), и путь выводится, а не
+       хранится в манифесте. Держать его отдельным полем значило бы возить
+       224 лишние строки в публичном манифесте ради одной подстановки. */
+    full: p.src.replace(/\.webp$/, '-full.webp'),
     alt: p.alt,
     w: p.w,
     h: p.h,
