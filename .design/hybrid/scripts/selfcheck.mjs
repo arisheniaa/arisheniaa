@@ -669,18 +669,22 @@ const browser = await chromium.launch();
      (0.9978 вместо 1) и падала при исправной механике. Пятый случай той же
      болезни в этих файлах. Ограничение в 2 с оставлено: если тилт реально
      завис не дома, проверка обязана упасть, а не ждать вечно. */
+  /* Ждём не «перестало меняться», а «вернулось домой»: застрявший на полпути
+     тилт первое условие ТОЖЕ выполняет — значение стабильно, просто не то.
+     Именно на этом прошлая редакция ожидания и попадалась. Условие теперь
+     ровно то, что проверяет сама проверка ниже, а таймаут оставлен, чтобы
+     по-настоящему застрявший тилт её всё-таки ронял. */
   await page
     .waitForFunction(
       () => {
         const el = document.querySelector('.tilt-frame');
         if (!el) return false;
-        const cur = getComputedStyle(el).transform;
-        const прежний = window.__тилт;
-        window.__тилт = cur;
-        return прежний === cur;
+        const n = (getComputedStyle(el).transform.match(/-?[\d.e-]+/g) || []).map(Number);
+        // единичная матрица: диагональ 1, остальное 0 — сверяем с допуском
+        return n.length > 1 && n.slice(1).every((v, i) => Math.abs(v - [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1][i]) < 0.005);
       },
       null,
-      { timeout: 2000, polling: 100 },
+      { timeout: 3000, polling: 100 },
     )
     .catch(() => {});
   const back = await frame.evaluate((el) => getComputedStyle(el).transform);
