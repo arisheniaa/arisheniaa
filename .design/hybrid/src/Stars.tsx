@@ -206,7 +206,7 @@ const CAN_HOVER =
    ПОБОЧНАЯ ВЫГОДА: фильтр на весь экран был дороже градиента. Полноэкранных
    фильтров на странице больше не остаётся вовсе. */
 const GLOW_R = 82;
-const GLOW_OPACITY = 0.85;
+const GLOW_OPACITY = 0.95;
 
 
 
@@ -638,9 +638,16 @@ export function Stars({
         <defs>
           {ALL_TONES.map((t) => (
             <radialGradient key={t} id={`${uid}-glow-${t}`}>
-              <stop offset="0%" stopColor={STAR_TONES[t]} stopOpacity="0.5" />
-              <stop offset="38%" stopColor={STAR_TONES[t]} stopOpacity="0.26" />
-              <stop offset="70%" stopColor={STAR_TONES[t]} stopOpacity="0.08" />
+              {/* Ф59: сила ореола поднята примерно вдвое (0.5/0.26/0.08 →
+                  0.8/0.44/0.15) — владелица о первой рабочей редакции:
+                  «засветились!! слабым светом, но засветились». Выбран
+                  средний из трёх показанных ей уровней. Форма спада не
+                  тронута: те же четыре стопа на тех же долях радиуса,
+                  меняется только плотность — иначе поменялся бы характер
+                  свечения, а не его сила. */}
+              <stop offset="0%" stopColor={STAR_TONES[t]} stopOpacity="0.8" />
+              <stop offset="38%" stopColor={STAR_TONES[t]} stopOpacity="0.44" />
+              <stop offset="70%" stopColor={STAR_TONES[t]} stopOpacity="0.15" />
               <stop offset="100%" stopColor={STAR_TONES[t]} stopOpacity="0" />
             </radialGradient>
           ))}

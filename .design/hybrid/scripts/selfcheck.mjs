@@ -629,11 +629,28 @@ const browser = await chromium.launch();
   await page.goto(BASE, { waitUntil: 'networkidle' });
   const frame = page.locator('.tilt-frame').first();
   await clearHeader(frame);
-  const box = await frame.boundingBox();
   const flat = await frame.evaluate((el) => getComputedStyle(el).transform);
 
-  await page.mouse.move(box.x + box.width * 0.12, box.y + box.height * 0.12, { steps: 5 });
-  await page.waitForTimeout(250);
+  /* НАВЕДЕНИЕ С ПРОВЕРКОЙ ФАКТА, А НЕ «посчитали точку и поверили».
+     Точка нужна именно смещённая от центра (12 % от угла): тилт зависит от
+     положения курсора внутри карточки, и в центре он равен нулю — поэтому
+     `locator.hover()`, целящийся в центр, здесь не годится и заменить им
+     нельзя. Но координата, посчитанная заранее, устаревает, если раскладка
+     шевельнётся: фотографии выше по странице догружаются лениво (Ф41), и
+     курсор остаётся стоять там, где карточки уже нет. Браузер при этом НЕ
+     пересчитывает `:hover` под неподвижной мышью — та же причина, по которой
+     чинили `clearHeader` и проверку плашки цены.
+
+     Поэтому здесь: замерили → навели → СПРОСИЛИ, попали ли. Не попали —
+     замерили заново. Три попытки: больше одного промаха подряд означало бы
+     не гонку, а по-настоящему едущую страницу, и тогда правильно упасть. */
+  for (let попытка = 0; попытка < 3; попытка++) {
+    const box = await frame.boundingBox();
+    await page.mouse.move(box.x + box.width * 0.12, box.y + box.height * 0.12, { steps: 5 });
+    await page.waitForTimeout(250);
+    const попали = await frame.evaluate((el) => el.matches(':hover'));
+    if (попали) break;
+  }
   const tilted = await frame.evaluate((el) => getComputedStyle(el).transform);
   note(
     RED ? tilted === flat : tilted !== flat,
