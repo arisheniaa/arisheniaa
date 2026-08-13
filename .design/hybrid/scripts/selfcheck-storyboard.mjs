@@ -790,34 +790,31 @@ await section('5. веер — три состояния', async () => {
   await ctx.close();
 });
 
-/* ─── 5b. Веер на тач — перетаскивание (drag), не сетка (правка билдера,
-   не в FACTS.md — см. сообщение коммита) ────────────────────────────────
-   НАХОДКА ПРИ АДАПТАЦИИ ЭТОГО РАЗДЕЛА, а не молчаливая правка (правило
-   методологии: если проверка перестаёт быть применима — задокументировать,
-   не удалить тихо). До правки «веер на тач — перелистывание пальцем»
-   `computeFanMode()` сводил ДВЕ причины к одному режиму `'flat'`: «нет
-   точного курсора» ИЛИ «движение выключено». Этот раздел эмулировал именно
-   первую причину (`matchMedia('hover: hover')` → `false`) и проверял, что
-   веер разложен в сетку — это было ВЕРНО для тогдашнего кода.
+/* ─── 5b. Веер на тач — нажатие раскрывает кадр (tap), не сетка и не
+   перетаскивание ──────────────────────────────────────────────────────────
+   ДВЕ АДАПТАЦИИ ЭТОГО РАЗДЕЛА ПОДРЯД, И ОБЕ ЗАПИСАНЫ, а не сделаны молча
+   (правило методологии: если проверка перестаёт быть применима — это надо
+   объяснить, а не стереть).
 
-   Владелица выбрала для тача рэковскую механику («Стопку можно листать
-   пальцем, как фото на главной»), и `computeFanMode()` развёл причины:
-   тач с разрешённым движением теперь даёт ТРЕТИЙ режим, `'drag'`, а не
-   `'flat'`. Старые две проверки этого раздела («резолвится в flat»,
-   «`data-expanded` стоит перманентно») перестали быть применимы к ПРОСТО
-   тач-эмуляции — они описывают `'flat'`, а простой тач теперь резолвится в
-   `'drag'`. Раздел ниже переписан на два случая:
-    · 5b.1 — тач, движение разрешено → `'drag'`, новая механика (та же
-      физика, что у `Rack.tsx`, `useRack.ts`) — здесь и живёт бывшая
-      проверка «не теряет контента», просто по-другому: все фото — в DOM
-      как `<img>`, доступны перетаскиванием/кнопкой/клавиатурой;
+   Сначала `computeFanMode()` сводил ДВЕ причины к одному `'flat'`: «нет
+   точного курсора» ИЛИ «движение выключено», и раздел проверял, что тач
+   раскладывает веер сеткой. Ф53 развела причины и дала тачу `'drag'` —
+   стопку, которую листают пальцем; раздел переписали на перетаскивание.
+   Ф55 заменила `'drag'` на `'tap'` — веер видно целиком, нажатие
+   раскрывает выбранный кадр в центре экрана. Проверки про счётчик, кнопку
+   «Следующий кадр» и `ArrowRight` вместе с драгом перестали существовать:
+   листать больше нечего, все кадры на виду сразу.
+
+   Что осталось неизменным СМЫСЛОМ через все три редакции — «контент не
+   теряется»: сколько кадров подобрано, столько и лежит в DOM настоящими
+   `<img>`, и до каждого можно добраться. Менялся только носитель этой
+   гарантии: сетка → стопка с жестом → веер с нажатием.
+
+    · 5b.1 — тач, движение разрешено → `'tap'`: веер, у каждого кадра своя
+      кнопка, нажатие открывает кадр поверх страницы, Esc закрывает;
     · 5b.2 — тач + `prefers-reduced-motion: reduce` ОДНОВРЕМЕННО → всё ещё
-      `'flat'` (регрессионная проверка на конкретно эту комбинацию: именно
-      она осталась не покрыта, если бы кто-то по памяти решил, что «тач
-      всегда далбл drag» — драг-жест требует движения, и при выключенном
-      движении жеста быть не должно, сетка остаётся сеткой). Это тот же
-      сценарий, что уже проверяет отдельный «6b. стрелка — reduced-motion»
-      ниже для другого узла — здесь тот же принцип для веера. */
+      `'flat'` (регрессионная проверка ровно на сочетание: раскрытие кадра
+      — движение, и при выключенном движении сетка остаётся сеткой). */
 function touchEmu() {
   return (page) =>
     page.addInitScript(() => {
@@ -840,53 +837,102 @@ function touchEmu() {
     });
 }
 
-await section('5b.1. веер на тач — перетаскивание (drag)', async () => {
+await section('5b.1. веер на тач — нажатие раскрывает кадр (tap)', async () => {
   // симулируем устройство без hover тонким указателем (тач-экран): подменяем
   // matchMedia ДО загрузки страницы, чтобы `useFanMode()` увидел именно это.
   // Движение НЕ выключено (обычный `reducedMotion` контекста) — это и есть
   // случай «тач, жест разрешён».
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 } });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, hasTouch: true });
   const page = await ctx.newPage();
   await touchEmu()(page);
   await page.goto(BASE, { waitUntil: 'networkidle' });
   await walkPath(page, ['Вайб имеется', 'Вдвоём', 'Цифра', 'В студии', 'Да, уже есть']);
 
   const mode = await page.locator('.sb-fan').getAttribute('data-mode');
-  note(RED ? mode !== 'drag' : mode === 'drag', `тач-эмуляция (hover:none), движение разрешено — веер резолвится в режим «drag» (получено: ${mode})`);
+  note(RED ? mode !== 'tap' : mode === 'tap', `тач-эмуляция (hover:none), движение разрешено — веер резолвится в режим «tap» (получено: ${mode})`);
 
   const de = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
   note(RED ? de.sw < de.cw : de.sw === de.cw, `тач на 390px — страница НЕ уезжает вбок из-за веера (scrollWidth ${de.sw}, clientWidth ${de.cw})`);
 
-  // контент не потерян: все фото результата лежат в DOM как <img>, даже те,
-  // что сейчас закрыты нижними слоями стопки (та же гарантия, что раньше
-  // давала развёрнутая сетка — просто другой физический носитель контента)
-  const itemCount = await page.locator('.sb-fan-drag-item').count();
-  const imgCount = await page.locator('.sb-fan-drag-item img').count();
-  note(itemCount > 0 && itemCount === imgCount, `тач-drag: все ${itemCount} карточек несут реальное изображение, ни одна не спрятана из DOM`);
-
-  // доступность — как у Rack.tsx: role/aria-label на контейнере физики,
-  // счётчик и кнопка продвигают стопку тем же принципом, что палец
-  const stack = page.locator('.sb-fan-drag-stack').first();
-  const role = await stack.getAttribute('role');
-  const ariaLabel = await stack.getAttribute('aria-label');
-  note(role === 'group' && !!ariaLabel, `тач-drag: контейнер стопки несёт role=group и aria-label (получено role=${role}, aria-label=${ariaLabel ? 'есть' : 'нет'})`);
-
-  const counterBefore = (await page.locator('.sb-fan-drag-controls .t-mono').first().textContent()).trim();
-  await stack.focus();
-  await page.keyboard.press('ArrowRight');
-  await page.waitForTimeout(150);
-  const counterAfter = (await page.locator('.sb-fan-drag-controls .t-mono').first().textContent()).trim();
+  // контент не потерян: все подобранные кадры лежат в DOM настоящими <img>,
+  // и у каждого своя кнопка — то есть до каждого можно добраться и пальцем,
+  // и с клавиатуры (та же гарантия, что раньше давала сетка, потом стопка)
+  const itemCount = await page.locator('.sb-fan-tap-item').count();
+  const imgCount = await page.locator('.sb-fan-tap-item img').count();
+  const btnCount = await page.locator('.sb-fan-tap-btn').count();
   note(
-    RED ? counterAfter === counterBefore : counterAfter !== counterBefore,
-    `тач-drag: ArrowRight с клавиатуры продвигает стопку (счётчик «${counterBefore}» → «${counterAfter}»)`,
+    itemCount > 0 && itemCount === imgCount && itemCount === btnCount,
+    `тач-tap: все ${itemCount} кадров несут реальное изображение и собственную кнопку (картинок ${imgCount}, кнопок ${btnCount})`,
   );
 
-  await page.locator('.sb-fan-drag-controls .rack-next').first().click();
-  await page.waitForTimeout(150);
-  const counterAfterClick = (await page.locator('.sb-fan-drag-controls .t-mono').first().textContent()).trim();
+  /* ЗОНА КАСАНИЯ СЧИТАЕТСЯ ПО ВИДИМОЙ ПОЛОСЕ, А НЕ ПО КОРОБКЕ КНОПКИ.
+     Кадры лежат внахлёст, и коробка кнопки почти целиком закрыта соседом
+     сверху: палец физически попадает только в ту полосу, где этот кадр —
+     верхний. Меряем именно её (расстояние до следующего кадра), иначе
+     проверка утверждала бы про площадь, которой у пальца нет. */
+  const полосы = await page.locator('.sb-fan').first().evaluate((el) => {
+    const r = [...el.querySelectorAll('.sb-fan-item')].map((i) => i.getBoundingClientRect());
+    return r.map((cur, i) => Math.round(i < r.length - 1 ? r[i + 1].left - cur.left : cur.width));
+  });
+  const минПолоса = Math.min(...полосы);
   note(
-    RED ? counterAfterClick === counterAfter : counterAfterClick !== counterAfter,
-    `тач-drag: кнопка «Следующий кадр» продвигает стопку (счётчик «${counterAfter}» → «${counterAfterClick}»)`,
+    RED ? минПолоса >= 44 : минПолоса >= 44,
+    `тач-tap: у самого узкого кадра видимая полоса ${минПолоса}px — не меньше зоны касания 44px (полосы: ${полосы.join('/')})`,
+  );
+
+  // нажатие по видимой полосе второго кадра раскрывает ИМЕННО кадр
+  const точка = await page.locator('.sb-fan').first().evaluate((el) => {
+    const r = [...el.querySelectorAll('.sb-fan-item')].map((i) => i.getBoundingClientRect());
+    const i = Math.min(1, r.length - 1);
+    const слева = i > 0 ? r[i - 1].right : r[i].left;
+    const справа = i < r.length - 1 ? r[i + 1].left : r[i].right;
+    return { x: Math.round((Math.max(слева, r[i].left) + Math.min(справа, r[i].right)) / 2), y: Math.round(r[i].top + r[i].height / 2) };
+  });
+  await page.touchscreen.tap(точка.x, точка.y);
+  await page.waitForTimeout(500);
+
+  const свет = await page.evaluate(() => {
+    const lb = document.querySelector('.fan-lightbox');
+    if (!lb) return null;
+    const img = lb.querySelector('img');
+    const r = img.getBoundingClientRect();
+    return {
+      role: lb.getAttribute('role'),
+      modal: lb.getAttribute('aria-modal'),
+      вБоди: lb.parentElement === document.body,
+      сдвигX: Math.abs(Math.round(r.left + r.width / 2) - Math.round(window.innerWidth / 2)),
+      сдвигY: Math.abs(Math.round(r.top + r.height / 2) - Math.round(window.innerHeight / 2)),
+      шире: Math.round(r.width),
+    };
+  });
+  note(RED ? !свет : !!свет, `тач-tap: нажатие по кадру раскрывает просмотр (слой .fan-lightbox ${свет ? 'появился' : 'не появился'})`);
+  if (свет) {
+    note(свет.role === 'dialog' && свет.modal === 'true', `тач-tap: просмотр объявлен диалогом (role=${свет.role}, aria-modal=${свет.modal})`);
+    /* Портал в `<body>` проверяется НЕ ради архитектуры, а потому что без
+       него слой попадает под `transform` карточки услуги (`Tilt.tsx`) и
+       «на весь экран» превращается в «на всю карточку» — ровно этот дефект
+       и был пойман кадром при разработке Ф55. */
+    note(свет.вБоди, `тач-tap: слой вынесен порталом прямо в <body> — не под transform карточки (родитель ${свет.вБоди ? 'body' : 'другой'})`);
+    note(
+      свет.сдвигX <= 2 && свет.сдвигY <= 2,
+      `тач-tap: кадр стоит в центре экрана (сдвиг ${свет.сдвигX}px по горизонтали, ${свет.сдвигY}px по вертикали)`,
+    );
+    const заперта = await page.evaluate(() => getComputedStyle(document.documentElement).overflow);
+    note(заперта.includes('hidden'), `тач-tap: страница под открытым кадром не прокручивается (overflow=${заперта})`);
+  }
+
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(400);
+  const после = await page.evaluate(() => ({
+    закрылся: !document.querySelector('.fan-lightbox'),
+    прокрутка: document.documentElement.style.overflow === '',
+    фокус: document.activeElement?.className || '',
+  }));
+  note(RED ? !после.закрылся : после.закрылся, `тач-tap: Esc закрывает просмотр (слой ${после.закрылся ? 'убран' : 'остался'})`);
+  note(после.прокрутка, 'тач-tap: после закрытия прокрутка страницы возвращается');
+  note(
+    после.фокус.includes('sb-fan-tap-btn'),
+    `тач-tap: фокус возвращается на кадр, которым открыли, а не в начало страницы (получено: «${после.фокус || 'ничего'}»)`,
   );
 
   await ctx.close();
@@ -896,7 +942,7 @@ await section('5b.2. веер на тач + reduced-motion — остаётся 
   // тач-эмуляция ТА ЖЕ, что в 5b.1, но контекст ещё и с выключенным
   // движением — регрессионная проверка на сочетание, а не на каждую причину
   // по отдельности (обе причины уже проверены раздельно: 5. — обычный
-  // мышиный десктоп даёт «stack», 5b.1 — тач без reduced-motion даёт «drag»,
+  // мышиный десктоп даёт «stack», 5b.1 — тач без reduced-motion даёт «tap»,
   // «8. reduced-motion» ниже — мышь с выключенным движением не теряет
   // контента). Не хватало именно пересечения тач + выключенное движение.
   const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, reducedMotion: 'reduce' });
@@ -906,7 +952,7 @@ await section('5b.2. веер на тач + reduced-motion — остаётся 
   await walkPath(page, ['Вайб имеется', 'Вдвоём', 'Цифра', 'В студии', 'Да, уже есть']);
 
   const mode = await page.locator('.sb-fan').getAttribute('data-mode');
-  note(RED ? mode !== 'flat' : mode === 'flat', `тач + reduced-motion — веер всё ещё резолвится в режим «flat», не «drag» (получено: ${mode})`);
+  note(RED ? mode !== 'flat' : mode === 'flat', `тач + reduced-motion — веер всё ещё резолвится в режим «flat», не «tap» (получено: ${mode})`);
   const expandedAttr = await page.locator('.sb-fan').getAttribute('data-expanded');
   note(RED ? expandedAttr !== '' : expandedAttr === '', 'тач + reduced-motion: `data-expanded` стоит перманентно без жеста — все фото видны сразу');
   const de = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
@@ -948,7 +994,17 @@ await section('6. стрелка-подсказка', async () => {
   });
   await page.waitForTimeout(400);
   hintCount = await page.locator('.nav-hint').count();
-  note(RED ? hintCount === 1 : hintCount === 0, `у секции контактов стрелка гаснет (найдено ${hintCount})`);
+  /* ПРОВЕРКА ПЕРЕВЁРНУТА Ф55, А НЕ УДАЛЕНА. Было: «у секции контактов
+     стрелка гаснет» — это следовало из формулировки Ф33 «перед контактами».
+     Владелица отменила ровно её: «сделай так, чтобы стрелка-указатель
+     "загляните сюда" горела до конца, даже когда находишься на последнем
+     разделе, чтобы он продолжал привлекать внимание». Теперь проверяется
+     противоположное — и это не ослабление: у секции контактов стрелка
+     обязана БЫТЬ, а раз так, утверждение осталось таким же строгим, просто
+     с другим ожиданием. Условие «пока виден первый экран — стрелки нет»
+     (проверка выше) не тронуто: оно из другого правила (П7), а не из
+     отменённой формулировки. */
+  note(RED ? hintCount === 0 : hintCount === 1, `у секции контактов стрелка ПРОДОЛЖАЕТ гореть (найдено ${hintCount})`);
 
   const navCount = await page.locator('nav').count();
   note(navCount === 2, `стрелка не создала третий лендмарк <nav> (найдено ${navCount}, ожидались те же 2, что и раньше)`);

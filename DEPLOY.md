@@ -46,6 +46,51 @@ curl -sI https://arisheniaa.ru/ | grep -i last-modified
 Метка одна на все файлы сайта и означает время последней выкладки, а не
 правки конкретного файла.
 
+## Доски Pinterest и заголовок безопасности
+
+Доски на странице «Придумать съёмку» не рисовались на боевом сайте, хотя в
+разработке работали. Дело не в Pinterest и не в блокировках: их резал
+**наш собственный CSP** из `/opt/arisheniaa-site/Caddyfile`, причём в трёх
+местах сразу — `script-src 'self'` не пускал скрипт виджета, `default-src
+'self'` (без `frame-src`) — их фреймы, `img-src 'self' data: blob:` — их
+картинки.
+
+Список чужих адресов снят замером, а не взят из документации Pinterest
+(`.design/hybrid/scripts/_pin-hosts.mjs` в своё время, скрипт временный):
+
+| адрес | тип запроса | нужен ли |
+|---|---|---|
+| `https://assets.pinterest.com` | скрипт-загрузчик `pinit.js` | да |
+| `https://widgets.pinterest.com` | скрипт самого виджета | да |
+| `https://i.pinimg.com` | картинки пинов | да |
+| `https://log.pinterest.com` | счётчик Pinterest | **нет** |
+
+Итоговая строка для `Caddyfile` — меняются ровно две директивы:
+
+```
+Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://assets.pinterest.com https://widgets.pinterest.com; img-src 'self' data: blob: https://i.pinimg.com; font-src 'self' data:; connect-src 'self' blob:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+```
+
+Политика примерена ДО правки сервера: тот же заголовок навешивался на
+локальные страницы заголовком ответа и проверялось, рисуется ли доска.
+С нынешней политикой доска не появляется вовсе (рамка 320 px, один узел),
+с этой — рисуется целиком (476 px, 28 узлов). Единственное, что при ней
+блокируется, — `log.pinterest.com`, и это сделано намеренно: счётчик
+виджету не нужен, доска без него полна.
+
+Чего это стоит, чтобы решение было осознанным: страница «Придумать съёмку»
+начнёт при каждом открытии обращаться к серверам Pinterest, а значит
+Pinterest увидит посетителей сайта. На остальных адресах сайта ничего не
+меняется — политика одна на весь сайт, но обращается к Pinterest только эта
+страница и только когда доски вообще показываются.
+
+После правки — `systemctl reload caddy` (или перезапуск контейнера) и
+проверка:
+
+```bash
+curl -sI https://arisheniaa.ru/storyboard.html | grep -i content-security-policy
+```
+
 ## Репозиторий — источник правды, и это нужно удерживать
 
 11 августа 2026 обнаружилось, что сайт **обогнал репозиторий**: на нём жила

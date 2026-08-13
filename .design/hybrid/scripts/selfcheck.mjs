@@ -33,6 +33,7 @@
  * заведомо неверный порог скролла и заведомо невыполнимый запрет.
  */
 import { chromium } from 'playwright';
+import sharp from 'sharp';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -142,12 +143,53 @@ const note = (ok, msg) => {
  *  плавно и не успевал доехать за фиксированную паузу — проверка EXIF-
  *  подписи мерила прямоугольник в СТАРОМ месте. Явный `behavior: 'instant'`
  *  переопределяет CSS и не зависит от расстояния прокрутки. */
+/* НАХОДКА, а не косметика (поймана диагностикой при провале, не рассуждением).
+   Проверка 5.2 («плашка цены появляется при наведении») падала в полном
+   прогоне и проходила в одиночном. Диагностика в момент провала показала
+   картину, которую невозможно было увидеть по прежнему сообщению: точка
+   курсора ВНУТРИ карточки, `elementFromPoint` возвращает её же потомка — и
+   при этом `.offer-card:hover` не совпадает. То есть навели правильно, а к
+   моменту чтения курсор оказался не там: карточка, которую `clearHeader`
+   ставил на 160 px от верха, к концу ожидания стояла на 548 px.
+
+   Причина не в сайте. Раскладка ещё ехала, когда мышь уже поставили:
+   фотографии выше по странице грузятся лениво (Ф41) и досчитываются после
+   прокрутки. А браузер НЕ пересчитывает `:hover` при сдвиге раскладки под
+   неподвижным курсором — только на следующее движение мыши. Живой читатель
+   в это не попадает: у него курсор двигается. Попадает тест, который водит
+   мышью один раз и дальше считает страницу застывшей.
+
+   Прежние 280 мс были той же ставкой на «наверное, успеет», что и
+   фиксированные ожидания, уже дважды заменённые в этом файле на опрос
+   реального состояния. Меняем и здесь: ждём не время, а ФАКТ — верх
+   элемента перестал меняться пять кадров подряд. Потолок в 120 кадров (~2 с)
+   на случай вечно едущей раскладки: лучше проверить на неустоявшейся
+   странице и честно упасть, чем зависнуть. */
 async function clearHeader(locator, offset = 160) {
   await locator.evaluate((el, off) => {
     const y = el.getBoundingClientRect().top + window.scrollY - off;
     window.scrollTo({ top: Math.max(0, y), left: 0, behavior: 'instant' });
   }, offset);
-  await locator.page().waitForTimeout(280);
+  await locator.evaluate(
+    (el) =>
+      new Promise((done) => {
+        let prev = null;
+        let stable = 0;
+        let frames = 0;
+        const tick = () => {
+          const top = Math.round(el.getBoundingClientRect().top);
+          if (top === prev) stable += 1;
+          else {
+            stable = 0;
+            prev = top;
+          }
+          frames += 1;
+          if (stable >= 5 || frames > 120) done();
+          else requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }),
+  );
 }
 
 const browser = await chromium.launch();
@@ -393,6 +435,57 @@ const browser = await chromium.launch();
   await ctx.close();
 }
 
+/* ─── 2b. На тач-вводе звёзды ДЫШАТ, а не просто светятся (Ф55) ───────────
+   Проверка «есть drop-shadow» выше была правдой и на телефоне — и всё равно
+   владелица видела «не горят». Замер показал почему: фильтр стоял, но
+   намертво, потому что разгорание было привязано к курсору, которого на
+   телефоне нет. Одного свойства в CSSOM для этого вопроса мало, нужна
+   ВЕЛИЧИНА ВО ВРЕМЕНИ — поэтому здесь ряд замеров, а не снимок.
+
+   Меряем ОДНУ звезду, не среднее по полю: у каждой своя фаза, и среднее по
+   сорока шести звёздам почти не колеблется (замерено: размах среднего 0,23 px
+   против 5,3 px у отдельной звезды) — усреднение спрятало бы ровно то, что
+   проверяется.
+
+   Порог 1,5 px по размаху радиуса: расчётный размах у средней звезды около
+   5 px, квант записи фильтра — 0,08 свечения, то есть около 1,8 px. Полтора
+   пикселя — заведомо выше шума квантования и заведомо ниже настоящего вдоха. */
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  await ctx.addInitScript(() => {
+    const real = window.matchMedia.bind(window);
+    window.matchMedia = (q) =>
+      q.includes('hover: hover') || q.includes('pointer: fine')
+        ? { matches: false, media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, onchange: null, dispatchEvent: () => false }
+        : real(q);
+  });
+  const page = await ctx.newPage();
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  await page.evaluate(() => window.scrollTo({ top: window.innerHeight * 1.2, left: 0, behavior: 'instant' }));
+  await page.waitForTimeout(900);
+
+  const радиус = () =>
+    page.evaluate(() => {
+      const g = [...document.querySelectorAll('svg g')].find((x) => (x.style.filter || '') !== '');
+      if (!g) return null;
+      const m = /drop-shadow\(0 0 ([\d.]+)px/.exec(g.style.filter);
+      return m ? Number(m[1]) : null;
+    });
+
+  const ряд = [];
+  for (let i = 0; i < 8; i++) {
+    ряд.push(await радиус());
+    await page.waitForTimeout(400);
+  }
+  const чистый = ряд.filter((v) => v !== null);
+  const размах = чистый.length ? Math.max(...чистый) - Math.min(...чистый) : 0;
+  note(
+    RED ? размах <= 1.5 : размах > 1.5,
+    `на тач-вводе свечение звезды дышит, а не стоит: радиус ореола ходит на ${размах.toFixed(1)}px за 3 с (${чистый.join('/')})`,
+  );
+  await ctx.close();
+}
+
 /* ─── 3. reduced-motion не теряет контента ─── */
 {
   const read = async (reduce) => {
@@ -606,6 +699,26 @@ const browser = await chromium.launch();
        не гадание, а поднятый запас после наблюдения. */
   }
 
+  /* ДИАГНОСТИКА ПРИ ПРОВАЛЕ. Проверка спотыкалась, и по сообщению
+     «visibility=hidden» нельзя было понять, что именно не сработало:
+     наведение не долетело, попало в другой элемент или переход не успел.
+     Снимаем состояние наведения вместе с тем, ЧТО реально лежит под точкой
+     курсора, — иначе следующий разбор начнётся с тех же догадок. */
+  const диаг = await page.evaluate(() => {
+    const c = document.querySelector('.offer-card');
+    const r = c.getBoundingClientRect();
+    const x = Math.round(r.left + r.width / 2);
+    const y = Math.round(r.top + r.height / 2);
+    const top = document.elementFromPoint(x, y);
+    return {
+      подHover: c.matches(':hover'),
+      точка: x + ',' + y,
+      карточка: Math.round(r.top) + '..' + Math.round(r.bottom),
+      сверху: top ? top.tagName + '.' + (typeof top.className === 'string' ? top.className.split(' ').slice(0, 2).join('.') : '') : 'ничего',
+      вКарточке: top ? c.contains(top) : false,
+    };
+  });
+
   const hot = await slot.evaluate((el) => {
     const p = el.querySelector('.price-plate');
     const cs = getComputedStyle(p);
@@ -613,7 +726,7 @@ const browser = await chromium.launch();
   });
   note(
     RED ? hot.vis === 'hidden' : hot.vis === 'visible' && Number(hot.op) > 0.9,
-    `при наведении на карточку плашка появляется: visibility=${hot.vis}, opacity=${hot.op}`,
+    `при наведении на карточку плашка появляется: visibility=${hot.vis}, opacity=${hot.op}` + (hot.vis === 'visible' ? '' : ` · диагностика: :hover=${диаг.подHover}, точка ${диаг.точка}, карточка y ${диаг.карточка}, сверху ${диаг.сверху}, внутри карточки=${диаг.вКарточке}`),
   );
   note(
     RED ? hot.h === 0 : hot.h > idle.h,
@@ -865,6 +978,81 @@ const browser = await chromium.launch();
    Измеримые проверки структуры, не только текста: сколько кадров в рэке,
    порядок и состав навигации, позиция подписи у папок, и что якорь навигации
    не ведёт в никуда после выключения FAQ. */
+
+/* ─── 5.8. В полотне нет прямых границ (Ф55) ─────────────────────────────
+   ПОЧЕМУ ЭТА ПРОВЕРКА ПОЯВИЛАСЬ. Владелица прислала кадр с ноутбука, на
+   котором в фоне видна прямая вертикаль во всю высоту экрана. Ни одна из
+   133 проверок этого файла её не ловила: все они спрашивают у DOM про
+   свойства узлов, а дефект был в ПИКСЕЛЯХ — край коробки слоя, уехавший
+   `transform`ом в кадр, с градиентом, не дошедшим на этом краю до нуля.
+   Свойства узлов при этом были совершенно правильные.
+
+   ЧТО МЕРЯЕМ. Полотно — сумма радиальных пятен, то есть поле, обязанное
+   меняться плавно. Любая прямая линия в нём — край слоя. Для каждой
+   колонки берём медиану по строкам от разницы с соседней колонкой: у
+   плавного поля это 0–1 единица, у края слоя — всплеск сразу по всей
+   высоте, и медиана его показывает, а одиночные пиксели её не сдвинут.
+   То же по строкам.
+
+   ПОРОГ 3 ЕДИНИЦЫ на 8-битный канал. Он не «с запасом на глазок»: замер до
+   правки давал одиночный всплеск в 14 единиц, замер после — ровные 1–3
+   единицы по 350 колонкам из 389, то есть обычное квантование градиента
+   без единого выброса. Три — верхняя граница этого шума, четыре и выше уже
+   означают линию.
+
+   ПРОВЕРЯЕМ ПРИ ПОЛНОЙ ПРОКРУТКЕ. Слои разъезжаются от `--sp`, и худший
+   случай — низ страницы, где сдвиг максимален, а пятна `.mesh-b1`/`.mesh-b2`
+   вдобавок выходят на полную непрозрачность. Именно там дефект и был виден.
+
+   ОСТАЛЬНАЯ СТРАНИЦА СПРЯТАНА. Буквы и фотографии сами по себе дают резкие
+   переходы, к градиенту не относящиеся; зерно ровно по всему экрану и
+   одинаково сдвинуло бы обе стороны сравнения. */
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  await page.addStyleTag({
+    content: `body * { visibility: hidden !important; }
+              .canvas, .canvas * { visibility: visible !important; }
+              .grain-veil { display: none !important; }`,
+  });
+  await page.evaluate(() => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    window.scrollTo({ top: max, left: 0, behavior: 'instant' });
+  });
+  await page.waitForTimeout(500);
+
+  const buf = await page.screenshot();
+  const { data, info } = await sharp(buf).raw().toBuffer({ resolveWithObject: true });
+  const { width: W, height: H, channels: CH } = info;
+  const at = (x, y, k) => data[(y * W + x) * CH + k];
+  const шаг = (x1, y1, x2, y2) => Math.max(...[0, 1, 2].map((k) => Math.abs(at(x1, y1, k) - at(x2, y2, k))));
+  const медиана = (a) => {
+    const s = [...a].sort((x, y) => x - y);
+    return s[Math.floor(s.length / 2)];
+  };
+
+  let худшая = 0;
+  let где = '—';
+  for (let x = 0; x < W - 1; x++) {
+    const col = [];
+    for (let y = 0; y < H; y += 3) col.push(шаг(x, y, x + 1, y));
+    const m = медиана(col);
+    if (m > худшая) (худшая = m), (где = `вертикаль на ${((x / W) * 100).toFixed(1)}% ширины`);
+  }
+  for (let y = 0; y < H - 1; y++) {
+    const row = [];
+    for (let x = 0; x < W; x += 3) row.push(шаг(x, y, x, y + 1));
+    const m = медиана(row);
+    if (m > худшая) (худшая = m), (где = `горизонталь на ${((y / H) * 100).toFixed(1)}% высоты`);
+  }
+
+  note(
+    RED ? худшая > 3 : худшая <= 3,
+    `в полотне нет прямых границ: самый резкий переход ${худшая} ед. при пороге 3 (${где})`,
+  );
+  await ctx.close();
+}
 
 /* ─── 6.1. Рэк — 12 кадров, altar в числе первых видимых (Ф36 п.3 + Ф38) ─── */
 {

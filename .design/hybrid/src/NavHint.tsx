@@ -50,30 +50,36 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
  */
 export function NavHint() {
   const [pastHero, setPastHero] = useState(false);
-  const [reachedContacts, setReachedContacts] = useState(false);
 
   useEffect(() => {
     const hero = document.getElementById('hero');
-    const contacts = document.getElementById('kontakt');
-    if (!hero || !contacts) return;
+    if (!hero) return;
 
     const heroIo = new IntersectionObserver(([entry]) => setPastHero(!entry.isIntersecting), {
       threshold: 0,
     });
-    const contactsIo = new IntersectionObserver(([entry]) => setReachedContacts(entry.isIntersecting), {
-      threshold: 0,
-    });
     heroIo.observe(hero);
-    contactsIo.observe(contacts);
-    return () => {
-      heroIo.disconnect();
-      contactsIo.disconnect();
-    };
+    return () => heroIo.disconnect();
   }, []);
 
-  const visible = pastHero && !reachedContacts;
+  /* Ф55: ВТОРОЕ УСЛОВИЕ СНЯТО ПО ПРЯМОЙ ПРОСЬБЕ ВЛАДЕЛИЦЫ — «сделай так,
+     чтобы стрелка-указатель "загляните сюда" горела до конца, даже когда
+     находишься на последнем разделе, чтобы он продолжал привлекать
+     внимание».
 
-  return visible ? <NavHintTag /> : null;
+     Было `pastHero && !reachedContacts`: второй `IntersectionObserver`
+     следил за `#kontakt` и гасил подсказку, как только секция контактов
+     входила в кадр. Это шло из формулировки Ф33 «перед контактами» — и
+     ровно эту формулировку правка отменяет. Наблюдатель за `#kontakt`
+     удалён целиком, а не оставлен с игнорируемым результатом: состояние,
+     которое считают и не используют, — это будущий вопрос «а почему оно
+     тут» и лишняя работа на каждой прокрутке.
+
+     Первое условие ОСТАЁТСЯ и остаётся важным: пока виден первый экран,
+     подсказки нет. Это правило П7 («в первом экране ничего не движется»),
+     а не часть отменённого требования, — стрелка по-прежнему появляется
+     только после того, как читатель прокрутил вниз, а не при загрузке. */
+  return pastHero ? <NavHintTag /> : null;
 }
 
 /** Реальное положение цели — ссылки «Придумать съёмку» в развёрнутой шапке,
@@ -89,6 +95,24 @@ function measureTarget(): { left: number; top: number } | null {
   if (!target) return null;
   const r = target.getBoundingClientRect();
   return { left: r.left + r.width / 2, top: r.bottom };
+}
+
+/** Плашка не должна вылезать за экран, даже когда цель у самого края.
+ *  Цель на узком экране — кнопка «Разделы», а она стоит справа: центр плашки
+ *  попадает на ~318 px при вьюпорте 360, и любая плашка шире 68 px краем
+ *  уходит за границу. Поэтому положение зажимается в пределы вьюпорта с
+ *  отступом; стрелка при этом остаётся под шапкой и продолжает показывать
+ *  туда же, просто плашка перестаёт свисать за край.
+ *
+ *  Если плашка шире всего экрана (гипотетически — при системном увеличении
+ *  шрифта), зажимать некуда: ставим по центру, это меньшее зло, чем срезать
+ *  один край ради другого. */
+function clampLeft(left: number, width: number): number {
+  const PAD = 8;
+  const vw = document.documentElement.clientWidth;
+  const half = width / 2;
+  if (width + PAD * 2 > vw) return vw / 2;
+  return Math.min(Math.max(left, half + PAD), vw - half - PAD);
 }
 
 function NavHintTag() {
@@ -108,6 +132,7 @@ function NavHintTag() {
      `ref` уже на первом рендере компонента. */
   const [pos, setPos] = useState(measureTarget);
   const ref = useRef<HTMLAnchorElement>(null);
+  const [left, setLeft] = useState<number | null>(null);
 
   useEffect(() => {
     const el = ref.current;
@@ -151,6 +176,21 @@ function NavHintTag() {
     };
   }, []);
 
+  /* Зажим положения. Зависимость — ЧИСЛО `pos.left`, а не объект `pos`:
+     `place()` пересоздаёт объект на каждом событии прокрутки, и с объектом в
+     зависимостях этот эффект читал бы ширину плашки шестьдесят раз в секунду.
+     Ширина от прокрутки не меняется — меняется только `top`. Поэтому замер
+     происходит там, где горизонталь действительно могла поехать: при смене
+     размера окна и при раскрытии списка разделов.
+
+     Ширина не зависит от `left`, поэтому обратной связи здесь нет: зажали
+     положение — ширина осталась прежней, эффект второй раз не сработает. */
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || !pos) return;
+    setLeft(clampLeft(pos.left, el.getBoundingClientRect().width));
+  }, [pos?.left]);
+
   if (!pos) return null;
 
   return (
@@ -158,12 +198,22 @@ function NavHintTag() {
       ref={ref}
       href="/storyboard.html"
       className="nav-hint"
-      style={{ left: pos.left, top: pos.top }}
+      style={{ left: left ?? pos.left, top: pos.top }}
     >
       <svg viewBox="0 0 24 14" width="18" height="11" aria-hidden="true" focusable="false">
         <path d="M2 12 L12 2 L22 12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" />
       </svg>
-      <span>Загляните сюда</span>
+      {/* Два слова — два узла, а не одна строка с надеждой на перенос. На
+          узком экране CSS ставит их в колонку (`.nav-hint-label`), и строки
+          получаются РОВНО две при любой гарнитуре и любом системном кегле.
+          Прежний способ (Ф51) задавал предел ширины в 7,5em и полагался на
+          то, что «Загляните» в него влезет, — не влезало: слово шире предела,
+          и текст вылезал за саму плашку. Пробел между узлами оставлен нарочно
+          — `textContent` остаётся «Загляните сюда», как того требует дословная
+          проверка текста. */}
+      <span className="nav-hint-label">
+        <span>Загляните</span> <span>сюда</span>
+      </span>
     </a>
   );
 }
