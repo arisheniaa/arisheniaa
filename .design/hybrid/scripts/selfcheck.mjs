@@ -1268,6 +1268,140 @@ const browser = await chromium.launch();
   await ctx.close();
 }
 
+/* ─── 6.1b. «Назад» — обратная анимация, а не встречное движение (Ф64) ───
+   Владелица про прежнюю редакцию: «пользователю кажется, что это глюк».
+
+   ЧТО ИМЕННО БЫЛО ДЕФЕКТОМ, и почему его нельзя увидеть на кадре: на любом
+   отдельном кадре стопка выглядела правильно. Дефект был во ВРЕМЕНИ — два
+   кадра ехали одновременно навстречу друг другу, и верхний при этом отскакивал
+   против пальца, то есть говорил «жест отменён» ровно тогда, когда рядом
+   въезжал возвращённый. Поймать это можно только замером хода обоих кадров.
+
+   ЗАМЕР ИДЁТ ВНУТРИ СТРАНИЦЫ, покадрово (`requestAnimationFrame`), а не
+   опросом из теста: круг «тест → браузер → тест» длиннее кадра, и им можно
+   проспать всю анимацию — именно так первый вариант этой пробы «не увидел»
+   ни одного промежуточного положения.
+
+   Утверждений три, и каждое — про то, чего быть НЕ должно:
+    1. под пальцем вправо стопка почти не едет (резина), значит и отскакивать
+       ей потом нечем;
+    2. накрываемый кадр НИКОГДА не уезжает влево заметно — он стоит, его
+       накрывают;
+    3. въезжающий приходит слева, движется только вправо и ПРОЯВЛЯЕТСЯ, а не
+       возникает разом: значит не будет вспышки посреди пустоты. */
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  const stack = page.locator('.rack-stack');
+  const b = await stack.boundingBox();
+  const cx = b.x + b.width / 2;
+  const cy = b.y + b.height / 2;
+  const W = b.width;
+
+  const верхний = () =>
+    page.evaluate(() => {
+      const imgs = [...document.querySelectorAll('.rack-stack [data-layer] img')];
+      return imgs.findIndex((im) => im.getAttribute('alt'));
+    });
+  const слоёв = await page.evaluate(() => document.querySelectorAll('.rack-stack [data-layer]').length);
+
+  // уходим вперёд, чтобы было куда возвращаться
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  for (let k = 1; k <= 10; k++) {
+    await page.mouse.move(cx - (140 * k) / 10, cy);
+    await page.waitForTimeout(12);
+  }
+  await page.mouse.up();
+  await page.waitForTimeout(1500);
+
+  // ── жест вправо: ход стопки под пальцем
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  const подПальцем = [];
+  for (let k = 1; k <= 10; k++) {
+    await page.mouse.move(cx + (140 * k) / 10, cy);
+    await page.waitForTimeout(14);
+    подПальцем.push(
+      await page.evaluate(() => {
+        const imgs = [...document.querySelectorAll('.rack-stack [data-layer] img')];
+        const i = imgs.findIndex((im) => im.getAttribute('alt'));
+        const n = document.querySelector(`.rack-stack [data-layer="${i}"]`);
+        return new DOMMatrixReadOnly(getComputedStyle(n).transform).m41;
+      }),
+    );
+  }
+  const ходПодПальцем = Math.max(...подПальцем.map(Math.abs));
+  note(
+    RED ? ходПодПальцем > 40 : ходПодПальцем <= 40,
+    `под пальцем вправо стопка держится на резине: ${ходПодПальцем.toFixed(0)} px хода на 140 px пальца`,
+  );
+
+  const накрываемый = await верхний();
+  const въезжающий = (накрываемый - 1 + слоёв) % слоёв;
+
+  // покадровый сбор запускаем ДО отпускания — иначе начало анимации потеряно
+  await page.evaluate(() => {
+    window.__проба = [];
+    const s = document.querySelector('.rack-stack');
+    const t0 = performance.now();
+    const tick = () => {
+      window.__проба.push(
+        [...s.querySelectorAll('[data-layer]')].map((n) => {
+          const cs = getComputedStyle(n);
+          return {
+            i: Number(n.getAttribute('data-layer')),
+            x: new DOMMatrixReadOnly(cs.transform).m41,
+            op: Number(cs.opacity),
+          };
+        }),
+      );
+      if (performance.now() - t0 < 1300) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  await page.mouse.up();
+  await page.waitForTimeout(1600);
+
+  const проба = await page.evaluate(() => window.__проба);
+  const рядНакр = проба.map((f) => f.find((r) => r.i === накрываемый)?.x).filter((v) => v !== undefined);
+  const рядВъезд = проба.map((f) => f.find((r) => r.i === въезжающий)).filter(Boolean);
+  note(
+    RED ? проба.length < 10 : проба.length >= 10,
+    `покадровая проба собрана (${проба.length} кадров, слоёв ${слоёв})`,
+  );
+
+  /* Накрываемый кадр не уезжает: допуск в 40 px — это снятие той самой
+     резины, на которой он стоял под пальцем, и ничего сверх неё. Прежняя
+     редакция гоняла его на все 140. */
+  const самоеЛевое = Math.min(...рядНакр);
+  note(
+    RED ? самоеЛевое < -40 : самоеЛевое >= -40,
+    `накрываемый кадр стоит на месте, его накрывают: самое левое положение ${самоеЛевое.toFixed(0)} px`,
+  );
+
+  /* Въезжающий: приходит слева, идёт только вправо и проявляется по дороге.
+     Допуск 2 px на монотонность — округление `paint` до сотых плюс дрожание
+     последнего кадра у самой цели. */
+  const старт = рядВъезд[0]?.x ?? 0;
+  const назад = рядВъезд.some((r, k) => k > 0 && r.x < рядВъезд[k - 1].x - 2);
+  const пришёлСлева = старт < -W * 0.6;
+  note(
+    RED ? !пришёлСлева : пришёлСлева,
+    `въезжающий кадр появляется слева от стопки (${старт.toFixed(0)} px при ширине ${W.toFixed(0)})`,
+  );
+  note(RED ? назад : !назад, 'въезжающий кадр не пятится: движение только вправо, к дому');
+  const прозрачности = рядВъезд.map((r) => r.op);
+  const проявился = Math.min(...прозрачности) < 0.9 && Math.max(...прозрачности) > 0.99;
+  note(
+    RED ? !проявился : проявился,
+    `въезжающий кадр проявляется, а не возникает разом (прозрачность от ${Math.min(...прозрачности).toFixed(2)} до ${Math.max(...прозрачности).toFixed(2)})`,
+  );
+
+  await ctx.close();
+}
+
 /* ─── 6.2. Навигация: состав и порядок (Ф36 п.1) ─── */
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
