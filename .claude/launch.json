@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "ритуал-сайт",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["../ритуал сайт/serve.mjs"],
+      "port": 4173
+    },
+    {
       "name": "direction-c",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--prefix", ".design/directions/c"],

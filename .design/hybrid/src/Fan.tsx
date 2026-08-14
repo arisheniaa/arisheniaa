@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 /**
@@ -198,6 +198,11 @@ function FanStack({ photos, label, loading, variant, mode }: FanRenderProps & { 
       role="group"
       aria-label={label}
       tabIndex={0}
+      /* Ф66: число кадров нужно и здесь, не только у тач-веера. Из него
+         `styles.css` считает, какая доля полосы честно приходится на кадр в
+         развёрнутом ряду, — иначе девять кадров не помещались и треть их
+         уходила в прокрутку. */
+      style={{ ['--n' as string]: Math.max(2, photos.length) }}
       data-mode={mode}
       data-expanded={expanded || alwaysExpanded ? '' : undefined}
       onPointerEnter={openByMouse}
@@ -323,12 +328,96 @@ function FanItem({
    `data-*` факты кадра (`p.data`) остаются на `<figure>`, ровно как в
    стопке и в сетке: контракт самопроверки про подбор кадров завязан на сами
    атрибуты, не на то, чем обёрнут кадр. */
+/** Пол полосы под палец, px. То же число, что нижняя граница `--tap-vis` в
+ *  `styles.css` (3rem при корне 16px) — держится здесь копией потому, что
+ *  прочитать `clamp()` из вычисленного значения нельзя: пользовательские
+ *  свойства подставляются токенами, а не длинами. Расхождение видно сразу:
+ *  ряды перестанут помещаться, и самопроверка тач-раздела покраснеет. */
+const TAP_STRIP = 48;
+
 function FanTap({ photos, label, loading, variant }: FanRenderProps) {
   const [open, setOpen] = useState<number | null>(null);
   /* Кнопка, которой открыли просмотр: по закрытию фокус обязан вернуться
      именно на неё, а не в начало страницы. Ref, не состояние, — от неё не
      зависит ни один кадр отрисовки. */
   const opener = useRef<HTMLButtonElement | null>(null);
+
+  /* ═══ ВЕЕР НА ТАЧЕ ПЕРЕНОСИТСЯ ПО СТРОКАМ (Ф66) ═══════════════════════════
+     Владелица просила больше кадров в раскадровке, и на девяти вылезло то,
+     что при шести было почти незаметно: в один ряд на телефоне они не
+     помещаются в принципе. Арифметика простая и упирается в правило зоны
+     касания, а не во вкус: кадр занимает 42 % ширины (≈149 px на экране 390),
+     каждому следующему нужна полоса под палец не уже 48 px, и на девять
+     кадров нужно 149 + 8×48 = 533 px при 354 доступных. Замерено до правки:
+     целиком видно 4 кадра из 9 на 360 px и 5 из 9 на 390.
+
+     Раньше остаток уезжал в горизонтальную прокрутку внутри веера. Формально
+     контент не терялся, на деле треть раскадровки оказывалась за краем без
+     единого намёка, что там что-то есть, — а раскадровка и есть то, ради
+     чего человек прошёл весь квиз.
+
+     ТЕПЕРЬ ВЕЕР — НЕСКОЛЬКО СТРОК, каждая со своим наложением. Это ровно то,
+     о чём владелица просила дважды на других механиках: «когда закончится
+     место — уходить вниз» (Ф35, лестница вопросов) и «чтобы они ровно
+     находились друг под другом» (Ф50, кадры результата). Ни зона касания, ни
+     вид «разложенной от руки стопки» не тронуты — тронуто только то, что
+     строка теперь не одна.
+
+     СКОЛЬКО В СТРОКЕ — считается по факту, а не по брейкпоинтам: ширина
+     контейнера делится на реально отрисованный кадр и полосу под палец.
+     Пересчитывается на `ResizeObserver`, поэтому поворот телефона и смена
+     системного кегля (кадр задан в процентах, а полоса в rem) не оставляют
+     раскладку от прошлой ширины. */
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [perRow, setPerRow] = useState(photos.length);
+
+  useLayoutEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const measure = () => {
+      const W = el.clientWidth;
+      const item = el.querySelector<HTMLElement>('.sb-fan-item');
+      const IW = item?.getBoundingClientRect().width ?? 0;
+      if (!W || !IW) return;
+      /* Первый кадр строки виден целиком, каждому следующему хватает полосы:
+         IW + (k−1)·STRIP ≤ W. Не меньше двух — строка из одного кадра
+         превратила бы веер в столбик.
+
+         БЕЗ ДОПУСКА, И ЭТО ПРОВЕРЕНО ЗАМЕРОМ. Я пробовал прибавить сюда
+         восемь пикселей, чтобы строка, не дотянувшая самую малость, не
+         разваливалась. На экране 360 это сложило раскадровку в 5 + 4, и
+         девятый кадр вылез за край на десять пикселей — то есть допуск
+         вернул ровно ту болезнь, ради которой всё и затевалось. Формула
+         точная: строка из k кадров помещается тогда и только тогда, когда
+         (W − IW) / (k − 1) ≥ полосы, а иначе CSS упирается в нижнюю границу
+         полосы и ряд перестаёт делить ширину. */
+      const fits = Math.max(2, 1 + Math.floor((W - IW) / TAP_STRIP));
+      /* СТРОКИ РОВНЫЕ, А НЕ «СКОЛЬКО ВЛЕЗЕТ, ОСТАТОК ВНИЗ». Девять кадров по
+         четыре дали бы 4 + 4 + 1, и последняя строка читалась бы обрывком,
+         а не частью веера. Считаем, сколько строк вообще нужно, и делим
+         кадры между ними поровну: те же девять становятся 3 + 3 + 3. */
+      const rowsNeeded = Math.max(1, Math.ceil(photos.length / fits));
+      setPerRow(Math.min(photos.length, Math.ceil(photos.length / rowsNeeded)));
+    };
+    measure();
+    /* НАБЛЮДАЕМ И ЗА КАДРОМ, А НЕ ТОЛЬКО ЗА КОНТЕЙНЕРОМ. Поймано замером:
+       веер услуг на экране 360 раскладывался в 3 + 2 там, где помещались все
+       пять. Первый замер случается до того, как раскладка секции устоялась, и
+       берёт ширину, которой через кадр уже нет; а `ResizeObserver` на самом
+       вейере молчит, потому что его собственная ширина при этом не меняется —
+       меняется ширина КАДРА (она задана процентом от строки). Наблюдение за
+       кадром закрывает и этот случай, и смену системного кегля.
+       Обратной связи нет: число строк на ширину кадра не влияет — процент
+       считается от строки, а строки все одной ширины. */
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    const item = el.querySelector('.sb-fan-item');
+    if (item) ro.observe(item);
+    return () => ro.disconnect();
+  }, [photos.length]);
+
+  const rows: FanPhoto[][] = [];
+  for (let i = 0; i < photos.length; i += perRow) rows.push(photos.slice(i, i + perRow));
 
   const close = useCallback(() => {
     const btn = opener.current;
@@ -339,24 +428,41 @@ function FanTap({ photos, label, loading, variant }: FanRenderProps) {
   return (
     <>
       <div
+        ref={wrapRef}
         className={`sb-fan sb-fan--tap${variant === 'compact' ? ' sb-fan--compact' : ''}`}
         role="group"
         aria-label={label}
         data-mode="tap"
-        style={{ ['--n' as string]: Math.max(2, photos.length) }}
       >
-        {photos.map((p, i) => (
-          <FanTapItem
-            key={p.key}
-            p={p}
-            index={i}
-            total={photos.length}
-            loading={loading}
-            onOpen={(btn) => {
-              opener.current = btn;
-              setOpen(i);
-            }}
-          />
+        {rows.map((row, r) => (
+          /* `--n` живёт на СТРОКЕ, а не на веере: `--tap-vis` считается из
+             него же и делит ширину именно этой строки. На контейнере оно
+             досталось бы всем строкам от общего числа кадров, и последняя,
+             неполная, разъехалась бы по чужой мерке. */
+          <div
+            key={row[0]?.key ?? r}
+            className="sb-fan-tap-row"
+            style={{ ['--n' as string]: Math.max(2, row.length) }}
+          >
+            {row.map((p, i) => (
+              <FanTapItem
+                key={p.key}
+                p={p}
+                index={i}
+                /* Номер для подписи — сквозной по всему вееру, а не по
+                   строке: скринридер обязан слышать «кадр 7 из 9», а не
+                   «кадр 1 из 9» трижды. Доворот и наложение, наоборот,
+                   считаются от номера ВНУТРИ строки (`index`). */
+                globalIndex={r * perRow + i}
+                total={photos.length}
+                loading={loading}
+                onOpen={(btn) => {
+                  opener.current = btn;
+                  setOpen(r * perRow + i);
+                }}
+              />
+            ))}
+          </div>
         ))}
       </div>
       {open !== null && <FanLightbox photos={photos} index={open} onIndex={setOpen} onClose={close} />}
@@ -367,12 +473,16 @@ function FanTap({ photos, label, loading, variant }: FanRenderProps) {
 function FanTapItem({
   p,
   index,
+  globalIndex,
   total,
   loading,
   onOpen,
 }: {
   p: FanPhoto;
+  /** номер В СВОЕЙ СТРОКЕ — от него доворот и порядок наложения (Ф66) */
   index: number;
+  /** номер во всём вееере — от него подпись «кадр N из M» (Ф66) */
+  globalIndex: number;
   total: number;
   loading: 'lazy' | 'eager';
   onOpen: (btn: HTMLButtonElement) => void;
@@ -392,7 +502,7 @@ function FanTapItem({
            этом сайте нет по прямому решению Ф37, и придумывать их здесь ради
            доступности значило бы обойти это решение с чёрного хода. Номер —
            та же валюта, что у счётчика рэка. */
-        aria-label={`Рассмотреть кадр ${index + 1} из ${total}`}
+        aria-label={`Рассмотреть кадр ${globalIndex + 1} из ${total}`}
         onClick={(e) => onOpen(e.currentTarget)}
       >
         {!broken ? (
