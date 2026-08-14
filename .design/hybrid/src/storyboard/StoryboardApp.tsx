@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Gradient, Grain } from '../Gradient';
+import { copy } from '../copy';
 import { Header, Footer } from '../App';
 /* `useSmoothScroll` снят и здесь (Ф44) — та же причина, что на главной, см. `App.tsx`. */
 import { Stars } from '../Stars';
@@ -10,6 +11,7 @@ import { boardsForAnswers } from './boards';
 import { PhotoFan } from './PhotoFan';
 import { QuestionLadder } from './QuestionLadder';
 import { nextQuestionInTree, estimateTotalSteps, buildBriefAnswers } from './questions';
+import { POVOD_PARAM, povodFromSlug } from './q0';
 import { pickStoryboard } from './pick';
 import type { PickResult } from './pick';
 import { downloadStoryboard } from './download';
@@ -81,6 +83,46 @@ function StoryboardPage() {
   };
 
   useEffect(load, []);
+
+  /* ═══ ВХОД С ГЛАВНОЙ, С УЖЕ ОТМЕЧЕННЫМ ОТВЕТОМ (Ф63) ═══════════════════
+     Владелица: «раздел "придумать съемку" прям спрятался… как продукт не
+     сразу достигает своего клиента». На главной теперь стоит первый вопрос
+     квиза (`Storyboard()` в `App.tsx`), и его плитки — обычные ссылки сюда
+     с адресом вида `/storyboard.html?povod=lyubov`.
+
+     ЧЕЛОВЕК УЖЕ ОТВЕТИЛ — ЗНАЧИТ ВОПРОС НЕ ЗАДАЁТСЯ ВТОРОЙ РАЗ. Ответ
+     кладётся в историю, и страница открывается сразу на СЛЕДУЮЩЕМ вопросе,
+     а первый уже стоит в лестнице отвеченным. Экран входа при этом
+     пропускается целиком: он приглашает начать, а начали уже на главной.
+
+     ЖДЁМ АРХИВ, а не разбираем адрес сразу: тайл «Скоро день рождения»
+     существует, только пока в архиве есть кадры с этим поводом (`q0.ts`), и
+     проверить это можно лишь по загруженному манифесту. Слаг, которому не
+     нашлось живого тайла, ИГНОРИРУЕТСЯ — читатель видит обычный вход, а не
+     пустой результат по ответу, которого в дереве нет.
+
+     АДРЕС ЧИСТИТСЯ сразу после применения (`replaceState`, без перехода):
+     ответ переехал в состояние, и держать его ещё и в строке адреса значит
+     соврать после «Начать заново» — там история пуста, а адрес по-прежнему
+     обещает выбранный повод. `window.history`, не `history`: локальное
+     состояние выше носит то же имя и перекрывает глобальное. */
+  useEffect(() => {
+    if (!photos || history.length > 0) return;
+    const value = povodFromSlug(new URLSearchParams(window.location.search).get(POVOD_PARAM));
+    if (!value) return;
+    const q0 = nextQuestionInTree({}, photos);
+    const tile = q0?.tiles.find((t) => t.value === value);
+    if (!q0 || !tile) return;
+    setHistory([{ id: q0.id, title: q0.title, value: tile.value, label: tile.label }]);
+    setStage('question');
+    const url = new URL(window.location.href);
+    url.searchParams.delete(POVOD_PARAM);
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    // `history.length` читается один раз как охрана от повторного применения;
+    // добавлять его в зависимости незачем — эффект обязан сработать на приход
+    // архива, а не на каждый ответ квиза.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photos]);
 
   const answersMap = useMemo(
     () => Object.fromEntries(history.map((h) => [h.id, h.value])),
@@ -196,7 +238,7 @@ function StoryboardPage() {
               <>
                 {/* ЕДИНСТВЕННЫЙ <h1> СТРАНИЦЫ — постоянный, не переключается вместе
                     со стадией (находка редакции 1, см. STORYBOARD.md § 10). */}
-                <h1 className="t-mono text-[color:var(--ink-mute)]">Придумать съёмку</h1>
+                <h1 className="t-mono text-[color:var(--ink-mute)]">{copy.storyboard.nav}</h1>
 
                 {stage !== 'intro' && (
                   <div className="mt-[clamp(1rem,2.6vh,1.6rem)] mb-[clamp(1.6rem,4vh,2.6rem)]">
@@ -280,18 +322,20 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
      "подвохновляемся" на "повдохновляемся"». Стоит второе. Точка в конце
      сохранена: замена стоит не в конце абзаца, за ней идёт ещё одно
      предложение про скачивание, и без точки два предложения слиплись бы. */
+/* Ф63: три строки этого экрана переехали в `../copy.ts`, зона
+   `copy.storyboard` — их читает теперь и блок-приглашение на главной, а
+   боевой текст, правленный владелицей по одному слову, не должен лежать в
+   двух компонентах сразу. Ни один знак не изменён; причина переезда
+   подробно записана над самой зоной. */
 function Intro({ onStart }: { onStart: () => void }) {
   return (
     <div>
-      <h2 className="t-h1 mt-[0.7rem] max-w-[22ch]">Соберем для вас референсы к вашей съемке</h2>
+      <h2 className="t-h1 mt-[0.7rem] max-w-[22ch]">{copy.storyboard.title}</h2>
       <p className="t-lead mt-[clamp(1.2rem,3vw,2rem)] max-w-[44ch] text-[color:var(--ink-soft)]">
-        Несколько коротких вопросов — и я подберу для вас 5–7 кадров из своих реальных съёмок и
-        немного повдохновляемся моими уже собранными досками на Pinterest. Раскадровку можно
-        скачать и принести с собой в переписку — так проще показать, какую съёмку вы себе
-        представляете.
+        {copy.storyboard.lead}
       </p>
       <button type="button" className="link-major t-h3 mt-[clamp(1.8rem,4vh,2.6rem)]" onClick={onStart}>
-        Начать
+        {copy.storyboard.start}
       </button>
     </div>
   );

@@ -197,11 +197,20 @@ export function Rack() {
         ref={rack.ref}
         role="group"
         tabIndex={0}
-        aria-label={`Стопка из ${RACK_FRAMES.length} кадров. Стрелка вправо — следующий`}
+        aria-label={`Стопка из ${RACK_FRAMES.length} кадров. Стрелка влево — следующий, стрелка вправо — предыдущий`}
+        /* Ф63: стороны развёрнуты (влево — вперёд, вправо — назад), и
+           клавиатура развёрнута вместе с ними. Пробел и «вниз» остаются за
+           «вперёд»: у них нет своей стороны, они означают «дальше по
+           списку» — как и раньше. «Вверх» получил «назад» в пару к «вниз»:
+           до Ф63 у клавиатуры направления назад не было вовсе (жест его
+           получил на Ф62), и стрелка «не туда» просто молчала. */
         onKeyDown={(e) => {
-          if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowDown' || e.key === ' ') {
             e.preventDefault();
             rack.advance();
+          } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            rack.retreat();
           }
         }}
         className="rack-stack relative aspect-3/4 w-full touch-pan-y"
@@ -257,9 +266,17 @@ export function Rack() {
           aria-label="Следующий кадр"
           className="rack-next"
         >
+          {/* Ф63: стрелка развёрнута влево — «поменяй направление стрелочки
+              под фотографиями, чтобы она указывала влево». Путь ЗЕРКАЛЬНО
+              отражён по вертикальной оси кадра (x → 24−x), а не повёрнут
+              трансформацией: та же длина древка, та же длина усов, тот же
+              срез концов (`strokeLinecap="square"`), и оптически стрелка
+              весит ровно столько же, сколько весила. Поворот на 180°
+              сработал бы на кадре, но оставил бы в коде фигуру, которая
+              рисует одно, а показывает другое. */}
           <svg viewBox="0 0 24 12" width="26" height="13" aria-hidden="true" focusable="false">
             <path
-              d="M0 6h21M16 1l5 5-5 5"
+              d="M24 6H3M8 1L3 6l5 5"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.5"

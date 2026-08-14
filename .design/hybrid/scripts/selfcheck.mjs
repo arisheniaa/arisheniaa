@@ -62,7 +62,8 @@ const VERBATIM = [
   // Ф28: навигация, состав и подписи дословно (Ф36 п.1 правит состав — см. ниже)
   'Главная',
   'Обо мне',
-  'Что снимаю',
+  // Ф63 переименовала пункт дословно владелицей: «что снимаю» → «выбрать съемку»
+  'Выбрать съёмку',
   'Контакты',
   // Ф28: два слова контактов
   'телеграм',
@@ -1180,6 +1181,93 @@ const browser = await chromium.launch();
   await ctx.close();
 }
 
+/* ─── 6.1a. Стороны стопки: влево — вперёд, вправо — назад (Ф63) ───
+   ЗАЧЕМ ОТДЕЛЬНАЯ ПРОВЕРКА, когда Ф62 обошлась без неё: направление на этом
+   месте развернулось уже дважды (Ф62 задала «вправо — вперёд», Ф63 отменила
+   на противоположное). Дважды перевёрнутый знак — это ровно тот дефект,
+   который на кадре не виден: стопка листается одинаково красиво в любую
+   сторону, и разъехаться с просьбой владелицы она может молча.
+
+   Мышью, а не синтетическими событиями: механика держится на pointer
+   capture и на кадровом цикле, а `dispatchEvent` мимо капчура проходит и
+   меряет не то, что делает палец.
+
+   ЖЕСТ И КЛАВИАТУРА В ОДНОМ БЛОКЕ намеренно: правило Ф61/Ф63 — «кнопка и
+   клавиатура двигают стопку ровно так же, как жест», и проверять его надо
+   одним прогоном по одной стопке, иначе расхождение вводов между собой
+   опять окажется невидимым. */
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  const stack = page.locator('.rack-stack');
+  const кадр = () =>
+    page.evaluate(() => {
+      const s = document.querySelector('.rack-stack');
+      const imgs = [...s.querySelectorAll('[data-layer] img')];
+      // верхний кадр — единственный со своим alt (`Rack.tsx`), остальные скрыты
+      const i = imgs.findIndex((im) => im.getAttribute('alt'));
+      return imgs[i].getAttribute('src').replace('/frames/', '').replace('.webp', '');
+    });
+
+  const b = await stack.boundingBox();
+  const cx = b.x + b.width / 2;
+  const cy = b.y + b.height / 2;
+  /* 140 px при карточке в 272 — заведомо за порогом переворота (34 % ширины).
+     Шагами по 14 px с паузой: механика читает СКОРОСТЬ пальца, и один
+     прыжок из точки в точку дал бы бросок, которого человек не делает. */
+  const свайп = async (dx) => {
+    await page.mouse.move(cx, cy);
+    await page.mouse.down();
+    for (let k = 1; k <= 10; k++) {
+      await page.mouse.move(cx + (dx * k) / 10, cy);
+      await page.waitForTimeout(12);
+    }
+    await page.mouse.up();
+    await page.waitForTimeout(1500);
+    return кадр();
+  };
+
+  const старт = await кадр();
+  const влево1 = await свайп(-140);
+  const влево2 = await свайп(-140);
+  const вправо1 = await свайп(140);
+  const вправо2 = await свайп(140);
+  const путь = [старт, влево1, влево2, вправо1, вправо2];
+  /* Состав и порядок стопки заданы владелицей пофайлово (Ф62), поэтому
+     ожидание записано именами кадров, а не «индекс вырос на единицу»:
+     так проверка заодно держит и порядок. */
+  const ожидание = ['rassvet', 'altar', 'mandarin', 'altar', 'rassvet'];
+  const совпало = путь.join(' → ') === ожидание.join(' → ');
+  note(
+    RED ? !совпало : совпало,
+    `влево — вперёд, вправо — назад: ${путь.join(' → ')}`,
+  );
+
+  // кнопка и клавиатура обязаны листать в ту же сторону, что жест
+  await page.locator('.rack-next').click();
+  await page.waitForTimeout(1500);
+  const послеКнопки = await кадр();
+  note(
+    RED ? послеКнопки !== 'altar' : послеКнопки === 'altar',
+    `кнопка «следующий кадр» листает вперёд, как жест влево (${послеКнопки})`,
+  );
+
+  await stack.focus();
+  await page.keyboard.press('ArrowLeft');
+  await page.waitForTimeout(1500);
+  const послеВлево = await кадр();
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(1500);
+  const послеВправо = await кадр();
+  const клавиатура = послеВлево === 'mandarin' && послеВправо === 'altar';
+  note(
+    RED ? !клавиатура : клавиатура,
+    `клавиатура повторяет жест: ← вперёд (${послеВлево}), → назад (${послеВправо})`,
+  );
+  await ctx.close();
+}
+
 /* ─── 6.2. Навигация: состав и порядок (Ф36 п.1) ─── */
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
@@ -1190,7 +1278,9 @@ const browser = await chromium.launch();
       (a) => a.textContent.trim(),
     ),
   );
-  const expected = ['Главная', 'Обо мне', 'Что снимаю', 'Придумать съёмку', 'С чего начать', 'Контакты'];
+  // Ф63: третий пункт переименован дословно владелицей («что снимаю» →
+  // «выбрать съемку»), адресат тот же — секция услуг.
+  const expected = ['Главная', 'Обо мне', 'Выбрать съёмку', 'Придумать съёмку', 'С чего начать', 'Контакты'];
   const matches = labels.join('|') === expected.join('|');
   note(
     RED ? !matches : matches,
