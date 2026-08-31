@@ -48,10 +48,10 @@ export default defineConfig({
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
         storyboard: fileURLToPath(new URL('./storyboard.html', import.meta.url)),
-        // ТРЕТЬЯ ТОЧКА ВХОДА — страница «Дизайн» (Ф67, ветка развилки).
-        // Тот же принцип, что у storyboard: отдельный html — отдельный чанк,
-        // и без этой строки `vite build` молча потерял бы страницу.
-        design: fileURLToPath(new URL('./design.html', import.meta.url)),
+        /* ТРЕТЬЕЙ ТОЧКИ ВХОДА БОЛЬШЕ НЕТ (Ф72). `design.html` была отдельной
+           страницей ветки дизайна; владелица свела обе ветки на один адрес, и
+           содержимое переехало в главную (`App.tsx`). Старый адрес не брошен:
+           Caddy перенаправляет его на `/#design` — см. `server/Caddyfile`. */
       },
     },
   },

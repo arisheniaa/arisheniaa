@@ -26,6 +26,13 @@
 	# Кеширование. Vite выдаёт ассетам имена с хешем содержимого
 	# (index-a1b2c3d4.js), поэтому их можно кешировать намертво. HTML обязан
 	# каждый раз перепроверяться, иначе новая сборка не дойдёт до посетителя.
+	# Ф72: отдельной страницы /design.html больше нет — обе ветки живут на
+	# главной, ветка выбирается якорем. Старый адрес не бросаем: по нему уже
+	# могли разослать ссылки, и 404 вместо портфолио — худшее, что можно
+	# сделать. 301, а не 302: переезд постоянный, и поиск должен перенести
+	# вес на новый адрес, а не держать оба.
+	redir /design.html /#design 301
+
 	@immutable path /assets/*
 	header @immutable Cache-Control "public, max-age=31536000, immutable"
 
@@ -35,7 +42,7 @@
 	@media path *.jpg *.jpeg *.png *.webp *.avif *.svg *.woff2 *.woff *.ico
 	header @media Cache-Control "public, max-age=86400"
 
-	@html path / /index.html /storyboard.html /design.html /storyboard/manifest.json
+	@html path / /index.html /storyboard.html /storyboard/manifest.json
 	header @html Cache-Control "public, max-age=0, must-revalidate"
 
 	# Все три страницы — настоящие файлы, а не маршруты SPA, поэтому никакого
