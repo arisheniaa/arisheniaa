@@ -1,0 +1,50 @@
+# Внутренний сервер arisheniaa — обычный HTTP на :8080 за edge-прокси.
+# TLS (Let's Encrypt) терминируется на edge; заголовки безопасности заданы
+# ЗДЕСЬ, чтобы оставаться под контролем этого стека, а не чужого проекта.
+{
+	auto_https off
+	admin off
+}
+
+:8080 {
+	root * /srv/site
+	encode gzip zstd
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		# blob: нужен намеренно: страница «Придумать съёмку» собирает PDF
+		# через jspdf прямо в браузере и отдаёт его blob-ссылкой. Без blob:
+		# в img-src/connect-src кнопка выгрузки молча ничего не делает.
+		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+		-Server
+	}
+
+	# Кеширование. Vite выдаёт ассетам имена с хешем содержимого
+	# (index-a1b2c3d4.js), поэтому их можно кешировать намертво. HTML обязан
+	# каждый раз перепроверяться, иначе новая сборка не дойдёт до посетителя.
+	@immutable path /assets/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+
+	# Фотографии и шрифты лежат вне /assets и имён с хешем не имеют — им
+	# даём сутки: перевыкладка новой фотографии под тем же именем должна
+	# доходить до людей за разумное время.
+	@media path *.jpg *.jpeg *.png *.webp *.avif *.svg *.woff2 *.woff *.ico
+	header @media Cache-Control "public, max-age=86400"
+
+	@html path / /index.html /storyboard.html /storyboard/manifest.json
+	header @html Cache-Control "public, max-age=0, must-revalidate"
+
+	# Обе страницы — настоящие файлы, а не маршруты SPA, поэтому никакого
+	# try_files-фолбэка на index.html: несуществующий путь обязан честно
+	# отдавать 404, иначе опечатка в ссылке молча покажет главную.
+	file_server
+
+	log {
+		output stdout
+		format json
+	}
+}

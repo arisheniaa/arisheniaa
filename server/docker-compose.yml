@@ -1,0 +1,54 @@
+# Сайт arisheniaa — изолированный контур.
+#
+# Живёт в /opt/arisheniaa-site. Собственный compose-проект, собственный
+# контейнер, никаких общих томов и никаких опубликованных портов: наружу
+# контейнер виден ТОЛЬКО через внешнюю docker-сеть `edge`, где хостовой
+# edge-прокси (caddy проекта ORIION, единственный владелец :80/:443)
+# терминирует TLS и проксирует на arisheniaa-site:8080.
+#
+# Схема повторяет /opt/uklonskiy-site (личный сайт uklonskiyk.ru): два
+# соседа в одной сети `edge`, полностью независимые друг от друга. Падение,
+# пересборка или удаление одного не затрагивает другой.
+#
+# Пересобрать контент:  /opt/arisheniaa-site/build.sh   (перезапуск не нужен)
+# Поднять/перезапустить: docker compose up -d            (из /opt/arisheniaa-site)
+name: arisheniaa-site
+
+services:
+  web:
+    image: caddy:2-alpine
+    container_name: arisheniaa-site
+    restart: always
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./site:/srv/site:ro
+    networks:
+      - edge
+    # Ограничения ресурсов. На хосте 3.8 ГБ памяти и на ней уже работают
+    # личный сайт и стек ORIION — отдача статики не должна иметь возможности
+    # съесть их долю ни при каком трафике.
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    # Харденинг повторяет личный сайт. NET_BIND_SERVICE обязан остаться в
+    # bounding set (и no-new-privileges должен быть ВЫКЛЮЧЕН): бинарь caddy в
+    # официальном образе несёт file capability, иначе exec падает с
+    # "operation not permitted".
+    read_only: true
+    tmpfs:
+      - /data
+      - /config
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  edge:
+    external: true
