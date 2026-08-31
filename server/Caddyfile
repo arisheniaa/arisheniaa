@@ -35,10 +35,10 @@
 	@media path *.jpg *.jpeg *.png *.webp *.avif *.svg *.woff2 *.woff *.ico
 	header @media Cache-Control "public, max-age=86400"
 
-	@html path / /index.html /storyboard.html /storyboard/manifest.json
+	@html path / /index.html /storyboard.html /design.html /storyboard/manifest.json
 	header @html Cache-Control "public, max-age=0, must-revalidate"
 
-	# Обе страницы — настоящие файлы, а не маршруты SPA, поэтому никакого
+	# Все три страницы — настоящие файлы, а не маршруты SPA, поэтому никакого
 	# try_files-фолбэка на index.html: несуществующий путь обязан честно
 	# отдавать 404, иначе опечатка в ссылке молча покажет главную.
 	file_server
