@@ -16,11 +16,39 @@ export function useReveal() {
   useEffect(() => {
     const nodes = Array.from(document.querySelectorAll<HTMLElement>('.reveal'));
 
+    /* «ОСЕДАНИЕ» ПОСЛЕ ПРОЯВЛЕНИЯ (Ф67, найдено при сборке развилки).
+       База `.reveal` держит `will-change: opacity, filter, transform`, а
+       `.is-sharp` — `filter: blur(0)`. И то и другое ПОСЛЕ конца перехода
+       только вредит: ненулевой will-change и не-none фильтр приколачивают
+       каждый проявленный элемент к собственному слою композитора навсегда.
+       Слоёв на странице — десятки, и слой, растрированный посреди
+       blur-перехода, может застыть размытым при чистых computed-стилях
+       (поймано на живых страницах Ф67 дважды: штора развилки, hero
+       страницы дизайна; принудительный `filter: none` в DevTools мгновенно
+       возвращал резкость). Поэтому после конца перехода элементу ставится
+       `is-settled` (`styles.css`: will-change auto, filter none), и он
+       возвращается в обычную растеризацию страницы.
+       Момент — по таймеру от computed длительности+задержки, а не по
+       `transitionend`: событие не приходит элементам, проявившимся без
+       перехода (`is-instant`, reduced motion), и не приходит из фоновой
+       вкладки, а осесть обязаны все. */
+    const timers: number[] = [];
+    const settle = (n: HTMLElement) => {
+      const cs = getComputedStyle(n);
+      const ms = (v: string) =>
+        Math.max(...v.split(',').map((s) => parseFloat(s) * (s.includes('ms') ? 1 : 1000) || 0));
+      const total = ms(cs.transitionDuration) + ms(cs.transitionDelay);
+      timers.push(window.setTimeout(() => n.classList.add('is-settled'), total + 120));
+    };
+
     // 1) первый кадр — то, что уже видно, ставим резким без перехода
     const vh = window.innerHeight;
     for (const n of nodes) {
       const r = n.getBoundingClientRect();
-      if (r.top < vh * 0.94) n.classList.add('is-instant', 'is-sharp');
+      if (r.top < vh * 0.94) {
+        n.classList.add('is-instant', 'is-sharp');
+        settle(n);
+      }
     }
     // снять запрет перехода после первого кадра, чтобы остальное анимировалось
     requestAnimationFrame(() =>
@@ -33,6 +61,7 @@ export function useReveal() {
         for (const e of entries) {
           if (e.isIntersecting) {
             e.target.classList.add('is-sharp');
+            settle(e.target as HTMLElement);
             io.unobserve(e.target);
           }
         }
@@ -42,7 +71,10 @@ export function useReveal() {
     nodes.forEach((n) => {
       if (!n.classList.contains('is-sharp')) io.observe(n);
     });
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      timers.forEach((t) => window.clearTimeout(t));
+    };
   }, []);
 }
 

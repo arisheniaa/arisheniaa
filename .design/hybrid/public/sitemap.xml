@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Карта сайта. Страниц ровно две, и обе — настоящие файлы, а не маршруты
+  Карта сайта. Страниц ровно три, и все — настоящие файлы, а не маршруты
   одностраничного приложения, поэтому перечислены прямо.
 
   `changefreq` и `priority` намеренно не указаны: поисковики их давно
@@ -16,5 +16,9 @@
   <url>
     <loc>https://arisheniaa.ru/storyboard.html</loc>
     <lastmod>2026-08-10</lastmod>
+  </url>
+  <url>
+    <loc>https://arisheniaa.ru/design.html</loc>
+    <lastmod>2026-08-30</lastmod>
   </url>
 </urlset>
