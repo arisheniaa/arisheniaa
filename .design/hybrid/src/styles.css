@@ -624,6 +624,35 @@
     border-radius: var(--radius-frame);
     box-shadow: 0 30px 80px -40px rgb(0 0 0 / 0.9);
   }
+  /* Стрелки листания и счётчик. Зона касания 48 px — больше нормы в 44:
+     их жмут на весу, глядя на картинку, а не на кнопку. */
+  .shots-zoom-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    border: 0;
+    background: none;
+    color: var(--paper-hi);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .shots-zoom-prev {
+    left: clamp(0.2rem, 2vw, 1.5rem);
+  }
+  .shots-zoom-next {
+    right: clamp(0.2rem, 2vw, 1.5rem);
+  }
+  .shots-zoom-count {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(0.8rem, 3vw, 2rem);
+    transform: translateX(-50%);
+    margin: 0;
+    color: color-mix(in srgb, var(--paper-hi) 70%, transparent);
+  }
   .shots-zoom-close {
     position: absolute;
     right: clamp(1rem, 4vw, 3rem);
