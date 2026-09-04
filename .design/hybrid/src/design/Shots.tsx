@@ -33,7 +33,7 @@
  * гонять читателя по невидимому. Открытый крупный кадр — диалог: фокус
  * уходит на кнопку закрытия, Esc закрывает, фон под ним глохнет.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 export type Кадр = { src: string; alt: string };
@@ -42,6 +42,70 @@ export type Кадр = { src: string; alt: string };
  *  раскладок страницы (`md:` в Tailwind) — сайт не должен менять правило
  *  ширины в двух местах по-разному. */
 const ШИРОКИЙ = '(min-width: 768px)';
+
+/* ═══ ПЕРЕЛЁТ КАДРОВ МЕЖДУ РАСКЛАДКАМИ ══════════════════════════════════
+   «Сделай анимацию раскрытия стопки в карусель плавной, как весь сайт».
+
+   Между стопкой и лентой у кадра меняется ВСЁ: он переезжает из коробки с
+   абсолютными слоями в поток ленты, у него другой размер и другой поворот.
+   Обычным переходом это не анимируется — переход умеет менять свойства
+   одного узла, а тут узлы разные и раскладка другая.
+
+   Приём известный: замерить положение ДО смены, замерить ПОСЛЕ, поставить
+   кадру обратный сдвиг (как будто он ещё на старом месте) и отпустить его
+   в ноль с переходом. Глазу это читается как «кадры разъехались из стопки
+   в ряд», хотя на деле разметка сменилась мгновенно.
+
+   Замер и сдвиг ставятся ДО отрисовки кадра (`useLayoutEffect`), иначе
+   браузер успел бы показать конечное положение и перелёт читался бы
+   рывком назад.
+
+   Длительность 520 мс и общая кривая `--ease-out` — между складыванием
+   папок (420) и проявлением секций (620): движение крупнее первого, но
+   мельче входа целой секции. При выключенном движении перелёта нет,
+   раскладка меняется сразу. */
+function useПерелёт() {
+  const было = useRef<DOMRect[] | null>(null);
+  const узлы = useRef<(HTMLElement | null)[]>([]);
+
+  const запомнить = useCallback(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    было.current = узлы.current
+      .filter(Boolean)
+      .map((el) => (el as HTMLElement).getBoundingClientRect());
+  }, []);
+
+  useLayoutEffect(() => {
+    const старые = было.current;
+    было.current = null;
+    if (!старые) return;
+    const новые = узлы.current.filter(Boolean) as HTMLElement[];
+    новые.forEach((el, i) => {
+      const с = старые[i];
+      if (!с) return;
+      const н = el.getBoundingClientRect();
+      const dx = с.left - н.left;
+      const dy = с.top - н.top;
+      const k = н.width ? с.width / н.width : 1;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(k - 1) < 0.01) return;
+      el.style.transition = 'none';
+      el.style.transform = `translate(${dx}px, ${dy}px) scale(${k})`;
+    });
+    /* Два кадра ожидания, а не один: первый нужен браузеру, чтобы принять
+       обратный сдвиг как исходное положение. Отпустив его в том же кадре,
+       получим прыжок без анимации. */
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        новые.forEach((el) => {
+          el.style.transition = 'transform 520ms var(--ease-out)';
+          el.style.transform = '';
+        });
+      });
+    });
+  });
+
+  return { запомнить, узлы };
+}
 
 export function Shots({
   ноутбук,
@@ -66,6 +130,7 @@ export function Shots({
 
   const кадры = широкий ? ноутбук : телефон;
   const [разложено, setРазложено] = useState(false);
+  const перелёт = useПерелёт();
   const [крупно, setКрупно] = useState<number | null>(null);
 
   /* Смена ширины складывает стопку обратно: раскладка другая, набор кадров
@@ -99,6 +164,9 @@ export function Shots({
             <button
               key={к.src}
               type="button"
+              ref={(el) => {
+                перелёт.узлы.current[i] = el;
+              }}
               className="shots-rail-item"
               aria-label={`${к.alt}. Открыть крупно`}
               onClick={() => setКрупно(i)}
@@ -122,6 +190,14 @@ export function Shots({
             <div key={к.src} className="shots-layer" style={{ ['--i' as string]: i }}>
               <button
                 type="button"
+                /* Перелёт вешается на КАРТОЧКУ, а не на слой. У слоя свой
+                   сдвиг стопки в стилях, и обратный сдвиг перелёта затёр бы
+                   его: кадры поехали бы из неверного места. У карточки
+                   своего преобразования нет, поэтому перелёт складывается
+                   со сдвигом слоя, а не спорит с ним. */
+                ref={(el) => {
+                  перелёт.узлы.current[i] = el;
+                }}
                 className="shots-item"
                 /* В сложенной стопке доступна одна кнопка — верхняя: она и
                    раскрывает ленту. Остальные кадры под ней, и водить по
@@ -129,7 +205,10 @@ export function Shots({
                 tabIndex={i === 0 ? 0 : -1}
                 aria-hidden={i === 0 ? undefined : true}
                 aria-label={`Показать экраны сайта ${работа}: ${кадры.length} кадров`}
-                onClick={() => setРазложено(true)}
+                onClick={() => {
+                  перелёт.запомнить();
+                  setРазложено(true);
+                }}
               >
                 <img
                   src={к.src}
@@ -148,7 +227,14 @@ export function Shots({
       )}
       {разложено ? (
         <p className="shots-fold">
-          <button type="button" className="link-minor" onClick={() => setРазложено(false)}>
+          <button
+            type="button"
+            className="link-minor"
+            onClick={() => {
+              перелёт.запомнить();
+              setРазложено(false);
+            }}
+          >
             сложить
           </button>
         </p>
