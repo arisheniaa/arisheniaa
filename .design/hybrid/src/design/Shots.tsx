@@ -80,16 +80,28 @@ export function Shots({
     <div
       className={`shots${разложено ? ' is-open' : ''}${широкий ? '' : ' shots--m'}`}
     >
-      <ul className="shots-list">
+      {/* КОРОБКА ПОСТОЯННОГО РАЗМЕРА, кадры лежат в ней абсолютом — тот же
+          приём, что у стопки снимков на первом экране фотоветки
+          (`Rack.tsx`: контейнер с заданной пропорцией, слои `absolute
+          inset-0`). Так стопка занимает СТОЛЬКО ЖЕ места и сложенная, и
+          разложенная: раскрытие не толкает страницу вниз и ничего под
+          собой не двигает.
+
+          Прежняя раскладка (кадры в потоке, наезжающие отрицательным
+          отступом) этого не умела: на телефоне каждый следующий кадр
+          спускался ниже предыдущего, и стопка вырастала на несколько
+          экранов вместо половины одного. */}
+      <div className="shots-stage">
         {кадры.map((к, i) => (
-          <li key={к.src} style={{ ['--i' as string]: i }}>
+          <div key={к.src} className="shots-layer" style={{ ['--i' as string]: i }}>
             <button
               type="button"
               className="shots-item"
               /* Пока стопка сложена, доступна только верхняя кнопка: она и
-                 раскладывает. Остальные не видны, и фокус по ним ходил бы
-                 вслепую. */
+                 раскладывает. Остальные кадры под ней, и фокус по ним ходил
+                 бы вслепую. */
               tabIndex={разложено || i === 0 ? 0 : -1}
+              aria-hidden={разложено || i === 0 ? undefined : true}
               aria-label={
                 разложено
                   ? `${к.alt}. Открыть крупно`
@@ -102,14 +114,15 @@ export function Shots({
                 alt={разложено ? к.alt : ''}
                 width={широкий ? 1200 : 640}
                 height={широкий ? 750 : 1385}
-                className="frame block w-full"
+                className="frame block h-full w-full object-cover"
                 loading="lazy"
                 decoding="async"
+                draggable={false}
               />
             </button>
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
 
       {разложено ? (
         <p className="shots-fold">
