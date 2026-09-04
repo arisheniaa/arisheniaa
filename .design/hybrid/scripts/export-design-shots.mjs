@@ -76,20 +76,20 @@ const SITES = [
     key: 'toto',
     url: 'https://totoshiroph.ru/',
     ряд: [
-      { имя: 'snimayu', y: 948 },
-      { имя: 'kto-ya', y: 1932 },
-      { имя: 'ceny', y: 2630 },
-      { имя: 'obuchenie', y: 3829 },
+      { имя: 'snimayu', текст: 'Что я снимаю' },
+      { имя: 'kto-ya', текст: 'Кто я и почему свет' },
+      { имя: 'ceny', текст: 'Цены и услуги' },
+      { имя: 'obuchenie', текст: 'Учу фотографии' },
     ],
   },
   {
     key: 'elegia',
     url: 'https://elegia-tula.ru/',
     ряд: [
-      { имя: 'ceny-kamen', y: 5383 },
-      { имя: 'chto-delaem', y: 1640 },
-      { имя: 'makety', y: 7532 },
-      { имя: 'maket', y: 4200 },
+      { имя: 'maket', текст: 'Соберите его сами' },
+      { имя: 'chto-delaem', текст: 'Что мы делаем' },
+      { имя: 'ceny-kamen', текст: 'Сколько стоит камень' },
+      { имя: 'makety', текст: 'Макеты собираются вручную' },
     ],
   },
 ];
@@ -137,12 +137,14 @@ async function shoot(site, kind, viewport, targetWidth) {
 /** Серия кадров по сайту: прокрутка до места, при нужде наведение курсора,
  *  снимок вьюпорта. Всё в одном контексте браузера — сайт грузится один
  *  раз, а не по разу на кадр. */
-async function серия(site) {
+async function серия(site, ширина) {
   if (!site.ряд) return;
+  const телефон = ширина === 'phone';
   const ctx = await browser.newContext({
-    viewport: { width: 1440, height: 900 },
+    viewport: телефон ? { width: 390, height: 844 } : { width: 1440, height: 900 },
     deviceScaleFactor: 2,
     reducedMotion: 'no-preference',
+    isMobile: телефон,
   });
   const page = await ctx.newPage();
   await page.goto(site.свой ? site.url + '#main' : site.url, { waitUntil: 'networkidle' });
@@ -173,6 +175,19 @@ async function серия(site) {
         if (el) el.scrollIntoView({ block: 'center', behavior: 'instant' });
       }, кадр.до);
       await page.waitForTimeout(400);
+    } else if (кадр.текст) {
+      /* ПОИСК МЕСТА ПО ТЕКСТУ ЗАГОЛОВКА, а не по пикселю. Пиксель верен
+         ровно для той ширины, на которой его замерили: на телефоне та же
+         страница вдвое длиннее, и кадр уехал бы мимо блока. Заголовок
+         стоит там же по смыслу на любой ширине. */
+      await page.evaluate((текст) => {
+        const el = [...document.querySelectorAll('h1, h2, h3')].find((x) =>
+          x.textContent.trim().startsWith(текст),
+        );
+        if (el) el.scrollIntoView({ block: 'start', behavior: 'instant' });
+        window.scrollBy(0, -Math.round(innerHeight * 0.08));
+      }, кадр.текст);
+      await page.waitForTimeout(400);
     } else {
       await page.evaluate((y) => window.scrollTo(0, y - innerHeight * 0.12), кадр.y);
     }
@@ -181,7 +196,10 @@ async function серия(site) {
     /* Курсор подводится к тому, что оживает от наведения. Если узла нет
        (сайт изменился), кадр всё равно снимается — портфолио важнее
        конкретной анимации, и падать из-за неё скрипт не должен. */
-    if (кадр.навести) {
+    /* Наведение — только широкому экрану: у телефона курсора нет, и веер
+       услуг там раскрывается другим способом (`FanTap`). Нажатие нужно
+       обеим ширинам: папка отдачи открывается им и там, и там. */
+    if (кадр.навести && !телефон) {
       const el = await page.$(кадр.навести);
       if (el) {
         await el.hover().catch(() => {});
@@ -197,8 +215,11 @@ async function серия(site) {
     }
 
     const png = await page.screenshot({ type: 'png' });
-    const name = `${site.key}-${кадр.имя}.webp`;
-    await sharp(png).resize({ width: 1200 }).webp({ quality: 78 }).toFile(path.join(OUT, name));
+    const name = `${site.key}-${кадр.имя}${телефон ? '-m' : ''}.webp`;
+    await sharp(png)
+      .resize({ width: телефон ? 640 : 1200 })
+      .webp({ quality: 78 })
+      .toFile(path.join(OUT, name));
     made.push(name);
   }
   await ctx.close();
@@ -207,7 +228,8 @@ async function серия(site) {
 for (const site of SITES) {
   await shoot(site, 'desktop', { width: 1440, height: 900 }, 1600);
   await shoot(site, 'phone', { width: 390, height: 844 }, 640);
-  await серия(site);
+  await серия(site, 'desktop');
+  await серия(site, 'phone');
 }
 
 await browser.close();

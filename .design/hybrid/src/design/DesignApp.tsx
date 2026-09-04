@@ -39,7 +39,7 @@ import { Fragment } from 'react';
 import { copy } from '../copy';
 import { dcopy } from './copy';
 import { Name } from '../Name';
-import { TiltFrame } from '../Tilt';
+import { Shots } from './Shots';
 
 const WRAP = 'relative z-10 mx-auto w-full max-w-[var(--measure)]';
 const SECT = 'relative px-[var(--gutter)]';
@@ -196,78 +196,17 @@ function Work({
         </p>
       </div>
 
-      {/* Кадры. Телефонный внахлёст на нижний угол ноутбучного, со стороны
-          текста — пара смотрит на подпись, а не от неё. Ширина телефона 22%
-          от блока кадров: при 390×844 это даёт высоту чуть меньше половины
-          ноутбучного кадра, угол занят, кадр не спрятан. */}
+      {/* СТОПКА ЭКРАНОВ — вместо прежней пары «ноутбук + телефон внахлёст»
+          и ленты серии (Ф74). Кадры лежат друг на друге, как снимки на
+          первом экране фотоветки, и раскладываются по нажатию: вбок на
+          широком экране, вниз на телефоне. Механика и выбор набора кадров
+          по ширине — в `Shots.tsx`. */}
       <div
-        className={`relative ${
+        className={
           flip ? 'lg:col-span-8 lg:col-start-1 lg:row-start-1' : 'lg:col-span-8 lg:col-start-5'
-        }`}
+        }
       >
-        {/* `relative` НА ЭТОЙ обёртке, а не на колонке снаружи: телефонный
-            кадр стоит абсолютом и цепляется за ближайшего позиционированного
-            предка. Пока в колонке была только пара кадров, разницы не было —
-            с появлением ленты серии колонка выросла, и телефон уехал
-            вниз, наложившись на ленту (поймано на снимке). Теперь он
-            привязан к паре, к которой и относится. */}
-        <div className="relative reveal pb-[clamp(2.2rem,6vw,3.5rem)]" style={{ ['--i' as string]: 1 }}>
-          <TiltFrame className={`overflow-visible ${flip ? 'mr-[8%]' : 'ml-[8%]'}`}>
-            <div data-focus="in">
-              <img
-                src={p.shots.desktop}
-                width={1600}
-                height={1000}
-                alt={p.alt.desktop}
-                className="frame block w-full border border-[color:color-mix(in_srgb,var(--ink)_14%,transparent)]"
-                loading={index === 0 ? 'eager' : 'lazy'}
-                decoding="async"
-              />
-            </div>
-          </TiltFrame>
-          <img
-            src={p.shots.phone}
-            width={640}
-            height={1385}
-            alt={p.alt.phone}
-            className={`frame absolute bottom-0 w-[22%] border border-[color:color-mix(in_srgb,var(--ink)_14%,transparent)] ${
-              flip ? 'right-0 rotate-[2.5deg]' : 'left-0 rotate-[-2.5deg]'
-            }`}
-            loading="lazy"
-            decoding="async"
-          />
-        </div>
-
-        {/* СЕРИЯ — ещё четыре кадра работы, лентой под главной парой
-            («прикрепи их в одну серию с сайтом»). Не отдельным блоком и не
-            вторым разворотом: это та же работа, и разрывать её надвое
-            значило бы показать один сайт дважды.
-
-            Лента ПРОКРУЧИВАЕТСЯ ВБОК, а не переносится в сетку: четыре
-            широких кадра сеткой заняли бы экран целиком и утопили бы в себе
-            текст работы. Прокрутка держит серию полосой в один рост и
-            оставляет главной парой то, чем работа открывается.
-
-            `snap` — кадры встают по краю полосы, а не замирают в
-            произвольном месте: пролистывание получается по кадрам, как в
-            галерее, а не как в текстовом поле. */}
-        {p.серия ? (
-          <ul className="design-series reveal" style={{ ['--i' as string]: 2 }}>
-            {p.серия.map((к) => (
-              <li key={к.src}>
-                <img
-                  src={к.src}
-                  width={1200}
-                  height={750}
-                  alt={к.alt}
-                  className="frame block w-full border border-[color:color-mix(in_srgb,var(--ink)_14%,transparent)]"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </li>
-            ))}
-          </ul>
-        ) : null}
+        <Shots ноутбук={p.ноутбук} телефон={p.телефон} работа={p.name} />
       </div>
     </div>
   );
