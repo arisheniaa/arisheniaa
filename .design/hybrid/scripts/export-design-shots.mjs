@@ -41,12 +41,57 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(HERE, '../public/design');
 fs.mkdirSync(OUT, { recursive: true });
 
+/* СЕРИЯ КАДРОВ НА КАЖДЫЙ САЙТ (её правка: «сделай по 3-4 скриншотов с
+   каждого сайта дополнительно к уже имеющимся. возьми самые интересные
+   анимации»).
+
+   `ряд` — места, до которых надо доскроллить, и что там сделать. Позиции
+   взяты не на глаз: сайты обойдены заранее, у каждого сняты положения
+   заголовков, и кадр ставится на смысловой блок, а не на случайный
+   пиксель. Где анимация ждёт курсора (веер услуг, папки отдачи), курсор
+   подводится и кадр снимается в РАСКРЫТОМ состоянии — иначе в портфолио
+   попала бы не анимация, а её исходное положение.
+
+   Прокрутка ступенями, а не прыжком: сайты проявляют секции по мере
+   попадания в кадр, и прыжок в конец оставил бы половину блоков
+   непроявленными (эта грабля уже ловилась при съёмке своей же главной). */
 const SITES = [
   // `свой` — только у своего сайта: якорь нужен, чтобы пропустить развилку,
   // а на чужих сайтах его добавлять незачем и некуда.
-  { key: 'arisheniaa', url: 'http://127.0.0.1:5176/', свой: true },
-  { key: 'toto', url: 'https://totoshiroph.ru/' },
-  { key: 'elegia', url: 'https://elegia-tula.ru/' },
+  {
+    key: 'arisheniaa',
+    url: 'http://127.0.0.1:5176/',
+    свой: true,
+    ряд: [
+      { имя: 'uslugi', до: '#uslugi', навести: '.sb-fan', пауза: 900 },
+      { имя: 'raskadrovka', до: '#raskadrovka', пауза: 700 },
+      /* Папки отдачи: цель прокрутки — сама папка, а не секция. По секции
+         кадр вставал так, что папка оказывалась у нижнего края и обрезалась,
+         а наведение не успевало её раскрыть (поймано на первом прогоне). */
+      { имя: 'papki', до: '.folder-parent', нажать: '.folder-parent', пауза: 900 },
+      { имя: 'o-mne', до: '#o-mne', пауза: 700 },
+    ],
+  },
+  {
+    key: 'toto',
+    url: 'https://totoshiroph.ru/',
+    ряд: [
+      { имя: 'snimayu', y: 948 },
+      { имя: 'kto-ya', y: 1932 },
+      { имя: 'ceny', y: 2630 },
+      { имя: 'obuchenie', y: 3829 },
+    ],
+  },
+  {
+    key: 'elegia',
+    url: 'https://elegia-tula.ru/',
+    ряд: [
+      { имя: 'ceny-kamen', y: 5383 },
+      { имя: 'chto-delaem', y: 1640 },
+      { имя: 'makety', y: 7532 },
+      { имя: 'maket', y: 4200 },
+    ],
+  },
 ];
 
 const browser = await chromium.launch();
@@ -89,9 +134,80 @@ async function shoot(site, kind, viewport, targetWidth) {
   made.push(name);
 }
 
+/** Серия кадров по сайту: прокрутка до места, при нужде наведение курсора,
+ *  снимок вьюпорта. Всё в одном контексте браузера — сайт грузится один
+ *  раз, а не по разу на кадр. */
+async function серия(site) {
+  if (!site.ряд) return;
+  const ctx = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 2,
+    reducedMotion: 'no-preference',
+  });
+  const page = await ctx.newPage();
+  await page.goto(site.свой ? site.url + '#main' : site.url, { waitUntil: 'networkidle' });
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(2000);
+
+  /* Ступенчатый проход по всей странице: чужие сайты (и свой) проявляют
+     секции по мере входа в кадр, и прыжок сразу к нужному месту оставил бы
+     блок непроявленным — в портфолио попал бы пустой экран. */
+  await page.evaluate(async () => {
+    const шаг = Math.round(innerHeight * 0.5);
+    for (let y = 0; y <= document.documentElement.scrollHeight; y += шаг) {
+      window.scrollTo(0, y);
+      await new Promise((r) => setTimeout(r, 180));
+    }
+    window.scrollTo(0, 0);
+  });
+  await page.waitForTimeout(700);
+
+  for (const кадр of site.ряд) {
+    if (кадр.до) {
+      /* `behavior: instant` обязателен: на сайте включена плавная прокрутка
+         (`scroll-behavior: smooth`), и обычный `scrollIntoView` едет
+         анимацией. Кадр снимался на полпути, а нажатие попадало мимо цели —
+         папка отдачи уезжала в портфолио закрытой и обрезанной. */
+      await page.evaluate((s) => {
+        const el = document.querySelector(s);
+        if (el) el.scrollIntoView({ block: 'center', behavior: 'instant' });
+      }, кадр.до);
+      await page.waitForTimeout(400);
+    } else {
+      await page.evaluate((y) => window.scrollTo(0, y - innerHeight * 0.12), кадр.y);
+    }
+    await page.waitForTimeout(кадр.пауза ?? 600);
+
+    /* Курсор подводится к тому, что оживает от наведения. Если узла нет
+       (сайт изменился), кадр всё равно снимается — портфолио важнее
+       конкретной анимации, и падать из-за неё скрипт не должен. */
+    if (кадр.навести) {
+      const el = await page.$(кадр.навести);
+      if (el) {
+        await el.hover().catch(() => {});
+        await page.waitForTimeout(700);
+      }
+    }
+    /* Что открывается НАЖАТИЕМ, а не наведением, — нажимаем. Папки отдачи
+       подписаны «нажми на меня» и раскрываются кликом (`Folders.tsx`);
+       наведение их не трогает, и в портфолио уезжала закрытая папка. */
+    if (кадр.нажать) {
+      await page.click(кадр.нажать, { timeout: 3000 }).catch(() => {});
+      await page.waitForTimeout(900);
+    }
+
+    const png = await page.screenshot({ type: 'png' });
+    const name = `${site.key}-${кадр.имя}.webp`;
+    await sharp(png).resize({ width: 1200 }).webp({ quality: 78 }).toFile(path.join(OUT, name));
+    made.push(name);
+  }
+  await ctx.close();
+}
+
 for (const site of SITES) {
   await shoot(site, 'desktop', { width: 1440, height: 900 }, 1600);
   await shoot(site, 'phone', { width: 390, height: 844 }, 640);
+  await серия(site);
 }
 
 await browser.close();
