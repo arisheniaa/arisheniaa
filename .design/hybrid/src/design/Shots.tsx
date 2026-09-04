@@ -112,8 +112,8 @@ export function Shots({
               <img
                 src={к.src}
                 alt={разложено ? к.alt : ''}
-                width={широкий ? 1200 : 640}
-                height={широкий ? 750 : 1385}
+                width={широкий ? 1200 : 1170}
+                height={широкий ? 750 : 2080}
                 className="frame block h-full w-full object-cover"
                 loading="lazy"
                 decoding="async"
