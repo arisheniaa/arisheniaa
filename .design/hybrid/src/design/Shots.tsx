@@ -74,15 +74,31 @@ const ПЛАНШЕТ = '(min-width: 700px)';
    папок (420) и проявлением секций (620): движение крупнее первого, но
    мельче входа целой секции. При выключенном движении перелёта нет,
    раскладка меняется сразу. */
+/* ЗАМЕР ПО ЦЕНТРУ И ПО СОБСТВЕННОЙ ШИРИНЕ, А НЕ ПО ГАБАРИТНОМУ
+   ПРЯМОУГОЛЬНИКУ. Кадры в стопке повёрнуты, и `getBoundingClientRect`
+   возвращает у них описанный прямоугольник — он шире самого кадра тем
+   сильнее, чем круче поворот. Считая по нему, перелёт брал ложный
+   масштаб: замерено от 1,02 у верхнего кадра до 1,11 у нижнего, то есть
+   кадры трогались раздутыми и по дороге ужимались.
+
+   Центр от поворота не зависит, `offsetWidth` — тоже: он про раскладку, а
+   не про то, как узел нарисован. Размер кадра в стопке и в ленте теперь
+   один и тот же (см. стили), поэтому масштаб выходит ровно 1, и перелёт
+   остаётся чистым сдвигом — тем самым мягким скольжением, а не
+   «уменьшением», на которое она пожаловалась. */
+type Место = { x: number; y: number; w: number };
+const место = (el: HTMLElement): Место => {
+  const r = el.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: el.offsetWidth };
+};
+
 function useПерелёт() {
-  const было = useRef<DOMRect[] | null>(null);
+  const было = useRef<Место[] | null>(null);
   const узлы = useRef<(HTMLElement | null)[]>([]);
 
   const запомнить = useCallback(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    было.current = узлы.current
-      .filter(Boolean)
-      .map((el) => (el as HTMLElement).getBoundingClientRect());
+    было.current = узлы.current.filter(Boolean).map((el) => место(el as HTMLElement));
   }, []);
 
   useLayoutEffect(() => {
@@ -93,10 +109,10 @@ function useПерелёт() {
     новые.forEach((el, i) => {
       const с = старые[i];
       if (!с) return;
-      const н = el.getBoundingClientRect();
-      const dx = с.left - н.left;
-      const dy = с.top - н.top;
-      const k = н.width ? с.width / н.width : 1;
+      const н = место(el);
+      const dx = с.x - н.x;
+      const dy = с.y - н.y;
+      const k = н.w ? с.w / н.w : 1;
       if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(k - 1) < 0.01) return;
       el.style.transition = 'none';
       el.style.transform = `translate(${dx}px, ${dy}px) scale(${k})`;
