@@ -216,7 +216,12 @@ export function Gate({
             `alt=""`: описание портрета несёт `copy.about.alt`, и на этой
             странице оно уже прочитано — фоновый кадр декоративен. */}
         <picture>
-          <source media="(min-width: 768px)" srcSet={copy.about.photo} />
+          {/* 1024, а не 768: планшет в портрете получает ВЕРТИКАЛЬНЫЙ кадр
+              вместе с телефоном (Ф83). Горизонтальный снимок на вертикальном
+              экране режется до середины лица — арифметика пропорций, а не
+              вопрос вкуса. Та же граница стоит в стилях развилки и в
+              `Shots.tsx`; врозь они разъехались бы при первой правке. */}
+          <source media="(min-width: 1024px) and (orientation: landscape)" srcSet={copy.about.photo} />
           <img
             className="gate-photo"
             src={GATE_PHOTO}
