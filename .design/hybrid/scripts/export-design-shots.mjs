@@ -137,14 +137,22 @@ async function shoot(site, kind, viewport, targetWidth) {
 /** Серия кадров по сайту: прокрутка до места, при нужде наведение курсора,
  *  снимок вьюпорта. Всё в одном контексте браузера — сайт грузится один
  *  раз, а не по разу на кадр. */
+/* Размеры съёмки. Планшет — 768×1024, портретный iPad: самый узкий из
+   ходовых, и кадр с него подходит всем, кто шире. Ноутбук — 1440×900. */
+const РАЗМЕРЫ = {
+  desktop: { width: 1440, height: 900 },
+  tablet: { width: 768, height: 1024 },
+};
+
 async function серия(site, ширина) {
   if (!site.ряд) return;
-  const телефон = ширина === 'phone';
+  const планшет = ширина === 'tablet';
   const ctx = await browser.newContext({
-    viewport: телефон ? { width: 390, height: 844 } : { width: 1440, height: 900 },
+    viewport: РАЗМЕРЫ[ширина],
     deviceScaleFactor: 2,
     reducedMotion: 'no-preference',
-    isMobile: телефон,
+    isMobile: планшет,
+    hasTouch: планшет,
   });
   const page = await ctx.newPage();
   await page.goto(site.свой ? site.url + '#main' : site.url, { waitUntil: 'networkidle' });
@@ -199,7 +207,7 @@ async function серия(site, ширина) {
     /* Наведение — только широкому экрану: у телефона курсора нет, и веер
        услуг там раскрывается другим способом (`FanTap`). Нажатие нужно
        обеим ширинам: папка отдачи открывается им и там, и там. */
-    if (кадр.навести && !телефон) {
+    if (кадр.навести && !планшет) {
       const el = await page.$(кадр.навести);
       if (el) {
         await el.hover().catch(() => {});
@@ -215,9 +223,9 @@ async function серия(site, ширина) {
     }
 
     const png = await page.screenshot({ type: 'png' });
-    const name = `${site.key}-${кадр.имя}${телефон ? '-m' : ''}.webp`;
+    const name = `${site.key}-${кадр.имя}${планшет ? '-t' : ''}.webp`;
     await sharp(png)
-      .resize({ width: телефон ? 640 : 1200 })
+      .resize({ width: планшет ? 900 : 1200 })
       .webp({ quality: 78 })
       .toFile(path.join(OUT, name));
     made.push(name);
@@ -234,6 +242,13 @@ async function серия(site, ширина) {
 for (const site of SITES) {
   await shoot(site, 'desktop', { width: 1440, height: 900 }, 1600);
   await серия(site, 'desktop');
+  /* ПЛАНШЕТ СНИМАЕТСЯ ОТДЕЛЬНО (Ф84, её правка: «используй скриншоты сайтов
+     с версий с планшета»). Раньше планшету доставались телефонные кадры —
+     они с настоящего телефона и вертикальные, но узкие: на планшетном
+     экране такой снимок показывает вёрстку, которой у планшета нет. Теперь
+     у каждой ширины свои кадры: ноутбук, планшет, телефон. */
+  await shoot(site, 'tablet', { width: 768, height: 1024 }, 900);
+  await серия(site, 'tablet');
 }
 
 await browser.close();

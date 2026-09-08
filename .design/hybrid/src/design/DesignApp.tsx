@@ -206,7 +206,12 @@ function Work({
           flip ? 'lg:col-span-8 lg:col-start-1 lg:row-start-1' : 'lg:col-span-8 lg:col-start-5'
         }
       >
-        <Shots ноутбук={p.ноутбук} телефон={p.телефон} работа={p.name} />
+        <Shots
+              ноутбук={p.ноутбук}
+              планшет={p.планшет}
+              телефон={p.телефон}
+              работа={p.name}
+            />
       </div>
     </div>
   );
