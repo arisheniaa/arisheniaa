@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { CtlIcon } from './ui';
 
 /**
  * ПРОСМОТР СКРИНА КРУПНО (её правка: «при нажатии на скрины открывались они
@@ -132,10 +133,10 @@ export function LightboxProvider({ children }: { children: ReactNode }) {
             {st.list.length > 1 && (
               <>
                 <button type="button" className="lb-nav lb-prev" aria-label="Предыдущий скрин" onClick={(e) => (e.stopPropagation(), step(-1))}>
-                  ‹
+                  <CtlIcon name="prev" />
                 </button>
                 <button type="button" className="lb-nav lb-next" aria-label="Следующий скрин" onClick={(e) => (e.stopPropagation(), step(1))}>
-                  ›
+                  <CtlIcon name="next" />
                 </button>
                 {!cur.cap && <span className="lb-count">
                   {st.index + 1} / {st.list.length}
@@ -162,7 +163,7 @@ export function LightboxProvider({ children }: { children: ReactNode }) {
               </motion.div>
             )}
             <button type="button" className="lb-close" aria-label="Закрыть" onClick={(e) => (e.stopPropagation(), close())}>
-              ×
+              <CtlIcon name="close" />
             </button>
           </motion.div>
         )}

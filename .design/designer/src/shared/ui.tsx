@@ -94,6 +94,20 @@ export function Topbar({ className = '', logoClass = '' }: { className?: string;
 }
 
 /** Подпись «черновик текста» у разделов, которые она ещё не писала. */
+/** Значок круглой кнопки: крестик и стрелки — линиями, а не буквами
+ *  «×» и «›». Буквы каждый шрифт ставит по-своему (стрелка ниже и левее
+ *  середины), а линии стоят ровно в центре кружка — поэтому крестик и
+ *  стрелка под ним в просмотре скрина на одной вертикали (её правка
+ *  «чётко друг под другом»). */
+export function CtlIcon({ name }: { name: 'close' | 'prev' | 'next' }) {
+  const d = name === 'close' ? 'M5 5l10 10M15 5L5 15' : name === 'next' ? 'M8 4l6 6-6 6' : 'M12 4l-6 6 6 6';
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <path d={d} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function Draft() {
   return <span className="draft-mark">{copy.draftMark}</span>;
 }

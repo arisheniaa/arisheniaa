@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { SERVICES, type Service, type Shot } from './works';
-import { Draft } from './ui';
+import { CtlIcon, Draft } from './ui';
 import { Parallax, P, W, type Pos } from '../fx/Parallax';
 
 /**
@@ -378,7 +378,7 @@ export function Services({ tilt = false }: { tilt?: boolean }) {
               animate={{ opacity: 1, scale: 1, transition: { delay: 0.35 } }}
               exit={{ opacity: 0, transition: { duration: 0.15 } }}
             >
-              ×
+              <CtlIcon name="close" />
             </motion.button>
           </motion.div>
         )}
