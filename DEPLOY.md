@@ -3,6 +3,11 @@
 Собранный сайт — статика: HTML, CSS, JS и картинки. Никакого сервера,
 базы данных и бэкенда ему не нужно, достаточно любого хостинга статики.
 
+> **Подготовлен переезд фото-сайта на `arisheniaa.ru/ph/`** (3 октября 2026,
+> НЕ выложен) — раздел «Переезд фото-сайта на /ph» ниже. Пока он не
+> выполнен, ветку с переездом нельзя вливать в `master`: сторож выложит её
+> на старый сервер, и сайт сломается.
+
 ## Собрать
 
 ```bash
@@ -24,9 +29,226 @@ npx vite preview --prefix .design/hybrid --port 5199
 Проверено: `/`, `/storyboard.html`, `/design.html`,
 `/storyboard/manifest.json` и `/favicon.svg` отдаются кодом 200.
 
+С переездом на `/ph` (база `/ph/` в `vite.config.mts`) предпросмотр
+отдаёт сайт по адресу `http://127.0.0.1:5199/ph/`, а не из корня.
+
 `dist/` намеренно НЕ хранится в гите (`.gitignore`): это результат сборки,
 он пересобирается одной командой из исходников и, попав в историю, распухал
 бы на 12 МБ при каждой правке фотографии.
+
+## Переезд фото-сайта на /ph (подготовлено 3 октября 2026, не выложено)
+
+Решение владелицы от 3 октября 2026: корень `arisheniaa.ru` становится новым
+сайтом дизайнера (проект `.design/designer`), а фото-сайт переезжает в
+`arisheniaa.ru/ph/` — **ровно нынешняя фото-ветка, один в один**: без
+развилки «хочу съемку / хочу сайт», без секций дизайна, без разбора
+`#design`. Вид и тексты не меняются.
+
+Код к переезду готов, на сервере не стоит ничего. День переезда назначает
+владелица.
+
+### Что уже сделано в репозитории
+
+| что | где |
+|---|---|
+| сборка под префиксом `/ph/` | `base: '/ph/'` в `.design/hybrid/vite.config.mts` |
+| все пути к файлам и страницам — через один помощник `asset()` | `.design/hybrid/src/base.ts`; вызовы в `App.tsx`, `copy.ts`, `Rack.tsx`, `NavHint.tsx`, `storyboard/StoryboardApp.tsx` |
+| пути кадров в манифесте раскадровки — относительные (`storyboard/sb-….webp`), префикс подставляет страница | `public/storyboard/manifest.json`, `scripts/export-storyboard-photos.mjs` |
+| развилка и ветка дизайна сняты с фото-сайта (файлы `Gate.tsx` и `src/design/*` на диске оставлены — из них сайт дизайнера берёт тексты) | `src/App.tsx` |
+| `canonical`, `og:url`, `og:image` → `https://arisheniaa.ru/ph/…` | `index.html`, `storyboard.html` |
+| карта сайта под `/ph/`, образец строк для корневого robots.txt | `public/sitemap.xml`, `public/robots.txt` |
+| план серверной части: Caddyfile, build.sh, smoke.sh, seocheck.sh | `server/` — помечены в шапке «ПЛАН, а не копия» |
+
+Сами якоря фото-сайта (`#main`, `#o-mne`, `#raboty`, `#uslugi`,
+`#podgotovka`, `#raskadrovka`, `#kontakt`, `#kadry`, `#hero`) не тронуты:
+на них стоят старые ссылки.
+
+Dev-сервер тоже уехал под префикс: страница теперь
+`http://127.0.0.1:5176/ph/`, а `http://127.0.0.1:5176/` в dev — 404. Это
+намеренно: забытый префикс виден сразу, а не после выкладки.
+
+### ⚠️ Главная опасность: сторож выкладывает `master` сам
+
+Пуш в `master` через пять минут уезжает на сайт (см. «Связка репозитория с
+сервером»). Если влить переезд в `master` раньше, чем на сервере сменится
+`Caddyfile`, **сайт сломается**: старый `Caddyfile` отдаёт сборку из корня, а
+новая сборка просит скрипты и фотографии по адресам `/ph/assets/…`,
+`/ph/frames/…` — там будет 404, и вместо сайта откроется пустой экран.
+
+Поэтому переезд вливается в `master` **только в день переезда и только при
+остановленном стороже** — шаги ниже именно в этом порядке.
+
+### Что должно быть готово до дня переезда
+
+1. **Сайт дизайнера лежит в репозитории.** Сейчас `.design/designer/` в гит
+   не добавлен вовсе, а новый `build.sh` его собирает и без него
+   останавливается с ошибкой (это проверка, а не сбой). Он должен собираться
+   командой `npm ci && npm run build` в `dist/`, а его главная — быть
+   `dist/index.html`.
+2. **Сайт дизайнера проверен под нашим CSP.** Заголовок безопасности в
+   `Caddyfile` один на оба сайта (`script-src 'self' 'unsafe-inline'`, без
+   `'unsafe-eval'`, без чужих доменов). Сайт на three.js и шейдерах может
+   потребовать больше — это надо узнать заранее, локально, отдавая его
+   сборку с тем же заголовком, а не в день переезда.
+3. **Сайт дизайнера переводит старые ссылки** вида `/#uslugi` на
+   `/ph/#uslugi` скриптом (часть после `#` до сервера не доходит, Caddy тут
+   бессилен). Список якорей — выше.
+4. **В корневом `robots.txt` сайта дизайнера** есть строка
+   `Sitemap: https://arisheniaa.ru/ph/sitemap.xml`. Поисковики читают
+   robots.txt только из корня домена; файл `/ph/robots.txt` фото-сайта сам
+   ни на что не влияет и оставлен как образец. Как устроить robots и карту
+   самого корня — решает сайт дизайнера, здесь это не придумывается.
+5. Ветка с переездом слита с работой по сайту дизайнера и собирается
+   локально:
+
+   ```bash
+   npm ci --prefix .design/hybrid && npm run build --prefix .design/hybrid
+   npx vite preview --prefix .design/hybrid --port 5199   # → http://127.0.0.1:5199/ph/
+   ```
+
+### Шаги в день переезда
+
+На сервере (`ssh root@194.87.187.207`), всё из `/opt/arisheniaa-site`:
+
+```bash
+cd /opt/arisheniaa-site
+
+# 1. Остановить сторожа, чтобы он не выложил master посреди переезда.
+systemctl stop arisheniaa-autodeploy.timer
+
+# 2. Резервные копии всего, что будет меняться. Каталог site копируется
+#    СОСЕДОМ (site-before-ph), сам site не трогаем — он смонтирован в контейнер.
+for f in Caddyfile build.sh smoke.sh seocheck.sh; do cp -a "$f" "$f.before-ph"; done
+cp -a site site-before-ph
+
+# 3. Клон должен быть чистым (иначе build.sh соберёт не то, что в master):
+git -C repo status --porcelain          # пусто
+git -C repo log --oneline origin/master..HEAD   # пусто
+```
+
+Теперь **с рабочей машины** — влить ветку переезда в `master` и запушить.
+Сторож остановлен, сам ничего не выложит.
+
+Снова на сервере:
+
+```bash
+# 4. Подтянуть master и поставить новый build.sh (и проверки) из репозитория.
+git -C repo fetch --depth 1 origin master && git -C repo reset --hard FETCH_HEAD
+install -m 755 repo/server/build.sh    build.sh
+install -m 755 repo/server/smoke.sh    smoke.sh
+install -m 755 repo/server/seocheck.sh seocheck.sh
+
+# 5. Собрать оба сайта. Пишет в site/ph/ и site/root/; прежняя плоская
+#    сборка в site/ не трогается, и пока стоит старый Caddyfile, посетители
+#    видят прежний сайт. Упадёт любая из двух сборок — не опубликуется ни одна.
+./build.sh
+
+# 6. Проверить новый Caddyfile ДО установки — в одноразовом контейнере.
+docker run --rm -v "$PWD/repo/server/Caddyfile:/etc/caddy/Caddyfile:ro" \
+  caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+
+# 7. Поставить Caddyfile и пересоздать контейнер. Именно пересоздать:
+#    Caddyfile смонтирован ОДНИМ ФАЙЛОМ, монт держится за inode, и контейнер
+#    может продолжать видеть старый файл. `caddy reload` не годится —
+#    в конфиге `admin off`. Перерыв в отдаче — секунда-две.
+cp repo/server/Caddyfile Caddyfile
+docker compose up -d --force-recreate
+```
+
+Если шаг 6 или `smoke.sh` ниже споткнётся о строку
+`redir /ph /ph/{?query} 301` (сокращение `{?query}` — «строка запроса со
+знаком `?`, если она есть» — есть не во всех версиях Caddy; признак —
+`Location` с буквальным `{?query}` или ошибка разбора), замените её на
+`redir /ph /ph/ 301`: потеряется только строка запроса у адреса `/ph` без
+слэша, которой на практике не бывает.
+
+### Как проверить
+
+```bash
+./smoke.sh                          # стек изнутри, в обход edge-прокси
+./smoke.sh https://arisheniaa.ru    # весь путь целиком
+./seocheck.sh https://arisheniaa.ru
+```
+
+`smoke.sh` проверяет `/ph/`, `/ph/storyboard.html`, манифест, значок,
+`og.jpg`, кадр и **каждый ассет сборки** (имена берёт из отданной страницы)
+на 200; все четыре перенаправления на 301 с верным адресом; корень сайта
+дизайнера и оба файла подтверждения прав на 200; несуществующие пути на 404
+в обоих сайтах. Ниже — то же самое руками, если нужно посмотреть глазами:
+
+```bash
+B=https://arisheniaa.ru
+curl -sI $B/ph/                 | head -1                        # 200
+curl -sI $B/ph/storyboard.html  | head -1                        # 200
+curl -sI $B/ph                  | grep -iE '^(HTTP|location)'    # 301, /ph/
+curl -sI $B/storyboard.html     | grep -iE '^(HTTP|location)'    # 301, /ph/storyboard.html
+curl -sI "$B/storyboard.html?povod=lyubov" | grep -i '^location' # /ph/storyboard.html?povod=lyubov
+curl -sI $B/design.html         | grep -iE '^(HTTP|location)'    # 301, /
+# все ассеты страницы — 200:
+for a in $(curl -s $B/ph/ | grep -oE '/ph/assets/[A-Za-z0-9._-]+\.(js|css)' | sort -u); do
+  curl -so /dev/null -w "%{http_code} $a\n" "$B$a"
+done
+curl -so /dev/null -w '%{http_code}\n' $B/ph/storyboard/manifest.json   # 200
+curl -so /dev/null -w '%{http_code}\n' $B/ph/frames/rassvet.webp        # 200
+curl -s $B/ph/ | grep -o '<link rel="canonical"[^>]*>'                  # …/ph/
+curl -sI $B/ph/ | grep -i content-security-policy                       # тот же CSP
+curl -so /dev/null -w '%{http_code}\n' $B/googlebd265f6afcbd754f.html   # 200 (из каталога ph)
+```
+
+И один раз глазами в браузере: `/ph/` (развилки нет, сразу «Создаю ваше
+кино», фотографии в стопке и в услугах на месте), плитка первого вопроса →
+`/ph/storyboard.html` открывается сразу на втором вопросе, квиз до конца,
+«Скачать раскадровку» отдаёт PDF; старая ссылка `/#uslugi` приводит на
+`/ph/#uslugi`.
+
+### После проверки
+
+```bash
+# 8. Убрать прежнюю плоскую сборку из site/ — теперь она не отдаётся.
+#    Сначала посмотреть список, потом удалять:
+find site -mindepth 1 -maxdepth 1 ! -name ph ! -name root -print
+find site -mindepth 1 -maxdepth 1 ! -name ph ! -name root -exec rm -rf {} +
+
+# 9. Вернуть сторожа.
+systemctl start arisheniaa-autodeploy.timer
+```
+
+10. В Яндекс Вебмастере и Search Console отправить карту
+    `https://arisheniaa.ru/ph/sitemap.xml`. Права на домен не слетят: файлы
+    подтверждения по-прежнему отдаются из корня (`rewrite` в `Caddyfile`).
+11. В репозитории снять с `server/Caddyfile`, `build.sh`, `smoke.sh`,
+    `seocheck.sh` шапки «ПЛАН, а не копия» — с этой минуты они снова копии
+    сервера — и обновить устаревшие места этого файла (раздел «Собрать»,
+    «Про GitHub Pages»). Резервные `*.before-ph` и `site-before-ph` на
+    сервере удалить через неделю спокойной работы.
+
+### Откат
+
+Пока не сделан шаг 8 — прежний сайт целиком лежит в `site/`:
+
+```bash
+cd /opt/arisheniaa-site
+for f in Caddyfile build.sh smoke.sh seocheck.sh; do cp -a "$f.before-ph" "$f"; done
+docker compose up -d --force-recreate
+```
+
+После шага 8 — сначала вернуть содержимое: `rsync -a --delete site-before-ph/ site/`
+(именно `rsync` внутрь, а не `mv` каталога: монт держится за inode).
+
+**До включения сторожа** откатить и `master` (`git revert` коммита
+переезда): старый `build.sh` выложит сборку с префиксом `/ph/` в корень, и
+сайт сломается ровно так, как описано в «Главной опасности».
+
+### Открытые вопросы к владелице
+
+- **Звёздочки-индикатор разделов сбоку** (`SectionStars`, Ф29 п.4) на живом
+  сайте не видны с Ф72: секции страницы с тех пор лежат во вложенной
+  обёртке, а индикатор ищет их селектором `main > section` и не находит.
+  Переезд обещан «один в один», поэтому обёртка сохранена и индикатора нет
+  и на `/ph/`. Вернуть — убрать одну обёртку в `App.tsx` (комментарий там).
+- В сборку фото-сайта по-прежнему попадают кадры ветки дизайна и развилки
+  (`public/design/`, `public/gate/`, ~2 МБ). Сайт на них не ссылается;
+  удалить можно, когда сайт дизайнера перестанет брать их отсюда.
 
 ## Где сайт стоит сейчас
 
@@ -253,6 +475,11 @@ systemctl daemon-reload && systemctl enable --now arisheniaa-autodeploy.timer
 одностраничного приложения.
 
 ## ⚠️ Про GitHub Pages отдельно
+
+> С переезда на `/ph` (3 октября 2026) сказанное ниже устарело: сборка уже
+> идёт с `base: '/ph/'`, а пути в коде строятся через `src/base.ts`. Для
+> другого префикса меняется одна строка `base`. Раздел оставлен до дня
+> переезда, чтобы описание совпадало с тем, что сейчас выложено.
 
 Сайт ссылается на свои файлы АБСОЛЮТНЫМИ путями — `/services/…`,
 `/storyboard/manifest.json`. Это верно, когда сайт лежит в корне домена:

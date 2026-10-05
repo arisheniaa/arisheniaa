@@ -1,0 +1,27 @@
+.fx { margin-bottom: 72px; }
+.fx-head { display: grid; gap: 6px; margin-bottom: 18px; }
+.fx-head h2 { margin: 0; font: 400 clamp(32px, 4vw, 52px)/1 'Fraunces Variable', serif; font-variation-settings: 'SOFT' 100; }
+.fx-head p { margin: 0; color: var(--mute); max-width: 70ch; }
+.fx-where { font: 500 12px/1.4 'JetBrains Mono Variable', monospace; letter-spacing: 0.06em; color: var(--accent) !important; }
+.fx-stage { position: relative; border-radius: 20px; box-shadow: 0 0 0 1px var(--line); overflow: hidden; }
+.fx-back { color: var(--accent); text-decoration: none; font: 500 13px/1 'JetBrains Mono Variable', monospace; }
+
+.fx-sig { display: grid; place-items: center; gap: 18px; padding: 48px 16px; color: var(--ink); }
+.fx-sig button, .fx-tabs button {
+  padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink);
+  font: 500 12px/1 'JetBrains Mono Variable', monospace; cursor: pointer;
+}
+.fx-tabs button[aria-pressed='true'] { background: var(--ink); color: var(--bg); }
+.fx-shader { position: relative; height: 60vh; min-height: 360px; background: #000; }
+.fx-par { height: 80vh; min-height: 520px; background: #0b0a09; color: #f2ede4; }
+.fx-par-title { margin: 0; font: 400 clamp(56px, 10vw, 150px)/1 'Fraunces Variable', serif; font-variation-settings: 'SOFT' 100, 'WONK' 1; }
+.fx-gal { height: 70vh; min-height: 460px; background: #0b0a09; }
+.fx-menu { height: 60vh; min-height: 380px; }
+.fx-menu-text { font: 400 clamp(30px, 6vh, 64px)/1 'Fraunces Variable', serif; font-variation-settings: 'SOFT' 100; }
+.fx-menu-pill { width: clamp(70px, 9vh, 110px); height: clamp(120px, 15vh, 190px); border-radius: 12px; }
+.fx-trail { display: grid; gap: 12px; padding: 14px; }
+.fx-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.fx-trail-area { position: relative; height: 60vh; min-height: 380px; border-radius: 14px; overflow: hidden; background: rgb(127 127 127 / 0.08); }
+.fx-trail-area p { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: var(--mute); pointer-events: none; }
+.fx-press { height: clamp(120px, 18vw, 240px); padding: 16px; }
+.fx-press .text-pressure-title { font-family: 'Roboto Flex Variable', sans-serif !important; }

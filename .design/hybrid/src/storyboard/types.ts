@@ -22,6 +22,9 @@ export type PlaceCategory = 'природа' | 'город' | 'студия';
 /** Один экспортированный кадр — ровно то, что лежит в `public/storyboard/manifest.json`. */
 export interface StoryboardPhoto {
   id: string;
+  /** В файле манифеста — путь ОТНОСИТЕЛЬНО сайта (`storyboard/sb-….webp`);
+   *  после загрузки страница заменяет его полным адресом с префиксом `/ph/`
+   *  (`asset()`, `StoryboardApp.tsx`), и дальше по коду ходит уже он. */
   src: string;
   /** реальные пиксельные размеры экспорта — чтобы `<img width height>` не давал прыжков вёрстки */
   w: number;

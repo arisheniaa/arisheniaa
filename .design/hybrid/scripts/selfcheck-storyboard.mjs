@@ -61,8 +61,10 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 
-const BASE = 'http://127.0.0.1:5176/storyboard.html';
-const MAIN = 'http://127.0.0.1:5176/';
+/* Сайт живёт под `/ph/` (переезд 3 октября 2026, `base` в `vite.config.mts`) —
+   dev-сервер отдаёт страницы там же, голый корень в dev теперь 404. */
+const BASE = 'http://127.0.0.1:5176/ph/storyboard.html';
+const MAIN = 'http://127.0.0.1:5176/ph/';
 const RED = process.argv.includes('--redproof');
 const WIDTHS = [360, 375, 390, 768, 1280, 1920];
 

@@ -23,6 +23,13 @@
 
       Те же три строки продублированы в `storyboard.html`: у сборки две
       точки входа, и общей «шапки документа» у них нет.
+
+      Пути здесь корневые (`/favicon.svg`) НАМЕРЕННО, хотя сайт живёт под
+      `/ph/`: значки — это `<link>` в `<head>`, и такие ссылки на файлы из
+      `public/` Vite при сборке сам дописывает префиксом `base`
+      (`vite.config.mts`). В `dist/index.html` они выходят как
+      `/ph/favicon.svg` — проверено по собранному файлу. Дописать `/ph`
+      руками значило бы получить `/ph/ph/…` после сборки.
     -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -36,8 +43,15 @@
       Адрес АБСОЛЮТНЫЙ и с доменом — относительный `canonical` разрешается
       относительно текущего адреса и потому не устраняет ровно ту проблему,
       ради которой ставится.
+
+      `/ph/` — с переезда 3 октября 2026: корень домена отдан сайту
+      дизайнера, фото-сайт живёт здесь. Слэш в конце обязателен: `/ph` без
+      слэша сервер перенаправляет на `/ph/` (`server/Caddyfile`), и canonical
+      на адрес-перенаправление поиск считает ошибкой. Этот адрес и `og:url`
+      ниже Vite НЕ переписывает по `base` — они абсолютные, с доменом, и
+      правятся руками.
     -->
-    <link rel="canonical" href="https://arisheniaa.ru/" />
+    <link rel="canonical" href="https://arisheniaa.ru/ph/" />
     <!--
       КАРТОЧКА ССЫЛКИ (Open Graph). Без этих строк ссылка на сайт в телеграме,
       вотсапе и соцсетях разворачивается голым текстом. Для фотографа это
@@ -62,7 +76,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="arisheniaa" />
     <meta property="og:locale" content="ru_RU" />
-    <meta property="og:url" content="https://arisheniaa.ru/" />
+    <meta property="og:url" content="https://arisheniaa.ru/ph/" />
     <meta
       property="og:title"
       content="arisheniaa · аришения — портретный фотограф, Москва и Тула"
@@ -71,7 +85,7 @@
       property="og:description"
       content="Портретная съёмка на цифру и на плёнку. От 4 000 ₽ за час в Туле, от 6 000 ₽ в Москве. Три жанра съёмки, цены и условия без звёздочек."
     />
-    <meta property="og:image" content="https://arisheniaa.ru/og.jpg" />
+    <meta property="og:image" content="https://arisheniaa.ru/ph/og.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta

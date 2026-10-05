@@ -1,0 +1,297 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { AnimatePresence, motion } from 'motion/react';
+import { SERVICES, type Service, type Shot } from './works';
+import { Draft } from './ui';
+import { MOB_PHONES, Parallax, P, W, type Pos } from '../fx/Parallax';
+
+/**
+ * РАБОТЫ = УСЛУГИ (её правка 5 октября).
+ *
+ * «Блок цен уберём, соединим его с блоком работ. Блок работ сузим до одного
+ * экрана и разобьём на три столбца: личный сайт/лендинг, многостраничник
+ * для компании, разработка брендовой айдентики. Названия — как сейчас
+ * названия сайтов, на полупрозрачном блоке».
+ *
+ * ТРИ СОСТОЯНИЯ, крестик в правом верхнем углу ведёт назад по одному шагу:
+ *   1. три колонки разом — у каждой стеклянная карточка и скрины вокруг;
+ *   2. нажали на услугу — она выходит в центр и растекается на весь экран,
+ *      две другие остаются под ней, «как под стеклом» (полупрозрачный слой
+ *      с размытием поверх страницы). Внутри — тот же параллакс скринов, что
+ *      был у каждой работы, только скрины разных сайтов;
+ *   3. нажали на скрин — он раскрывается крупно с подписью: какой это сайт,
+ *      пара слов о нём и ссылка (`Lightbox.tsx`, поле `cap`).
+ * Esc делает то же, что крестик.
+ *
+ * КАК РАСКРЫВАЕТСЯ. Слой услуги с самого начала размером с окно, а видимую
+ * часть задаёт `clip-path`: сначала это прямоугольник колонки, потом весь
+ * экран. Содержимое не перестраивается по ходу — двигается только маска,
+ * поэтому раскрытие плавное. Карточка с названием летит из своей колонки
+ * в центр (`x`, `y`, `scale` от её прежнего места). Закрытие — то же назад,
+ * к текущему положению колонки.
+ */
+
+/* Скрины вокруг карточки в СВЁРНУТОЙ колонке, в процентах колонки.
+   COL_W — только кадры с ноутбука (компьютер), COL_P — только мобильные
+   (телефон), COL — вперемешку (айдентика: приглашение + сертификат). */
+/* Плотная группа: семь кадров внахлёст вокруг карточки (её правка
+   «больше скринов, меньше пространства между ними, сгруппируй»). */
+const COL_W: Pos[] = [
+  { k: W, top: '0%', left: '4%' },
+  { k: W, top: '4%', right: '0%' },
+  { k: W, top: '24%', left: '-4%' },
+  { k: W, top: '28%', right: '-6%' },
+  { k: W, top: '52%', left: '0%' },
+  { k: W, top: '56%', right: '-2%' },
+  { k: W, top: '74%', left: '22%' },
+];
+const COL_P: Pos[] = [
+  { k: P, top: '2%', left: '1%' },
+  { k: P, top: '30%', right: '1%' },
+  { k: P, top: '6%', right: '18%' },
+  { k: P, top: '40%', left: '14%' },
+];
+const COL: Pos[] = [
+  { k: W, top: '3%', left: '0%' },
+  { k: P, top: '1%', right: '4%' },
+  { k: W, top: '74%', right: '0%' },
+  { k: P, top: '62%', left: '3%' },
+  { k: P, top: '30%', left: '-1%' },
+  { k: P, top: '36%', right: '0%' },
+];
+
+/* Раскрытая услуга на компьютере — десять кадров с ноутбука плотным
+   кольцом вокруг карточки: четыре сверху, по одному по бокам, четыре снизу. */
+const DESK_WIDE: Pos[] = [
+  { k: W, top: '4%', left: '10%' },
+  { k: W, top: '1%', left: '31%' },
+  { k: W, top: '3%', right: '30%' },
+  { k: W, top: '6%', right: '9%' },
+  { k: W, top: '33%', left: '4%' },
+  { k: W, top: '36%', right: '3%' },
+  { k: W, top: '64%', left: '9%' },
+  { k: W, top: '70%', left: '31%' },
+  { k: W, top: '68%', right: '29%' },
+  { k: W, top: '62%', right: '8%' },
+];
+const SITES = { desk: DESK_WIDE, mob: MOB_PHONES };
+
+/* Айдентика: шесть телефонов приглашения и сертификат (лицо и оборот). */
+const BRAND = {
+  desk: [
+    { k: P, top: '4%', left: '26%' },
+    { k: P, top: '36%', left: '17%' },
+    { k: P, top: '60%', left: '28%' },
+    { k: P, top: '6%', right: '25%' },
+    { k: P, top: '34%', right: '16%' },
+    { k: P, top: '60%', right: '28%' },
+    { k: W, top: '2%', left: '39%' },
+    { k: W, top: '72%', left: '39%' },
+  ] as Pos[],
+  mob: [
+    { k: P, top: '3%', left: '4%' },
+    { k: W, top: '5%', right: '3%' },
+    { k: P, top: '2%', left: '36%' },
+    { k: P, top: '72%', left: '5%' },
+    { k: W, top: '78%', right: '3%' },
+    { k: P, top: '70%', left: '38%' },
+  ] as Pos[],
+};
+
+/** Скрины колонки: первые по виду под слоты COL. */
+function thumbs(shots: Shot[], slots: Pos[]) {
+  const wides = shots.filter((x) => x.kind === 'wide');
+  const phones = shots.filter((x) => x.kind === 'phone');
+  const out: { shot: Shot; pos: Pos }[] = [];
+  for (const pos of slots) {
+    const shot = (pos.k === W ? wides : phones).shift();
+    if (shot) out.push({ shot, pos });
+  }
+  return out;
+}
+
+type Open = { s: Service; col: DOMRect; card: DOMRect; back?: { col: DOMRect; card: DOMRect } };
+
+const clip = (r: DOMRect, round = 28) =>
+  `inset(${r.top}px ${window.innerWidth - r.right}px ${window.innerHeight - r.bottom}px ${r.left}px round ${round}px)`;
+const FULL = 'inset(0px 0px 0px 0px round 0px)';
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+/** Откуда лететь карточке: сдвиг её центра от центра окна и масштаб. */
+function from(card: DOMRect) {
+  const tw = Math.min(560, window.innerWidth * 0.86);
+  return {
+    x: card.left + card.width / 2 - window.innerWidth / 2,
+    y: card.top + card.height / 2 - window.innerHeight / 2,
+    scale: card.width / tw,
+  };
+}
+
+export function Services({ tilt = false }: { tilt?: boolean }) {
+  const [open, setOpen] = useState<Open | null>(null);
+  /* Колонка, в которую услуга возвращается: пока идёт обратная анимация,
+     её собственная карточка ещё скрыта — иначе их было бы две. */
+  const [leaving, setLeaving] = useState<string | null>(null);
+  const cols = useRef<Record<string, HTMLDivElement | null>>({});
+  const cards = useRef<Record<string, HTMLDivElement | null>>({});
+  const closeBtn = useRef<HTMLButtonElement>(null);
+  const mobile = useMemo(() => window.matchMedia('(max-width: 767px)').matches, []);
+  /* Кадры услуги для этого экрана: сайты — только своего вида. */
+  const shotsOf = useCallback(
+    (s: Service) => (s.everywhere ? s.shots : s.shots.filter((x) => x.kind === (mobile ? 'phone' : 'wide'))),
+    [mobile],
+  );
+
+  const show = (s: Service) => {
+    const col = cols.current[s.id];
+    const card = cards.current[s.id];
+    if (!col || !card) return;
+    setOpen({ s, col: col.getBoundingClientRect(), card: card.getBoundingClientRect() });
+  };
+
+  const close = useCallback(() => {
+    /* Назад — к ТЕКУЩЕМУ месту колонки (окно могли повернуть или
+       изменить), затем снимаем слой: выход анимируется к этим рамкам. */
+    setOpen((o) => {
+      if (!o) return o;
+      setLeaving(o.s.id);
+      const col = cols.current[o.s.id];
+      const card = cards.current[o.s.id];
+      return col && card ? { ...o, back: { col: col.getBoundingClientRect(), card: card.getBoundingClientRect() } } : o;
+    });
+    requestAnimationFrame(() => setOpen(null));
+  }, []);
+
+  /* Пока услуга раскрыта, страница под ней не листается; Esc — назад. */
+  useEffect(() => {
+    if (!open) return;
+    const html = document.documentElement;
+    const prev = html.style.overflow;
+    html.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
+    window.addEventListener('keydown', onKey);
+    closeBtn.current?.focus({ preventScroll: true });
+    return () => {
+      html.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open?.s.id, close]);
+
+  const last = useRef<string | null>(null);
+  useEffect(() => {
+    if (open) last.current = open.s.id;
+    else if (last.current) {
+      cols.current[last.current]?.focus({ preventScroll: true });
+      last.current = null;
+    }
+  }, [open]);
+
+  return (
+    <>
+      <div className={`svc-grid ${open ? 'is-open' : ''}`}>
+        {SERVICES.map((s) => {
+          const on = open?.s.id === s.id || leaving === s.id;
+          return (
+            <div
+              key={s.id}
+              ref={(el) => {
+                cols.current[s.id] = el;
+              }}
+              className={`svc-col ${on ? 'is-on' : open || leaving ? 'is-under' : ''}`}
+              role="button"
+              tabIndex={0}
+              aria-label={`${s.name} — открыть работы`}
+              onClick={() => show(s)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') (e.preventDefault(), show(s));
+              }}
+            >
+              {thumbs(shotsOf(s), s.everywhere ? COL : mobile ? COL_P : COL_W).map(({ shot, pos }, i) => (
+                <span key={i} className="svc-thumb" style={{ top: pos.top, left: pos.left, right: pos.right }}>
+                  {shot.ph ? (
+                    <span className={`p-frame p-ph ${shot.kind === 'wide' ? 'svc-w' : 'svc-p'}`} />
+                  ) : (
+                    <img src={shot.src} alt="" loading="lazy" decoding="async" draggable={false} className={`p-frame ${shot.kind === 'wide' ? 'svc-w' : 'svc-p'}`} />
+                  )}
+                </span>
+              ))}
+              <div
+                ref={(el) => {
+                  cards.current[s.id] = el;
+                }}
+                className="a-card svc-card"
+              >
+                <h3 className="s-work-name">{s.name}</h3>
+                <p className="s-work-text">
+                  {s.text}
+                  {s.draft && <Draft />}
+                </p>
+                <span className="s-work-link">
+                  смотреть работы <span aria-hidden>→</span>
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Слой — в <body>: внутри `.content` (свой z-index) он оказался бы
+          под шапкой. */}
+      {createPortal(
+      <AnimatePresence onExitComplete={() => setLeaving(null)}>
+        {open && (
+          <motion.div
+            key={open.s.id}
+            className="svc-over"
+            role="dialog"
+            aria-modal="true"
+            aria-label={open.s.name}
+            initial={{ clipPath: clip(open.col) }}
+            animate={{ clipPath: FULL }}
+            exit={{ clipPath: clip(open.back?.col ?? open.col) }}
+            transition={{ duration: 0.75, ease: EASE }}
+          >
+            <Parallax
+              items={shotsOf(open.s)}
+              tilt={tilt}
+              tiltButton={false}
+              slots={open.s.everywhere ? BRAND : SITES}
+              variant={open.s.id === 'multi' ? 'edge-focus' : 'default'}
+              className="svc-par"
+            >
+              <motion.div
+                className="a-card svc-card svc-card-big"
+                initial={from(open.card)}
+                animate={{ x: 0, y: 0, scale: 1 }}
+                exit={from(open.back?.card ?? open.card)}
+                transition={{ duration: 0.75, ease: EASE }}
+              >
+                <h3 className="s-work-name">{open.s.name}</h3>
+                <p className="s-work-text">
+                  {open.s.text}
+                  {open.s.draft && <Draft />}
+                </p>
+                <span className="svc-hint">{open.s.id === 'multi' ? 'работы готовятся' : 'нажмите на скрин, чтобы рассмотреть'}</span>
+              </motion.div>
+            </Parallax>
+            <motion.button
+              ref={closeBtn}
+              type="button"
+              className="svc-close"
+              aria-label="Назад ко всем услугам"
+              onClick={close}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1, transition: { delay: 0.35 } }}
+              exit={{ opacity: 0, transition: { duration: 0.15 } }}
+            >
+              ×
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>,
+      document.body,
+      )}
+    </>
+  );
+}

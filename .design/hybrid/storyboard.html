@@ -10,7 +10,8 @@
     />
     <!-- Значок вкладки (Ф42) — те же три строки, что в `index.html`, вместе
          с объяснением порядка. У сборки две точки входа и общей шапки
-         документа нет, поэтому дублируются намеренно. -->
+         документа нет, поэтому дублируются намеренно. Корневые пути
+         префикс `/ph/` получают при сборке сами — см. `index.html`. -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -22,18 +23,21 @@
          выкинул бы одну из них как дубль другой.
 
          Картинка карточки общая с главной, и это осознанно: своего кадра у
-         этой страницы нет — она собирает раскадровку из чужих. -->
-    <link rel="canonical" href="https://arisheniaa.ru/storyboard.html" />
+         этой страницы нет — она собирает раскадровку из чужих.
+
+         Адреса — под `/ph/` с переезда 3 октября 2026; почему руками, а не
+         через `base` Vite, — там же, в `index.html`. -->
+    <link rel="canonical" href="https://arisheniaa.ru/ph/storyboard.html" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="arisheniaa" />
     <meta property="og:locale" content="ru_RU" />
-    <meta property="og:url" content="https://arisheniaa.ru/storyboard.html" />
+    <meta property="og:url" content="https://arisheniaa.ru/ph/storyboard.html" />
     <meta property="og:title" content="Придумать съёмку · arisheniaa · аришения" />
     <meta
       property="og:description"
       content="Ответьте на несколько вопросов о будущей съёмке — соберу раскадровку из реальных кадров и её можно скачать себе."
     />
-    <meta property="og:image" content="https://arisheniaa.ru/og.jpg" />
+    <meta property="og:image" content="https://arisheniaa.ru/ph/og.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta

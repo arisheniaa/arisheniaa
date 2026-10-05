@@ -1,0 +1,9 @@
+# arisheniaa.ru — корень домена: сайт дизайнера. Фото-сайт — /ph/.
+# Поисковики читают robots.txt только из корня, поэтому здесь обе карты.
+User-agent: *
+Allow: /
+# Пример приглашения для портфолио — не для поиска.
+Disallow: /invite/
+
+Sitemap: https://arisheniaa.ru/sitemap.xml
+Sitemap: https://arisheniaa.ru/ph/sitemap.xml

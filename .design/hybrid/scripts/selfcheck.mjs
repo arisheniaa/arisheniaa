@@ -38,7 +38,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const BASE = 'http://127.0.0.1:5176/';
+/* Сайт живёт под `/ph/` (переезд 3 октября 2026, `base` в `vite.config.mts`) —
+   dev-сервер отдаёт страницы там же, голый корень в dev теперь 404. */
+const BASE = 'http://127.0.0.1:5176/ph/';
 const RED = process.argv.includes('--redproof');
 /* 360 — самый узкий реальный телефон, на нём ломается длинное русское слово.
    375 — названа координатором как ширина, где он вживую увидел прокрутку.
@@ -386,7 +388,7 @@ const browser = await chromium.launch();
      304 × 1.016 = 308 px. Первый прогон этой проверки на этом и провалился —
      мерился масштаб анимации, а не ширина показа. Порог остался 304. */
   const shots = await page.evaluate(() =>
-    [...document.querySelectorAll('img[src^="/services/"]')].map((i) => ({
+    [...document.querySelectorAll('img[src*="/services/"]')].map((i) => ({
       src: i.getAttribute('src'),
       w: i.offsetWidth,
     })),
@@ -399,8 +401,9 @@ const browser = await chromium.launch();
      переживёт следующее изменение числа кадров в веере, но заметит, если
      карточка молча потеряет фотографию. */
   const has = (re) => shots.some((s) => re.test(s.src));
-  const idea = shots.filter((s) => s.src.startsWith('/services/idea/')).length;
-  const film = shots.filter((s) => s.src.startsWith('/services/film/')).length;
+  /* `includes`, а не `startsWith`: у адреса теперь префикс сайта (`/ph/services/…`). */
+  const idea = shots.filter((s) => s.src.includes('/services/idea/')).length;
+  const film = shots.filter((s) => s.src.includes('/services/film/')).length;
   note(
     has(/individualnaya/) && has(/parnaya/) && has(/tvorcheskaya/) && has(/plenka/),
     'все четыре карточки услуг показывают свой кадр (индивидуальная, парная, творческая, плёночная)',
@@ -1224,7 +1227,8 @@ const browser = await chromium.launch();
       const imgs = [...s.querySelectorAll('[data-layer] img')];
       // верхний кадр — единственный со своим alt (`Rack.tsx`), остальные скрыты
       const i = imgs.findIndex((im) => im.getAttribute('alt'));
-      return imgs[i].getAttribute('src').replace('/frames/', '').replace('.webp', '');
+      // всё до `/frames/` включительно — вместе с префиксом сайта `/ph/`
+      return imgs[i].getAttribute('src').replace(/^.*\/frames\//, '').replace('.webp', '');
     });
 
   const b = await stack.boundingBox();

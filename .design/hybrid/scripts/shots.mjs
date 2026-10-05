@@ -28,7 +28,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const BASE = 'http://127.0.0.1:5176/';
+/* Сайт живёт под `/ph/` (переезд 3 октября 2026, `base` в `vite.config.mts`) —
+   dev-сервер отдаёт страницы там же, голый корень в dev теперь 404. */
+const BASE = 'http://127.0.0.1:5176/ph/';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(HERE, '../shots');
 fs.mkdirSync(OUT, { recursive: true });

@@ -20,6 +20,7 @@ import { pickStoryboard } from './pick';
 import type { PickResult } from './pick';
 import { downloadStoryboard } from './download';
 import type { StoryboardPhoto } from './types';
+import { asset } from '../base';
 
 /**
  * ФИЧА «ПРИДУМАТЬ СЪЁМКУ» — `BRIEF-STORYBOARD.md`. Интерактивный бриф →
@@ -77,12 +78,17 @@ function StoryboardPage() {
   const load = () => {
     setLoadError(false);
     setPhotos(null);
-    fetch('/storyboard/manifest.json')
+    /* Адрес манифеста и пути кадров в нём — под префиксом сайта `/ph/`
+       (переезд 3 октября 2026, `src/base.ts`). Пути в манифесте
+       относительные, полным адресом их делает `asset()` здесь, ОДИН раз при
+       загрузке: дальше `src` читают веер, лестница и выгрузка PDF, и ни
+       одному из них не нужно знать про префикс. */
+    fetch(asset('storyboard/manifest.json'))
       .then((r) => {
         if (!r.ok) throw new Error(String(r.status));
         return r.json();
       })
-      .then((data: StoryboardPhoto[]) => setPhotos(data))
+      .then((data: StoryboardPhoto[]) => setPhotos(data.map((p) => ({ ...p, src: asset(p.src) }))))
       .catch(() => setLoadError(true));
   };
 

@@ -1,0 +1,47 @@
+{
+  "name": "designer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Сайт дизайнера arisheniaa — корень arisheniaa.ru (вариант A). Варианты для сравнения — build:variants.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5180 --strictPort",
+    "build": "vite build",
+    "build:variants": "vite build --mode variants",
+    "preview": "vite preview --port 5180 --strictPort",
+    "shots": "node scripts/shots.mjs"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^9.8.1",
+    "@shadergradient/react": "^2.4.20",
+    "gsap": "^3.15.0",
+    "motion": "^14.0.0",
+    "ogl": "^1.0.11",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource-variable/onest": "^5.3.1",
+    "@fontsource-variable/playfair-display": "^5.3.0",
+    "@fontsource-variable/roboto-flex": "^5.3.0",
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@fontsource/golos-text": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
+    "@fontsource/oi": "^5.3.0",
+    "@fontsource/shrikhand": "^5.3.0",
+    "@fontsource/yeseva-one": "^5.3.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "playwright": "^1.63.0",
+    "sharp": "^0.35.5",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2"
+  }
+}

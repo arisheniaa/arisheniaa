@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Приглашение на праздник · пример</title>
+<script>
+  /* Телефон и узкое окно — сразу в приглашение, без рамки. */
+  if (window.innerWidth <= 719) location.replace('m.html');
+</script>
+<style>
+  @font-face { font-family: 'Golos Text'; font-weight: 400; font-display: swap; src: url(assets/golos-text-cyrillic-400-normal.woff2) format('woff2'); unicode-range: U+0400-045F; }
+  @font-face { font-family: 'Golos Text'; font-weight: 400; font-display: swap; src: url(assets/golos-text-latin-400-normal.woff2) format('woff2'); unicode-range: U+0000-00FF; }
+  :root { color-scheme: dark; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; display: grid; place-items: center; gap: 18px;
+    padding-block: 24px; box-sizing: border-box;
+    background: radial-gradient(ellipse at 50% 40%, #2a1c14, #0b0908 70%);
+    color: #f3efe6; font: 400 15px/1.4 'Golos Text', system-ui, sans-serif;
+  }
+  .phone {
+    width: 390px; height: min(844px, calc(100vh - 110px));
+    padding: 12px; border-radius: 54px; background: #0b0b0c;
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 60px 120px -40px rgb(0 0 0 / 0.9), 0 0 140px -20px rgb(224 20 93 / 0.25);
+  }
+  .phone iframe { width: 100%; height: 100%; border: 0; border-radius: 42px; background: #fbf3e4; display: block; }
+  .note { margin: 0; color: rgb(243 239 230 / 0.7); text-align: center; }
+</style>
+</head>
+<body>
+  <div class="phone"><iframe src="m.html" title="Приглашение на праздник"></iframe></div>
+  <p class="note">*это приглашение создано только для мобильной версии</p>
+</body>
+</html>

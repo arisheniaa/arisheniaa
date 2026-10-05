@@ -1,0 +1,110 @@
+/* C «ПЛЁНКА» — кинотитры, перфорация, сильное зерно. */
+:root {
+  --bg: #0b0907;
+  --ink: #efe8da;
+  --ink-soft: rgb(239 232 218 / 0.72);
+  --ink-mute: rgb(239 232 218 / 0.46);
+  --accent: #ff8a2a;
+  --on-accent: #120d08;
+  --line: rgb(239 232 218 / 0.15);
+  --card: rgb(11 9 7 / 0.55);
+  --bar: rgb(11 9 7 / 0.6);
+  --f-title: 'Instrument Serif', 'Times New Roman', serif;
+  --title-ls: -0.02em;
+  --title-size: clamp(64px, 12vw, 190px);
+  --f-ru: 'Playfair Display Variable', 'Times New Roman', serif;
+  --f-body: 'Onest Variable', system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --cutout-fx: drop-shadow(0 0 1px rgb(255 255 255 / 0.55)) drop-shadow(0 0 22px rgb(255 129 10 / 0.22));
+  color-scheme: dark;
+}
+
+/* Перфорация по краям экрана — край плёнки, на котором лежит весь сайт. */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  z-index: 55;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgb(239 232 218 / 0.16) 0 3px, transparent 3.5px) 0 0 / 14px 22px repeat-y;
+}
+body::before { left: 4px; }
+body::after { right: 4px; }
+@media (max-width: 767px) {
+  body::before, body::after { width: 8px; background-size: 8px 16px; }
+}
+
+.c-slogan {
+  margin: 0;
+  font: 400 clamp(46px, 8vw, 128px)/0.92 var(--f-title);
+  letter-spacing: -0.02em;
+}
+.c-slogan em { font-style: italic; color: var(--accent); }
+@media (max-width: 767px) { .c-slogan em { display: block; } }
+.c-h1 { margin: 12px 0 0; font: italic 500 clamp(18px, 1.8vw, 26px)/1.2 var(--f-ru); color: var(--ink-soft); }
+
+.c-edge {
+  margin: 0;
+  font: 500 11px/1 var(--f-mono);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.8;
+}
+.c-intro { padding-block: 20vh 10vh; display: grid; gap: 18px; }
+.c-intro-text { max-width: 24ch; margin: 0; font: italic 500 clamp(30px, 4.2vw, 62px)/1.1 var(--f-ru); text-shadow: 0 2px 30px rgb(0 0 0 / 0.6); }
+
+/* ── лента ── */
+.c-reel { position: relative; }
+.c-reel-pin { position: sticky; top: 0; height: 100svh; overflow: hidden; display: grid; grid-template-columns: minmax(280px, 30vw) 1fr; }
+.c-reel-gallery { position: absolute; inset: 0; }
+.c-reel-caption {
+  position: relative;
+  z-index: 3;
+  align-self: center;
+  margin-left: var(--gutter);
+  padding: 26px 28px;
+  border-radius: 6px;
+  background: rgb(11 9 7 / 0.66);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 0 0 1px var(--line);
+  max-width: 420px;
+}
+.c-edge-l { position: absolute; left: 30px; bottom: 70px; z-index: 3; writing-mode: vertical-rl; transform: rotate(180deg); }
+@media (max-width: 767px) {
+  .c-reel-pin { grid-template-columns: 1fr; align-content: end; }
+  .c-reel-caption { align-self: end; margin: 0 16px 76px; padding: 18px 20px; }
+  .c-reel-caption .s-work-name { font-size: 40px; }
+  .c-edge-l { display: none; }
+}
+
+/* ── след из работ ── */
+.c-trail { position: relative; height: 70vh; min-height: 420px; margin-top: 8vh; border-radius: 6px; box-shadow: 0 0 0 1px var(--line); overflow: hidden; background: rgb(11 9 7 / 0.5); }
+.c-trail-hint {
+  position: absolute; inset: 0; display: grid; place-items: center; margin: 0; pointer-events: none; z-index: 0;
+  font: italic 500 clamp(22px, 3vw, 40px)/1.2 var(--f-ru); color: var(--ink-mute); text-align: center; padding: 0 24px;
+}
+.c-trail .content__img { box-shadow: 0 20px 40px -10px rgb(0 0 0 / 0.6); }
+
+.s-about, .s-prices, .s-contacts { background: linear-gradient(180deg, rgb(11 9 7 / 0) 0%, rgb(11 9 7 / 0.84) 12%, rgb(11 9 7 / 0.94)); }
+
+/* Чат цен — тёмная тема телеграма, потеплённая под вариант. */
+.tg {
+  --tg-bg: #17120e;
+  --tg-pattern: rgb(255 129 10 / 0.08);
+  --tg-head: #211a15;
+  --tg-head-ink: #f3efe6;
+  --tg-mute: #8d8178;
+  --tg-in: #2a221c;
+  --tg-in-ink: #f3efe6;
+  --tg-out: #5a3416;
+  --tg-out-ink: #fff3e6;
+  --tg-meta-out: #ffb27a;
+  --tg-link: #ff9a3d;
+}
+
+/* Окно Telegram Desktop — ночная тема, потеплённая под вариант. */
+.tg-win { --tg-side: #1b1511; --tg-side-ink: #f3efe6; --tg-active: #8a4a1c; --tg-barbg: #241c16; }

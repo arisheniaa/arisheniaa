@@ -1,0 +1,1407 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Приглашение на праздник · пример</title>
+<meta name="robots" content="noindex">
+<style>
+@font-face{font-family:"Golos Text";font-style:normal;font-display:swap;font-weight:400;src:url(assets/golos-text-cyrillic-400-normal.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:"Golos Text";font-style:normal;font-display:swap;font-weight:400;src:url(assets/golos-text-latin-400-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Golos Text";font-style:normal;font-display:swap;font-weight:500;src:url(assets/golos-text-cyrillic-500-normal.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:"Golos Text";font-style:normal;font-display:swap;font-weight:500;src:url(assets/golos-text-latin-500-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Golos Text";font-style:normal;font-display:swap;font-weight:600;src:url(assets/golos-text-cyrillic-600-normal.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:"Golos Text";font-style:normal;font-display:swap;font-weight:600;src:url(assets/golos-text-latin-600-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Golos Text";font-style:normal;font-display:swap;font-weight:700;src:url(assets/golos-text-cyrillic-700-normal.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:"Golos Text";font-style:normal;font-display:swap;font-weight:700;src:url(assets/golos-text-latin-700-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+</style>
+<style>
+/* Рукописный лежит у нас, а не на Google Fonts: он не гугловский. */
+@font-face{
+  font-family: "Rozovii Chulok";
+  src: url(assets/rozovii-chulok.woff2) format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+/* ─────────────────────────────────────────────────────────────
+   Молочная бумага, блоки в гамме «цветовая гамма 6», живопись слоями.
+   Печатный шрифт ведёт всё главное, рукописный оставлен припискам.
+   ───────────────────────────────────────────────────────────── */
+:root{
+  /* Основа страницы — молочная бумага, как под конвертом: её видно
+     сверху и снизу приглашения, когда прокрутка упирается в край. */
+  --fon:       #FBF3E4;
+
+  /* Гамма с «цветовой гаммы 6». Роза взята на тон глубже #EC1763: белый
+     текст на исходной давал контраст 4.31, на этой — 4.74, глазом не
+     отличить. Мох и лайм сняты с картины с угощениями (IMG_4669): мох —
+     полосы на тарелке, лайм — освещённая сторона оливок. */
+  --roza:      #E0145D;
+  --moh:       #535F42;
+  --akva:      #CEEAEE;
+  --zakat:     #F37826;
+  --laym:      #9D9732;
+  /* Sea из «цветовой гаммы 2» — синий для последнего блока */
+  --more:      #6698CC;
+
+  /* Текст прямо на фоне. Цветные блоки переопределяют это у себя. */
+  --na-fone:      #2B2018;
+  --na-fone-soft: #6B5A4A;
+
+  --milk:      #FBF3E4;
+  --milk-deep: #F3E7D2;
+  --cream:     #FFFAF1;
+  --ink:       #2B2018;
+  --ink-soft:  #6B5A4A;
+
+  --azul:      #2F52A8;
+  --azul-pale: #9CC0E8;
+  --rose:      #E0145D;
+  --rose-pale: #F7B6CB;
+  --tangerine: #FF6B35;
+  --saffron:   #FFC53D;
+  --leaf:      #2F7A50;
+
+  --edge:      #E4D6BC;
+  --edge-fon:  rgba(255,244,227,.20);
+
+  /* конверт: коралл по краям, солнечный жёлтый в середине */
+  --kon-kray:  #E84A5F;
+  --kon-sred:  #F5793B;
+  --kon-centr: #FFC53D;
+  --kon-ink:   #45140F;
+
+  --f-hand:    "Rozovii Chulok", "Segoe Script", cursive;
+  --f-base:    "Golos Text", "Segoe UI", system-ui, sans-serif;
+
+  --col: 660px;
+}
+
+*{ box-sizing: border-box; }
+
+html, body{ background: var(--fon); }
+
+body{
+  margin: 0;
+  color: var(--na-fone);
+  font-family: var(--f-base);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+/* Зерно поверх всего — та же плёнка, что на arisheniaa.ru.
+   Шум нарисован инлайновым SVG, поэтому работает и с диска, без сети. */
+body::after{
+  content:"";
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 60;
+  opacity: .22;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.88' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+}
+
+.wrap{ width: min(100% - 40px, var(--col)); margin-inline: auto; position: relative; z-index: 1; }
+
+/* ── КОНВЕРТ ──────────────────────────────────────────────── */
+.stage{
+  position: fixed; inset: 0; z-index: 60;
+  display: grid; place-items: center;
+  /* Вокруг конверта — молочная бумага: красный на ней звучит, а не тонет.
+     Зелень остаётся самому приглашению, которое открывается следом. */
+  background: var(--milk);
+  padding: 22px;
+  border: 0; width: 100%;
+  font: inherit; color: inherit; text-align: inherit;
+  cursor: pointer;
+  transition: opacity .5s ease, visibility .5s;
+}
+.stage:focus-visible{ outline: 2px solid var(--leaf); outline-offset: -10px; }
+.stage-inner{ display: grid; justify-items: center; gap: 22px; perspective: 1400px; }
+
+.konvert{
+  position: relative;
+  width: min(85vw, 380px);
+  aspect-ratio: 1 / 1.2;
+  border-radius: 3px;
+  background: linear-gradient(90deg,
+              var(--kon-kray) 0%, var(--kon-sred) 30%,
+              var(--kon-centr) 50%,
+              var(--kon-sred) 70%, var(--kon-kray) 100%);
+  box-shadow: 0 24px 52px -24px rgba(0,0,0,.55);
+  transform-style: preserve-3d;
+  transition: transform .65s cubic-bezier(.4,0,.2,1), opacity .5s ease;
+  overflow: hidden;
+}
+/* зерно поверх градиента */
+.konvert::after{
+  content:"";
+  position: absolute; inset: 0;
+  background-image: url(assets/zerno.png);
+  background-size: 160px 160px;
+  mix-blend-mode: overlay;
+  opacity: .62;
+  pointer-events: none;
+}
+
+/* Конверт для узких экранов — снимок настоящей красной бумаги, во всю
+   ширину кадра. На широких остаётся рисованный: там он держит разворот. */
+.konvert-foto{ display: none; }
+
+/* Весь текст на конверте — будто белым карандашом: заливка не сплошная,
+   сквозь неё просвечивает бумага. Маска — тот же шум, что и зерно страницы. */
+.foto-dlya, .foto-zov, .foto-sign{
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='k'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 .34 .34 .34 0 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='2.2' intercept='.2'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23k)'/%3E%3C/svg%3E");
+          mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='k'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 .34 .34 .34 0 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='2.2' intercept='.2'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23k)'/%3E%3C/svg%3E");
+  -webkit-mask-size: 230px 230px;
+          mask-size: 230px 230px;
+}
+
+/* Клапан сужается книзу: на 63% высоты он ещё 47% кадра, на 70% — уже 27%.
+   Поэтому блок текста узкий и сидит выше уголка, а не наезжает на него. */
+.foto-text{
+  position: absolute; left: 50%; top: 40%;
+  transform: translateX(-50%);
+  width: min(62%, 300px);
+  display: grid; justify-items: center; gap: 9px;
+  text-align: center; color: #FFFFFF;
+}
+.foto-dlya{
+  font-family: var(--f-hand); font-weight: 400;
+  font-size: clamp(27px, 7.6vw, 36px); line-height: 1; min-height: 1em;
+  /* «для моего любимки!» занимает ровно ширину блока на любом телефоне:
+     и кегль, и блок считаются от ширины экрана. Safari мерит буквы чуть
+     иначе Chrome и перенёс бы строку. На этой высоте клапан ещё во всё
+     фото, так что строке есть куда выйти за край блока. */
+  white-space: nowrap;
+}
+.foto-zov{
+  font-family: var(--f-base); font-weight: 400;
+  font-size: clamp(14px, 3.9vw, 19px); line-height: 1.42;
+  letter-spacing: .015em;
+}
+/* Сердечко вырезано с её картинки как есть, со своим штрихом. Идёт под
+   надписью и по ширине спокойно умещается в сужающийся уголок клапана. */
+.foto-serdce{
+  display: block;
+  width: clamp(38px, 10vw, 50px); height: auto;
+  margin-top: 16px;
+}
+/* Подпись — в левом нижнем углу, как расписываются на обороте письма. */
+.foto-sign{
+  position: absolute; right: 7%; bottom: 5.5%;
+  font-family: var(--f-hand); font-weight: 400;
+  font-size: clamp(18px, 4.8vw, 24px); line-height: 1;
+  color: #FFFFFF;
+}
+@media (max-width: 719px){
+  /* Конверт идёт от края до края, поэтому у сцены убираем боковые поля.
+     Ширину берём процентами, а не 100vw: vw не считается с полосой
+     прокрутки и вылезает за край. */
+  .stage{ padding: 22px 0; }
+  .stage-inner{ width: 100%; }
+  .konvert{ display: none; }
+  .konvert-foto{
+    display: block; position: relative;
+    width: 100%; aspect-ratio: 736 / 910;
+    overflow: hidden;
+    background: #8E1F2A url(assets/konvert-foto.jpg) center/cover no-repeat;
+    transition: transform .65s cubic-bezier(.4,0,.2,1), opacity .5s ease;
+  }
+}
+
+/* клапан: треугольник сверху, на щелчке отгибается */
+.klapan{
+  position: absolute; left: 0; right: 0; top: 0;
+  height: 38%;
+  /* тот же градиент, что у корпуса: ширина совпадает, шва не видно */
+  background: inherit;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: top center;
+  transform: rotateX(0deg);
+  transition: transform .75s cubic-bezier(.4,0,.2,1);
+  backface-visibility: hidden;
+  filter: drop-shadow(0 3px 5px rgba(69,20,15,.3));
+  z-index: 1;
+}
+/* складку рисует лёгкое затемнение к нижнему краю клапана */
+.klapan::before{
+  content:""; position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,.10), rgba(42,49,19,.13));
+}
+.klapan::after{
+  content:""; position: absolute; inset: 0;
+  background-image: url(assets/zerno.png);
+  background-size: 160px 160px;
+  mix-blend-mode: overlay;
+  opacity: .62;
+}
+
+.kon-text{
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 62%;
+  z-index: 2;
+  display: grid; align-content: center; justify-items: center;
+  gap: 13px;
+  padding: 0 26px 26px;
+  text-align: center;
+  color: var(--kon-ink);
+}
+.kon-dlya{
+  font-family: var(--f-hand); font-weight: 400;
+  font-size: clamp(32px, 8vw, 42px);
+  line-height: 1; min-height: 1em;
+}
+.kon-zov{
+  font-family: var(--f-base); font-weight: 600;
+  font-size: clamp(28px, 7.2vw, 38px);
+  line-height: 1.08;
+}
+.kon-msg{
+  font-family: var(--f-base); font-weight: 400;
+  font-size: clamp(11.5px, 2.9vw, 13px);
+  line-height: 1.7; max-width: 26ch;
+}
+.kon-sign{
+  font-family: var(--f-hand); font-weight: 400;
+  font-size: clamp(19px, 4.6vw, 24px);
+  line-height: 1; margin-top: 2px;
+}
+
+.hint{
+  font-family: var(--f-base); font-weight: 400;
+  font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--ink-soft);
+  display: inline-flex; align-items: center; gap: 11px;
+  transition: opacity .3s ease;
+}
+.hint::before, .hint::after{ content:""; width: 22px; height: 1px; background: var(--edge); }
+
+.stage:hover .konvert, .stage:hover .konvert-foto{ transform: translateY(-5px); }
+.stage.is-opening .klapan{ transform: rotateX(-168deg); }
+/* У снимка клапан не отогнуть, поэтому он на щелчке подаётся вперёд —
+   чтобы отклик был сразу, а не через полсекунды вместе с отлётом. */
+.stage.is-opening .konvert-foto{ transform: translateY(-4px) scale(1.03); }
+.stage.is-opening .hint{ opacity: 0; }
+.stage.is-flying .konvert,
+.stage.is-flying .konvert-foto{ transform: translateY(-9%) scale(1.1); opacity: 0; }
+.stage.is-done{ opacity: 0; visibility: hidden; }
+
+/* ── ПРИГЛАШЕНИЕ ──────────────────────────────────────────── */
+.invite{ position: relative; z-index: 1; opacity: 0; transition: opacity .6s ease .1s; }
+.invite.is-in{ opacity: 1; }
+
+section{ position: relative; }
+
+/* Блоки. Цвет текста и акцентов у каждого свой — подобран замером под фон
+   (контраст основного текста: роза 4.74, мох 6.81, аква 12.4, закат 5.6,
+   лайм 5.24; рукописное на мху аквой 5.39, на лайме винным 4.50). overflow-x: clip — картинки, заходящие за край, не дают
+   странице ездить вбок и при этом не создают лишней прокрутки. */
+.blok{ padding: clamp(48px, 9vw, 86px) 0; overflow-x: clip; }
+.blok p{ margin: 0; }
+.fon-roza{ --na-fone:#FFFFFF; --na-fone-soft:#FFFFFF; --rose:#CEEAEE; --saffron:#FFFFFF;
+           background: var(--roza); color: var(--na-fone); }
+.fon-moh{ --na-fone:#FFFFFF; --na-fone-soft:#E6EADF; --rose:#CEEAEE; --saffron:#CEEAEE;
+          background: var(--moh); color: var(--na-fone); }
+.fon-akva{ --na-fone:#1B2140; --na-fone-soft:#3A4668; --rose:#B8104B; --saffron:#5568AF;
+           background: var(--akva); color: var(--na-fone); }
+.fon-zakat{ --na-fone:#2B1406; --na-fone-soft:#4A2410; --rose:#2B1406; --saffron:#2B1406;
+            background: var(--zakat); color: var(--na-fone); }
+/* На Sea белый текст даёт только 3.03, поэтому текст тёмно-синий: 5.27 */
+.fon-more{ --na-fone:#14213D; --na-fone-soft:#2A3A63; --rose:#14213D; --saffron:#14213D;
+           background: var(--more); color: var(--na-fone); }
+.fon-laym{ --na-fone:#1F2410; --na-fone-soft:#2E3A1E; --rose:#5C0A2B; --saffron:#1F2410;
+           background: var(--laym); color: var(--na-fone); }
+
+.tekst{ font-size: clamp(17px, 4.4vw, 19.5px); line-height: 1.58; max-width: 42ch; }
+
+/* заголовок блока */
+.zagolovok{
+  font-family: var(--f-base); font-weight: 600;
+  font-size: clamp(24px, 6vw, 34px); line-height: 1.18;
+  letter-spacing: -.01em; margin: 0 0 12px; text-wrap: balance;
+}
+
+/* рукописная приписка */
+.ot-ruki{
+  font-family: var(--f-hand); font-weight: 400;
+  font-size: clamp(23px, 5.8vw, 31px); line-height: 1.22;
+  color: var(--rose); transform: rotate(-2deg);
+}
+
+/* ── шапка ── */
+.shapka{ text-align: center; padding-top: clamp(68px, 14vw, 116px); }
+.pripis{
+  font-family: var(--f-hand); font-weight: 400;
+  font-size: clamp(29px, 6.8vw, 40px);
+  line-height: 1.1; color: var(--rose);
+  margin: 0 0 10px !important;
+  transform: rotate(-1.4deg);
+}
+.pripis:empty{ display: none; }
+.shapka h1{
+  font-family: var(--f-base); font-weight: 600;
+  font-size: clamp(27px, 5.9vw, 43px);
+  line-height: 1.14; letter-spacing: -.01em;
+  text-wrap: balance; margin: 0;
+}
+/* balance выравнивает длину строк, и последняя не остаётся одним словом */
+.shapka .lede{ max-width: 42ch; margin: 18px auto 0 !important; font-size: 17.5px; text-wrap: balance; }
+/* маленькое уточнение под текстом — у каждого своё, у многих его нет */
+.utochnenie{
+  font-family: var(--f-hand); font-weight: 400;
+  font-size: clamp(19px, 4.6vw, 24px); line-height: 1.2;
+  margin: 12px 0 0 !important; text-align: left; white-space: pre-line;
+  transform: rotate(-1.2deg);
+}
+
+/* Календарь: месяц от руки и неделя с понедельника — третье встаёт
+   предпоследним, и видно, что это суббота. Контур сердца срисован
+   с её образца, цвет задаётся маской. */
+.kalendar{ margin: 34px 0 0; }
+.kalendar-mesyac{
+  font-family: var(--f-hand); font-weight: 400;
+  font-size: clamp(40px, 10vw, 66px); line-height: 1;
+  color: var(--saffron); margin: 0 0 24px !important;
+  transform: rotate(-1.2deg);
+}
+.kalendar-dni{
+  list-style: none; margin: 0; padding: 0;
+  display: flex; justify-content: center; align-items: center;
+  gap: clamp(20px, 5.8vw, 36px);
+  font-family: var(--f-base); font-weight: 500;
+  font-size: clamp(16px, 4.2vw, 21px);
+  color: var(--na-fone-soft);
+}
+.kalendar-dni li{ position: relative; min-width: 1.15em; text-align: center; }
+.den-nash{ color: var(--saffron); font-weight: 600; }
+.den-serdce{
+  position: absolute; left: 50%; top: 33%;
+  transform: translate(-50%, -50%);
+  width: clamp(44px, 12vw, 62px); aspect-ratio: 193 / 207;
+  background-color: var(--rose);
+  -webkit-mask: url(assets/serdce-kontur.png) center / contain no-repeat;
+          mask: url(assets/serdce-kontur.png) center / contain no-repeat;
+  pointer-events: none;
+}
+.skryto{
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ── сцены: фон стоит, вырезанный объект плывёт при прокрутке ──
+   Кадр обрезает объект по своим краям. Объектам во весь кадр
+   (образы, угощения) дан запас по 6% с каждой стороны, иначе при сдвиге
+   у края кадра показывалась бы полоска фона. */
+.scena{ position: relative; }
+.scena-kadr{
+  position: relative; overflow: hidden; border-radius: 8px;
+  box-shadow: 0 30px 60px -34px rgba(0,0,0,.55);
+}
+.scena-fon{ display: block; width: 100%; height: auto; }
+.scena-obekt{ position: absolute; height: auto; will-change: transform; }
+/* В образах и угощениях рисунок упирается в края кадра и стоит ровно как
+   в оригинале (сопоставлено: смещение 0, масштаб 100%). Сдвинь его — у края
+   откроется полоска фона, поэтому плывёт фон под ним. Фону дан запас по 4%
+   сверху и снизу. */
+.plyvet-fon .scena-sloy{ position: relative; z-index: 1; display: block; width: 100%; height: auto; }
+.plyvet-fon .scena-fon{
+  position: absolute; left: 0; top: -4%; width: 100%; height: 108%;
+  object-fit: cover; will-change: transform;
+}
+
+/* лягушка — место и масштаб сняты сопоставлением с оригинальной картинкой */
+.scena-shapka{ width: min(80%, 400px); margin: 40px 0 0; }
+.scena-shapka .scena-obekt{ left: 8.90%; top: 6.70%; width: 86.55%; }
+
+/* ── где и когда ── */
+.scena-stol{ width: min(100%, 560px); margin: 0 auto; }
+/* Картинка целиком плывёт при прокрутке, кружок стоит на месте —
+   поэтому, пока листаешь, он чуть по-разному ложится на свечи. */
+.kartina-plyvet{
+  display: block; width: 100%; height: auto; border-radius: 8px;
+  box-shadow: 0 30px 60px -34px rgba(0,0,0,.55); will-change: transform;
+}
+.gde-kogda .zagolovok{ margin-bottom: 36px; }
+.kruzhok{
+  /* кружок заходит на свечи */
+  position: absolute; left: 3%; top: 4%; width: 50%; aspect-ratio: 1; z-index: 2;
+  display: grid; place-content: center; gap: .25em;
+  /* без полей: проценты полей считались бы от ширины сцены, а не кружка,
+     и текст сжимался бы в середине; кегль и так задан от ширины кружка */
+  padding: 0; border-radius: 50%; container-type: inline-size;
+  background: var(--milk); color: var(--ink); text-align: center;
+  box-shadow: inset 0 0 0 3px var(--roza), 0 20px 44px -22px rgba(0,0,0,.6);
+}
+.kruzhok p{ margin: 0; }
+/* кегль от ширины самого кружка, чтобы текст всегда в него помещался */
+.kruzhok-data{ font-weight: 400; font-size: 14px; font-size: 10.5cqi; line-height: 1.2; }
+.kruzhok-vremya{ font-weight: 400; font-size: 21px; font-size: 15cqi; line-height: 1; letter-spacing: -.01em; }
+.kruzhok-mesto{ font-weight: 400; font-size: 14px; font-size: 10.5cqi; line-height: 1.2; color: var(--roza); }
+
+/* ── дресс-код ── */
+.dress-kod .tekst{ max-width: 36ch; }
+.scena-obrazy{ width: min(88%, 470px); margin: 46px 0 0 auto; }
+/* Образы лежат на клетке как на рисунке4 и плывут, клетка стоит. Ноги
+   упираются в верх и низ кадра, поэтому у слоя продлены крайние строки на
+   67 px (6.02% кадра) — при сдвиге до 14 px видно продолжение ног, а не клетку. */
+.obrazy-obekt{ left: 0; top: -6.02%; width: 100%; }
+/* угощения стоят как в оригинале; плывут сами, фон под ними стоит */
+.scena-tochno{ left: 0; top: 0; width: 100%; }
+.ot-ruki-dress{ margin: 38px 0 0 !important; max-width: 34ch; }
+/* второй абзац прижат к правому краю */
+.dress-dop{ margin: 24px 0 0 auto !important; text-align: right; max-width: 34ch; }
+/* просьба в овальной рамке. Текст в эллипсе занимает примерно 70% ширины
+   и высоты, отсюда большие поля по краям. */
+.oval{
+  margin: 38px auto 0 !important; width: min(100%, 440px);
+  padding: 13% 15%;
+  border-radius: 50%;
+  background: var(--milk); color: var(--ink); text-align: center;
+  font-weight: 500; font-size: clamp(17px, 4.4vw, 19.5px); line-height: 1.5;
+}
+/* каждое предложение с новой строки */
+.oval span{ display: block; text-wrap: balance; }
+/* строка текста, разделённая в сводке « / »: своя строка с ровным переносом */
+.stroka{ display: block; text-wrap: balance; }
+
+/* ── цветы: картина к левому верхнему, текст по диагонали к правому нижнему ── */
+.cvety-kartina{
+  display: block; width: min(74%, 420px); height: auto;
+  margin-left: clamp(-22px, -3vw, 0px); border-radius: 8px;
+  box-shadow: 0 30px 60px -34px rgba(0,0,0,.5); will-change: transform;
+}
+.cvety-tekst{ width: min(84%, 440px); margin: clamp(40px, 8vw, 52px) 0 0 auto; text-align: right; }
+.cvety-tekst .tekst{ margin-left: auto; }
+.cvety-ruki{ margin: 20px auto 0 0 !important; max-width: min(100%, 22em); text-align: left; text-wrap: balance; }
+/* На телефоне текст про букет во всю ширину: строки из сводки вроде
+   «можно взять по одному-трём цветкам,» при 84% не влезали и рвались. */
+@media (max-width: 719px){
+  .cvety-tekst{ width: 100%; }
+}
+
+
+/* тест */
+/* адрес и метро под названием ресторана */
+.adres{ margin: 0 0 16px !important; font-size: clamp(15px, 3.9vw, 17px); color: var(--na-fone-soft); }
+.test-vtoroy{ margin: 14px 0 0 auto !important; text-align: right; max-width: 34ch; }
+.scena-eda{ margin: 30px 0 0; }
+/* Карточка теста наезжает на картинку снизу — слои читаются как стопка. */
+.quiz{
+  --rose: #E0145D;
+  position: relative; z-index: 2;
+  margin: -52px clamp(8px, 3vw, 22px) 0;
+  background: var(--cream); border-radius: 22px;
+  color: var(--ink);
+  padding: clamp(24px, 5vw, 40px);
+  box-shadow: 0 26px 56px -28px rgba(0,0,0,.55);
+}
+.quiz-top{
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; margin-bottom: 22px; padding-bottom: 16px;
+  border-bottom: 1px dashed var(--edge);
+}
+.quiz-step{
+  font-family: var(--f-base); font-weight: 500;
+  font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.pips{ display: flex; gap: 6px; }
+.pip{ width: 7px; height: 7px; border-radius: 50%; background: var(--milk-deep); }
+.pip.on{ background: var(--rose); }
+
+.quiz-q{
+  font-family: var(--f-base); font-weight: 600;
+  font-size: clamp(22px, 4.6vw, 29px); line-height: 1.2;
+  margin: 0 0 6px; text-wrap: balance;
+}
+/* реплика между вопросами — без вариантов ответа, цветом */
+.quiz-q.replika{ color: var(--rose); }
+.quiz-hint{
+  font-family: var(--f-base); font-weight: 400;
+  font-size: 12px; letter-spacing: .08em;
+  color: var(--ink-soft); margin: 0 0 18px;
+}
+
+.opts{ display: grid; gap: 11px; }
+@media (min-width: 560px){
+  .opts.two{ grid-template-columns: 1fr 1fr; }
+  .opts.grid{ grid-template-columns: 1fr 1fr; }
+}
+.opt{
+  position: relative;
+  display: flex; align-items: center; gap: 13px;
+  padding: 14px 18px;
+  border: 1px solid var(--edge); border-radius: 2px;
+  background: var(--milk);
+  font-family: var(--f-base); font-size: 16.5px;
+  color: var(--ink); text-align: left; cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
+}
+.opt:hover{ transform: translateY(-2px); box-shadow: 0 8px 18px -12px rgba(43,32,24,.7); border-color: var(--rose-pale); }
+.opt:focus-visible{ outline: 3px solid var(--azul); outline-offset: 2px; }
+.opt.sel{ background: var(--cream); border-color: var(--rose); box-shadow: inset 0 0 0 1px var(--rose); }
+.opt .box{
+  width: 18px; height: 18px; flex: none;
+  border: 1.5px solid var(--edge); background: #fff; position: relative;
+}
+.opt.round .box{ border-radius: 50%; }
+.opt.sel .box{ border-color: var(--rose); background: var(--rose); }
+.opt.sel .box::after{
+  content:""; position: absolute; inset: 3px;
+  background: var(--cream);
+  clip-path: polygon(14% 46%, 0 60%, 40% 100%, 100% 22%, 86% 8%, 38% 70%);
+}
+.opt.round.sel .box::after{ inset: 4px; border-radius: 50%; clip-path: none; }
+
+.ask{ display: grid; gap: 10px; margin-top: 14px; }
+.ask.off{ display: none; }
+
+.field{
+  width: 100%; padding: 13px 16px;
+  border: 1px solid var(--edge); border-radius: 2px;
+  background: var(--milk);
+  font-family: var(--f-base); font-size: 16.5px; color: var(--ink);
+}
+.field::placeholder{ color: #B2A08C; }
+.field:focus{ outline: 3px solid var(--azul-pale); outline-offset: 1px; border-color: var(--azul); }
+
+.row{ display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 18px; }
+
+.btn{
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 13px 24px; border: 0; border-radius: 999px;
+  background: var(--rose); color: #FFF7FA;
+  font-family: var(--f-base); font-weight: 500; font-size: 15.5px;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease;
+}
+.btn:hover{ transform: translateY(-2px); background: #CE2E5C; }
+.btn:focus-visible{ outline: 3px solid var(--azul); outline-offset: 3px; }
+.btn.ghost{
+  background: transparent; color: var(--ink-soft);
+  border: 1px solid var(--edge); padding: 12px 20px;
+}
+.btn.ghost:hover{ background: var(--milk-deep); color: var(--ink); }
+.btn[disabled]{ opacity: .35; cursor: not-allowed; transform: none; }
+
+/* На итоговом экране вопрос скрыт: раньше у класса off не было правила,
+   и последний вопрос с кнопкой «назад» оставался над «Спасибо за ответы». */
+#qBody.off{ display: none; }
+.card-out{ display: grid; gap: 22px; padding-top: 6px; }
+/* Итог — отдельный экран карточки: шапка со счётчиком уходит, спасибо
+   стоит по центру, под ним кнопка «изменить ответы». */
+.quiz.gotovo .quiz-top{ display: none; }
+.quiz.gotovo .card-out{
+  justify-items: center; text-align: center;
+  padding: clamp(18px, 5vw, 34px) 0 clamp(6px, 2vw, 12px);
+}
+.quiz.gotovo .out-note{ max-width: 18ch; text-wrap: balance; }
+.card-out.off{ display: none; }
+.out-note{
+  font-family: var(--f-base); font-weight: 600;
+  font-size: clamp(22px, 4.6vw, 29px); color: var(--rose); margin: 0; line-height: 1.2;
+}
+.out-paper{
+  width: 100%; min-height: 190px; resize: vertical; padding: 18px;
+  border: 1px solid var(--edge); border-radius: 2px; background: var(--milk);
+  font-family: var(--f-base); font-weight: 400;
+  font-size: 14px; line-height: 1.75; color: var(--ink);
+}
+.out-paper:focus{ outline: 3px solid var(--azul-pale); }
+#qFallback.off{ display: none; }
+.fall-why{ margin: 0 0 12px; color: var(--ink-soft); font-size: 15.5px; }
+
+/* ── вишлист: шар справа за краем, текст слева на его уровне и может на
+   него заходить, сразу под текстом подарки ── */
+.vishlist{ padding-top: clamp(26px, 5vw, 48px); }
+.vishlist .wrap{ display: grid; }
+.diskoshar{
+  grid-area: 1 / 1; justify-self: end; align-self: start;
+  display: block; width: min(64%, 360px); height: auto;
+  margin-right: clamp(-165px, -28vw, -84px);
+}
+.vishlist-tekst{
+  grid-area: 1 / 1; align-self: start; position: relative; z-index: 1;
+  max-width: min(70%, 380px); margin: 0 !important;
+  /* верхнее поле опускает текст к нижней части шара; если текст ниже шара,
+     строка сетки растёт и подарки сдвигаются вниз, а не наезжают */
+  padding-top: clamp(110px, 28vw, 150px);
+  font-size: clamp(18px, 4.7vw, 21px);
+}
+/* На телефоне блок компактный: нижняя половина шара приходится на первые
+   три строки текста. Шар шириной 64% колонки, его радиус — 32%. Три строки
+   (около 26% колонки) короче радиуса, поэтому текст начинается чуть ниже
+   центра шара, на 35.5% ширины колонки, — и строки встают по середине
+   нижней половины. Проверено замером на 375 и 414 px. */
+@media (max-width: 719px){
+  .vishlist-tekst{ padding-top: calc((100vw - 40px) * .355); }
+}
+.ssylka{
+  color: inherit; font-weight: 600;
+  text-decoration: underline; text-decoration-color: currentColor;
+  text-decoration-thickness: 3px; text-underline-offset: 4px;
+}
+.ssylka:hover{ text-decoration-thickness: 4px; }
+/* название ресторана в кружке — тоже ссылка, но линия тоньше: текст мелкий */
+.kruzhok-mesto .ssylka{ font-weight: 400; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.ssylka:focus-visible{ outline: 3px solid currentColor; outline-offset: 3px; border-radius: 3px; }
+/* приписка от руки под шаром — справа, строками как вписана в сводке */
+.vishlist-ruki{ grid-area: 2 / 1; justify-self: end; text-align: right; margin: 18px 4px 0 0 !important; }
+.podarki{ grid-area: 3 / 1; display: block; width: min(88%, 470px); height: auto; margin: 12px auto 0; }
+
+/* личная приписка — только на именной ссылке, у кого она вписана в сводке */
+.pripiska-blok{ padding: clamp(34px, 6vw, 58px) 0 0; text-align: center; }
+.pripiska-label{
+  font-family: var(--f-base); font-weight: 500;
+  font-size: 11.5px; letter-spacing: .26em; text-transform: uppercase;
+  color: var(--na-fone-soft); margin: 0 0 16px;
+}
+.pripiska{
+  font-family: var(--f-hand); font-weight: 400;
+  font-size: clamp(24px, 5.2vw, 34px); line-height: 1.3;
+  color: var(--rose); margin: 0 auto; max-width: 32ch;
+  transform: rotate(-1.1deg); text-wrap: balance;
+}
+
+.foot{ text-align: center; padding: clamp(40px, 8vw, 70px) 0 clamp(60px, 10vw, 100px); }
+.foot .sign{
+  font-family: var(--f-hand); font-weight: 400;
+  font-size: clamp(31px, 7.6vw, 50px); line-height: 1.22;
+  color: var(--roza); margin: 0; transform: rotate(-1.6deg);
+}
+
+/* Rozovii Chulok набирает слова вплотную — «для Викули» слипалось в одно.
+   Правило идёт последним, поэтому перекрывает объявления выше. */
+.kon-dlya, .kon-sign, .pripis, .pripiska, .ot-ruki, .kalendar-mesyac,
+.utochnenie, .foot .sign, .foto-dlya, .foto-sign{
+  word-spacing: .36em;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    animation-duration: .001ms !important;
+    transition-duration: .001ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ═════ КОНВЕРТ ═════ -->
+<button class="stage" id="stage" type="button" aria-label="Открыть приглашение">
+  <span class="stage-inner">
+    <span class="konvert" id="konvert">
+      <span class="klapan"></span>
+      <span class="kon-text">
+        <span class="kon-dlya" id="dlya"></span>
+        <span class="kon-zov" id="zov" data-vy="Приглашаю вас">Приглашаю тебя</span>
+        <span class="kon-msg">на празднование своего 23&#8209;летия</span>
+        <span class="kon-sign">с любовью, Арина</span>
+      </span>
+    </span>
+    <span class="konvert-foto" id="konvertFoto">
+      <span class="foto-text">
+        <span class="foto-dlya" id="dlyaFoto"></span>
+        <span class="foto-zov">Приглашение<br>на празднование<br>дня рождения</span>
+        <img class="foto-serdce" src="assets/serdce.png" alt="">
+      </span>
+      <span class="foto-sign">с любовью, ваша Ариша</span>
+    </span>
+    <span class="hint" id="hint" data-vy="нажмите, чтобы открыть">нажми, чтобы открыть</span>
+  </span>
+</button>
+
+<!-- ═════ ПРИГЛАШЕНИЕ ═════ -->
+<main class="invite" id="invite">
+
+  <section class="blok fon-roza shapka">
+    <div class="wrap">
+      <p class="pripis" id="pripis"></p>
+      <h1>В этом году я праздную свой 23&#8209;й день рождения)</h1>
+      <p class="lede" id="lede" data-vy="Будет очень много цветов, еды и людей, которых я люблю! И я буду очень рада, если вы будете в этот день рядом со мной">Будет очень много цветов, еды и людей, которых я люблю! И&nbsp;я буду очень рада, если ты будешь в&nbsp;этот день рядом со&nbsp;мной</p>
+      <p class="utochnenie" id="utochnenie" hidden></p>
+      <div class="kalendar">
+        <p class="kalendar-mesyac">октябрь</p>
+        <ul class="kalendar-dni">
+          <li class="den-pusto" aria-hidden="true"></li>
+          <li class="den-pusto" aria-hidden="true"></li>
+          <li class="den-pusto" aria-hidden="true"></li>
+          <li>1</li>
+          <li>2</li>
+          <li class="den-nash"><span class="den-serdce" aria-hidden="true"></span>3<span class="skryto"> — суббота, наш день</span></li>
+          <li>4</li>
+        </ul>
+      </div>
+      <div class="scena scena-shapka" data-scena>
+        <div class="scena-kadr">
+          <img class="scena-fon" src="assets/scena-shapka-fon.jpg" alt="" width="840" height="1187">
+          <img class="scena-obekt" src="assets/lyagushka-vyrez.webp" alt="" width="727" height="1020" data-plyvet="0.045">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blok fon-moh gde-kogda">
+    <div class="wrap">
+      <h2 class="zagolovok">Где и когда</h2>
+      <div class="scena scena-stol" data-scena>
+        <img class="kartina-plyvet" src="assets/stol-original.jpg" alt="" width="840" height="1050" data-plyvet="0.05" data-vverh="22" data-vniz="22">
+        <div class="kruzhok">
+          <p class="kruzhok-data">3 октября<br>суббота</p>
+          <p class="kruzhok-vremya">17:00</p>
+          <p class="kruzhok-mesto">ресторан</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blok fon-laym dress-kod">
+    <div class="wrap">
+      <h2 class="zagolovok">Тот самый повод принарядиться:</h2>
+      <p class="tekst" id="dressTekst" data-vy="Надевайте каблуки, платья или костюмы — будем создавать атмосферу праздника с помощью образов!">Надевай каблуки, платье или костюм&nbsp;— будем создавать атмосферу праздника с&nbsp;помощью образов!</p>
+      <div class="scena scena-obrazy" data-scena>
+        <div class="scena-kadr">
+          <img class="scena-fon" src="assets/scena-obrazy-fon.jpg" alt="" width="840" height="1113">
+          <img class="scena-obekt obrazy-obekt" src="assets/obrazy-plyvut.webp" alt="" width="840" height="1247" data-plyvet="0.05" data-vverh="14" data-vniz="14">
+        </div>
+      </div>
+      <p class="ot-ruki ot-ruki-dress">люблю зелёный лягушачий. беспроигрышный вариант&nbsp;— добавить зелёный акцент</p>
+      <p class="tekst dress-dop" id="dressDop" data-vy="А также возьмите с собой удобную сменную одежду, если настрой на продолжение праздника сохранится, но уже в более комфортной обстановке)">А&nbsp;также возьми с&nbsp;собой удобную сменную одежду, если настрой на продолжение праздника сохранится, но уже в&nbsp;более комфортной обстановке)</p>
+      <p class="oval" id="oval" hidden></p>
+    </div>
+  </section>
+
+  <section class="blok fon-akva cvety">
+    <div class="wrap">
+      <div class="scena" data-scena>
+        <img class="cvety-kartina" src="assets/cvety.jpg" alt="" width="860" height="860" data-plyvet="0.05" data-vverh="22" data-vniz="22">
+      </div>
+      <div class="cvety-tekst">
+        <h2 class="zagolovok">Есть идея!</h2>
+        <p class="tekst" id="cvetyTekst" data-vy="Чтобы не покупать букетов — / возьмите по одному-трём цветкам, / с которыми я у вас ассоциируюсь. Мне будет / интересно посмотреть)"><span class="stroka">Чтобы не&nbsp;покупать букетов&nbsp;—</span> <span class="stroka">возьми по&nbsp;одному-трём цветкам,</span> <span class="stroka">с&nbsp;которыми я&nbsp;у&nbsp;тебя ассоциируюсь. Мне&nbsp;будет</span> <span class="stroka">интересно посмотреть)</span></p>
+      </div>
+      <p class="ot-ruki cvety-ruki" id="cvetyRuki">Хотя от&nbsp;букета я&nbsp;бы тоже не&nbsp;отказалась)</p>
+    </div>
+  </section>
+
+  <section class="blok fon-zakat test">
+    <div class="wrap">
+      <h2 class="zagolovok">Начнём мы в&nbsp;ресторане</h2>
+      <p class="tekst" id="testTekst" data-vy="Приходите ко времени, там перекусим, и чуть позже продолжим по адресу Новая, 14. Там поиграем в игры, поболтаем по душам и просто приятно проведём время.">Приходи ко&nbsp;времени, там перекусим, и&nbsp;чуть позже продолжим по&nbsp;адресу Новая,&nbsp;14. Там поиграем в&nbsp;игры, поболтаем по&nbsp;душам и&nbsp;просто приятно проведём время.</p>
+      <p class="tekst test-vtoroy" id="testVtoroy">Хочу приготовить пару блюд, поэтому ниже пара вопросов</p>
+
+      <div class="scena scena-eda" data-scena>
+        <div class="scena-kadr">
+          <img class="scena-fon" src="assets/scena-eda-fon.jpg" alt="" width="840" height="1119">
+          <img class="scena-obekt scena-tochno" src="assets/eda-obekty.webp" alt="" width="840" height="1119" data-plyvet="0.05" data-vverh="12">
+        </div>
+      </div>
+
+      <div class="quiz" id="quiz">
+        <div class="quiz-top">
+          <span class="quiz-step" id="qStep">Вопрос 1</span>
+          <span class="pips" id="qPips"></span>
+        </div>
+
+        <div id="qBody">
+          <h3 class="quiz-q" id="qText"></h3>
+          <p class="quiz-hint" id="qHint"></p>
+          <div class="opts" id="qOpts"></div>
+          <div class="ask off" id="qAsk">
+            <input class="field" id="qAskInput" type="text" autocomplete="off">
+          </div>
+          <div class="row" id="qRow">
+            <button class="btn ghost" id="qBack" type="button">назад</button>
+            <button class="btn" id="qNext" type="button">дальше</button>
+          </div>
+        </div>
+
+        <div class="card-out off" id="qOut">
+          <p class="out-note" id="qNote">Отправляю&hellip;</p>
+          <div id="qFallback" class="off">
+            <p class="fall-why" data-vy="Похоже, пропал интернет. Скопируйте ответы и пришлите мне в чат — запишу руками.">Похоже, пропал интернет. Скопируй ответы и&nbsp;пришли мне в&nbsp;чат&nbsp;— запишу руками.</p>
+            <textarea class="out-paper" id="qText2" readonly aria-label="Твои ответы"></textarea>
+            <div class="row">
+              <button class="btn" id="qCopy" type="button">скопировать ответы</button>
+            </div>
+          </div>
+          <div class="row">
+            <button class="btn ghost" id="qAgain" type="button">изменить ответы</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blok fon-more vishlist">
+    <div class="wrap">
+      <h2 class="skryto">Про подарки</h2>
+      <img class="diskoshar" src="assets/diskoshar.webp" alt="" width="720" height="719">
+      <p class="tekst vishlist-tekst">Кстати, по&nbsp;поводу подарков! Чтобы не&nbsp;ломать голову&nbsp;— прикрепляю <a class="ssylka" href="https://followish.io/mywishlist/soipliis4x01by" target="_blank" rel="noopener">вишлист</a>.<br>Там есть возможность забронировать подарок, что упрощает выбор</p>
+      <p class="ot-ruki vishlist-ruki" id="vishlistRuki" hidden></p>
+      <img class="podarki" src="assets/podarki.webp" alt="" width="576" height="358">
+    </div>
+  </section>
+
+  <section class="pripiska-blok" id="pripiskaBlok" hidden>
+    <div class="wrap">
+      <p class="pripiska-label">от меня лично</p>
+      <p class="pripiska" id="pripiska"></p>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap">
+      <p class="sign">люблю, целую, жду!<br>до встречи 3 октября</p>
+    </div>
+  </footer>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var CHISTOE = /^[A-Za-zА-Яа-яЁё0-9 '’.\-]{1,60}$/;
+
+  var SLUG = "";
+
+  function imyaIzSsylki(){
+    var n = "";
+    try{
+      var m = /[?&]g=([^&#]+)/.exec(window.location.search);
+      if (m) n = decodeURIComponent(m[1].replace(/\+/g, " "));
+      if (!n && window.location.hash){
+        var h = window.location.hash.slice(1);
+        var m2 = /^g=(.+)$/.exec(h);
+        n = decodeURIComponent((m2 ? m2[1] : h).replace(/\+/g, " "));
+      }
+    }catch(e){ n = ""; }
+    n = (n || "").trim();
+    return CHISTOE.test(n) ? n : "";
+  }
+
+  var GUEST = "";
+  var DLYA = "";
+  var PRIPISKA = "";
+  var OBRASHCHENIE = "";
+  var UTOCHNENIE = "";
+  var SHAPKA = "";
+  var DRESSKOD = "";
+  var VY = false;
+  var SVOI = {};   // свои тексты блоков: поле из сводки -> текст
+
+  var elDlya        = document.getElementById("dlya");
+  var elDlyaFoto    = document.getElementById("dlyaFoto");
+  var elPripis      = document.getElementById("pripis");
+  var elPripiska    = document.getElementById("pripiska");
+  var elPripiskaBlok = document.getElementById("pripiskaBlok");
+  var elUtochnenie  = document.getElementById("utochnenie");
+  var elLede        = document.getElementById("lede");
+  var elDressTekst  = document.getElementById("dressTekst");
+  var elQText2      = document.getElementById("qText2");
+
+  // Поле гостя -> элемент страницы. Пустое поле оставляет обычный текст;
+  // у овала и приписки под шаром обычного текста нет — без поля их не видно.
+  var BLOKI = [
+    { pole: "dressdop",     id: "dressDop" },
+    { pole: "mylnitsy",     id: "oval",         skryt: true, stroki: true },
+    { pole: "cvety",        id: "cvetyTekst" },
+    { pole: "cvetyruki",    id: "cvetyRuki" },
+    { pole: "test",         id: "testTekst" },
+    { pole: "test2",        id: "testVtoroy" },
+    { pole: "vishlistruki", id: "vishlistRuki", skryt: true }
+  ];
+
+  // Тексты из сводки пишутся в одну строку, « / » в них — перенос.
+  // Каждая часть становится своей строкой-span с выравниванием переноса:
+  // на телефоне длинная часть не влезает в ширину, и жёсткий <br> оставлял
+  // бы одно слово на строке («цветкам,»), а так она делится поровну.
+  function vstavit(el, tekst){
+    var chasti = String(tekst).split(/\s*\/\s*|\n/)
+      .map(function(s){ return nerazryv(s.trim()); }).filter(Boolean);
+    el.textContent = "";
+    if (chasti.length === 1){
+      el.appendChild(document.createTextNode(chasti[0]));
+      return;
+    }
+    chasti.forEach(function(ch, i){
+      var sp = document.createElement("span");
+      sp.className = "stroka";
+      sp.textContent = ch;
+      el.appendChild(sp);
+      if (i < chasti.length - 1) el.appendChild(document.createTextNode(" "));
+    });
+  }
+  function ty(naTy, naVy){ return VY ? naVy : naTy; }
+
+  // Короткие слова и тире не оставляем на краю строки — так набран и весь
+  // остальной текст страницы, а строки из сводки приходят с обычными пробелами.
+  function nerazryv(t){
+    var s = String(t);
+    for (var i = 0; i < 2; i++){
+      s = s.replace(/(^|[\s(«"])([А-Яа-яЁё]{1,2})[ ]+/g, "$1$2\u00A0");
+    }
+    s = s.replace(/[ ]+—/g, "\u00A0—");
+    // Короткое последнее слово не уходит на строку одно («дома:)»).
+    return s.replace(/ ([^ \u00A0]{1,8})$/, "\u00A0$1");
+  }
+
+  function pokazatImya(){
+    if (!GUEST) return;
+    var nadpis = DLYA || ("для " + GUEST);
+    elDlya.textContent = nadpis;
+    if (elDlyaFoto) elDlyaFoto.textContent = nadpis;
+    // Обращение вписывается в сводке («Дорогая Викуля!», «Любимый!»);
+    // пока его нет — просто имя.
+    elPripis.textContent = OBRASHCHENIE || (GUEST + "!");
+    // Сначала обычные тексты переводятся на «вы», потом поверх встают
+    // свои тексты гостя — вписанное руками важнее.
+    if (VY){
+      Array.prototype.forEach.call(document.querySelectorAll("[data-vy]"), function(el){
+        vstavit(el, el.getAttribute("data-vy"));
+      });
+      if (elQText2) elQText2.setAttribute("aria-label", "Ваши ответы");
+    }
+    BLOKI.forEach(function(b){
+      var el = document.getElementById(b.id);
+      if (!el || !SVOI[b.pole]) return;
+      vstavit(el, SVOI[b.pole], b.stroki);
+      if (b.skryt) el.hidden = false;
+    });
+    if (UTOCHNENIE && elUtochnenie){
+      // « / » в сводке означает перенос: там поле в одну строку.
+      elUtochnenie.textContent = UTOCHNENIE.split(/\s*\/\s*|\n/)
+        .map(function(s){ return nerazryv(s.trim()); })
+        .filter(Boolean).join("\n");
+      elUtochnenie.hidden = false;
+    }
+    // Свой абзац под заголовком и свой текст дресс-кода есть не у всех —
+    // без них остаются обычные.
+    if (SHAPKA && elLede) elLede.textContent = nerazryv(SHAPKA);
+    if (DRESSKOD && elDressTekst) elDressTekst.textContent = nerazryv(DRESSKOD);
+    // Приписка пишется в сводке и есть не у каждого — без неё блок не показывается вовсе.
+    if (PRIPISKA && elPripiska){
+      elPripiska.textContent = PRIPISKA;
+      elPripiskaBlok.hidden = false;
+    }
+  }
+
+  /* Имя спрашиваем у сервера, но не держим страницу дольше трёх секунд. */
+  function uznatImya(dalshe){
+    if (!SLUG || GUEST) return dalshe();
+    var zhdyom = setTimeout(function(){ zhdyom = 0; dalshe(); }, 3000);
+    fetch("/api/gost?slug=" + encodeURIComponent(SLUG), { cache: "no-store" })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if (d && d.imya && CHISTOE.test(d.imya)) GUEST = d.imya;
+        if (d && d.dlya) DLYA = d.dlya;
+        if (d && d.pripiska) PRIPISKA = String(d.pripiska).slice(0, 240);
+        if (d && d.obrashchenie) OBRASHCHENIE = String(d.obrashchenie).slice(0, 60);
+        if (d && d.utochnenie) UTOCHNENIE = String(d.utochnenie).slice(0, 120);
+        if (d && d.shapka) SHAPKA = String(d.shapka).slice(0, 300);
+        if (d && d.dresskod) DRESSKOD = String(d.dresskod).slice(0, 300);
+        if (d && d.vy) VY = true;
+        if (d) BLOKI.forEach(function(b){
+          if (d[b.pole]) SVOI[b.pole] = String(d[b.pole]).slice(0, 400);
+        });
+      })
+      .catch(function(){})
+      .then(function(){ if (zhdyom){ clearTimeout(zhdyom); dalshe(); } });
+  }
+
+  /* ── конверт ── */
+  var stage  = document.getElementById("stage");
+  var invite = document.getElementById("invite");
+  var otkryt = false;
+
+  function otkryvaem(){
+    if (otkryt) return;
+    otkryt = true;
+    if (reduce){
+      stage.classList.add("is-done");
+      stage.style.display = "none";
+      invite.classList.add("is-in");
+      return;
+    }
+    stage.classList.add("is-opening");
+    setTimeout(function(){ stage.classList.add("is-flying"); }, 620);
+    setTimeout(function(){
+      stage.classList.add("is-done");
+      invite.classList.add("is-in");
+      window.scrollTo(0, 0);
+    }, 1180);
+    setTimeout(function(){ stage.style.display = "none"; }, 1760);
+  }
+  stage.addEventListener("click", otkryvaem);
+
+  /* ── тест ──────────────────────────────────────────────
+     Чтобы добавить вопрос — допиши объект в QUIZ.
+       kind:"pick"   один вариант   (ask — доп. поле, go — куда идти дальше;
+                                     без ask переход сразу по нажатию)
+       kind:"multi"  несколько      (solo:true — вариант, снимающий остальные)
+       kind:"info"   реплика без ответа, только кнопка «дальше»
+       etap          номер темы для счётчика «Вопрос N из 4»: ветки
+                     одной темы (рыба/шашлык) идут под одним номером
+       go:"end"      переход к итогу
+     Имя не спрашиваем: у каждого гостя именная ссылка.
+     ────────────────────────────────────────────────────── */
+  var QUIZ = [
+    { id:"fish", kind:"pick", etap:1, label:"Рыба",
+      q:"Хочу приготовить тунца с Мальдивских островов. Кушаешь рыбу?",
+      qVy:"Хочу приготовить тунца с Мальдивских островов. Кушаете рыбу?",
+      opts:[ {v:"люблю рыбу", go:"garnir"}, {v:"редко, но ем", go:"garnir"},
+             {v:"нет, совсем не ем", go:"chicken"} ] },
+
+    { id:"chicken", kind:"pick", etap:1, label:"Шашлык",
+      q:"Тогда приготовлю куриный шашлычок. Тебе подойдёт?",
+      qVy:"Тогда приготовлю куриный шашлычок. Вам подойдёт?",
+      opts:[ {v:"да, супер", go:"garnir"}, {v:"может, есть ещё вариант?", go:"pizza"} ] },
+
+    { id:"garnir", kind:"info", etap:1, go:"pizza",
+      q:"на гарнир приготовлю тогда пюре)" },
+
+    { id:"pizza", kind:"multi", etap:2, grid:true, label:"Пицца", go:"drinks", pre:"не люблю ",
+      q:"Будет старая добрая пицца. Что ты не любишь, чтобы было в ней?",
+      qVy:"Будет старая добрая пицца. Что вы не любите, чтобы было в ней?", hint:"можно выбрать несколько",
+      opts:[ {v:"грибы"}, {v:"мясо"}, {v:"помидоры"}, {v:"ананасы"},
+             {v:"острое"}, {v:"рыбу"}, {v:"ем всё", solo:true} ] },
+
+    { id:"drinks", kind:"pick", etap:3, two:true, label:"Напитки",
+      q:"Так, а что по напиткам?",
+      opts:[ {v:"что-то алкогольное", go:"alcY"}, {v:"что-то безалкогольное", go:"alcN"} ] },
+
+    { id:"alcY", kind:"pick", etap:3, label:"Алкоголь", go:"dessert",
+      q:"Что предпочитаешь?", qVy:"Что предпочитаете?",
+      opts:[ {v:"пиво"}, {v:"белое вино"}, {v:"красное вино"}, {v:"крепкий алкоголь"} ] },
+
+    { id:"alcN", kind:"pick", etap:3, label:"Без алкоголя", go:"dessert",
+      q:"Что предпочитаешь?", qVy:"Что предпочитаете?",
+      opts:[ {v:"сок", ask:"какой сок?"}, {v:"люблю газировки", ask:"какие газировки?"} ] },
+
+    { id:"dessert", kind:"pick", etap:4, label:"Десерт", go:"end",
+      q:"Хочу запечь камамбер с грушами, а также будет тортик. Но, может, тебе хочется чего-то больше?",
+      qVy:"Хочу запечь камамбер с грушами, а также будет тортик. Но, может, вам хочется чего-то больше?",
+      opts:[ {v:"больше камамбер с грушами"}, {v:"больше тортик"}, {v:"хочется и то, и другое"} ] }
+  ];
+
+  var qStep = document.getElementById("qStep");
+  var qPips = document.getElementById("qPips");
+  var qText = document.getElementById("qText");
+  var qHint = document.getElementById("qHint");
+  var qOpts = document.getElementById("qOpts");
+  var qAsk  = document.getElementById("qAsk");
+  var qAskI = document.getElementById("qAskInput");
+  var qBack = document.getElementById("qBack");
+  var qNext = document.getElementById("qNext");
+  var qBody = document.getElementById("qBody");
+  var qQuiz = document.getElementById("quiz");
+  var qOut  = document.getElementById("qOut");
+  var qNote = document.getElementById("qNote");
+  var qFall = document.getElementById("qFallback");
+  var qOutT = document.getElementById("qText2");
+  var qCopy = document.getElementById("qCopy");
+  var qAgain= document.getElementById("qAgain");
+
+  var STORE = "invite-2026-10-03-v6";
+  var START, TOTAL, answers, trail, picked, chosen;
+
+  function byId(id){
+    for (var i = 0; i < QUIZ.length; i++) if (QUIZ[i].id === id) return QUIZ[i];
+    return null;
+  }
+  function save(){
+    try{ localStorage.setItem(STORE, JSON.stringify({ a: answers, t: trail })); }catch(e){}
+  }
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORE);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
+  function drawPips(done){
+    qPips.innerHTML = "";
+    for (var i = 0; i < TOTAL; i++){
+      var s = document.createElement("span");
+      s.className = "pip" + (i < done ? " on" : "");
+      qPips.appendChild(s);
+    }
+  }
+  function makeOpt(o, round){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "opt" + (round ? " round" : "");
+    var box = document.createElement("span");
+    box.className = "box";
+    var txt = document.createElement("span");
+    txt.textContent = o.v;
+    b.appendChild(box); b.appendChild(txt);
+    return b;
+  }
+
+  function render(){
+    var q = byId(trail[trail.length - 1]);
+    if (!q) return finish(false);
+
+    qBody.classList.remove("off");
+    qQuiz.classList.remove("gotovo");
+    qOut.classList.add("off");
+
+    qStep.textContent = "Вопрос " + q.etap + " из " + TOTAL;
+    drawPips(q.etap);
+
+    qText.textContent = (VY && q.qVy) || q.q;
+    qText.className = "quiz-q" + (q.kind === "info" ? " replika" : "");
+    qHint.textContent = q.hint || "";
+    qOpts.innerHTML = "";
+    qOpts.className = "opts" + (q.two ? " two" : "") + (q.grid ? " grid" : "");
+    qAsk.classList.add("off");
+    qAskI.value = "";
+    picked = null;
+    chosen = [];
+    qBack.style.display = trail.length > 1 ? "" : "none";
+    qNext.disabled = false;
+
+    if (q.kind === "info"){
+      qNext.style.display = "";
+      return;
+    }
+
+    if (q.kind === "text"){
+      var inp = document.createElement("input");
+      inp.className = "field";
+      inp.type = "text";
+      inp.placeholder = q.ph || "";
+      inp.autocomplete = "off";
+      inp.value = answers[q.id] ? answers[q.id].v : "";
+      inp.addEventListener("keydown", function(e){
+        if (e.key === "Enter"){ e.preventDefault(); qNext.click(); }
+      });
+      qOpts.appendChild(inp);
+      qNext.style.display = "";
+      setTimeout(function(){ inp.focus(); }, 40);
+      return;
+    }
+
+    if (q.kind === "multi"){
+      qNext.style.display = "";
+      qNext.disabled = true;
+      q.opts.forEach(function(o){
+        var b = makeOpt(o, false);
+        b.addEventListener("click", function(){
+          var on = b.classList.toggle("sel");
+          if (on){
+            Array.prototype.forEach.call(qOpts.children, function(c, i){
+              if (c === b) return;
+              if (o.solo || (q.opts[i] && q.opts[i].solo)) c.classList.remove("sel");
+            });
+          }
+          chosen = [];
+          Array.prototype.forEach.call(qOpts.children, function(c, i){
+            if (c.classList.contains("sel")) chosen.push(q.opts[i].v);
+          });
+          qNext.disabled = chosen.length === 0;
+        });
+        qOpts.appendChild(b);
+      });
+      return;
+    }
+
+    qNext.style.display = "none";
+    q.opts.forEach(function(o){
+      var b = makeOpt(o, true);
+      b.addEventListener("click", function(){
+        Array.prototype.forEach.call(qOpts.children, function(c){ c.classList.remove("sel"); });
+        b.classList.add("sel");
+        picked = o;
+        if (o.ask){
+          qAsk.classList.remove("off");
+          qAskI.placeholder = o.ask;
+          qNext.style.display = "";
+          setTimeout(function(){ qAskI.focus(); }, 40);
+        } else {
+          qAsk.classList.add("off");
+          qNext.style.display = "none";
+          setTimeout(step, 220);
+        }
+      });
+      qOpts.appendChild(b);
+    });
+  }
+
+  function step(){
+    var q = byId(trail[trail.length - 1]);
+
+    if (q.kind === "info"){
+      // реплика без ответа — просто идём по её go
+    } else if (q.kind === "text"){
+      var val = qOpts.querySelector("input");
+      answers[q.id] = { label: q.label, v: (val && val.value.trim()) || "" };
+    } else if (q.kind === "multi"){
+      if (!chosen.length) return;
+      var soloOnly = chosen.length === 1 && q.opts.some(function(o){
+        return o.solo && o.v === chosen[0];
+      });
+      answers[q.id] = {
+        label: q.label,
+        v: soloOnly ? chosen[0] : (q.pre || "") + chosen.join(", "),
+        spisok: soloOnly ? [] : chosen.slice()
+      };
+    } else {
+      if (!picked) return;
+      var extra = qAskI.value.trim();
+      answers[q.id] = { label: q.label, v: picked.v + (picked.ask && extra ? " — " + extra : "") };
+    }
+
+    var nextId = (picked && picked.go) || q.go;
+    if (!nextId){
+      var i = QUIZ.indexOf(q);
+      nextId = QUIZ[i + 1] ? QUIZ[i + 1].id : "end";
+    }
+    if (nextId === "end"){ save(); return finish(true); }
+
+    trail.push(nextId);
+    save();
+    render();
+  }
+
+  function sobrat(){
+    var pary = [];
+    for (var k = 0; k < trail.length; k++){
+      var a = answers[trail[k]];
+      if (a && a.v) pary.push([trail[k], a.label, a.v, a.spisok || null]);
+    }
+    return pary;
+  }
+
+  function finish(svezhee){
+    qBody.classList.add("off");
+    qOut.classList.remove("off");
+    qStep.textContent = "Готово";
+    drawPips(TOTAL);
+    qQuiz.classList.add("gotovo");
+
+    var pary = sobrat();
+    var lines = ["Приду 3 октября!" + (GUEST ? " — " + GUEST : ""), ""];
+    pary.forEach(function(p){ lines.push(p[1] + ": " + p[2]); });
+    qOutT.value = lines.join("\n");
+    qOutT.style.height = "auto";
+    qOutT.style.height = Math.max(190, qOutT.scrollHeight + 8) + "px";
+
+    if (svezhee) otpravit(pary);
+    else {
+      qNote.textContent = ty("Ответы уже у меня. Если что-то изменилось — поменяй, я увижу.",
+         "Ответы уже у меня. Если что-то изменилось — поменяйте, я увижу.");
+      qFall.classList.add("off");
+    }
+  }
+
+  function otpravit(pary){
+    qNote.textContent = "Спасибо за ответы! Всё записала)";
+    qFall.classList.add("off");
+  }
+
+  qNext.addEventListener("click", step);
+  qBack.addEventListener("click", function(){
+    if (trail.length < 2) return;
+    trail.pop();
+    save();
+    render();
+  });
+  qAgain.addEventListener("click", function(){
+    answers = {};
+    trail = [START];
+    picked = null; chosen = [];
+    try{ localStorage.removeItem(STORE); }catch(e){}
+    render();
+  });
+  qCopy.addEventListener("click", function(){
+    qOutT.focus();
+    qOutT.select();
+    var ok = false;
+    try{ ok = document.execCommand("copy"); }catch(e){}
+    if (!ok && navigator.clipboard){
+      navigator.clipboard.writeText(qOutT.value).then(function(){
+        qCopy.textContent = "скопировано";
+        setTimeout(function(){ qCopy.textContent = "скопировать ответы"; }, 1800);
+      }).catch(function(){ qCopy.textContent = ty("выдели текст и скопируй", "выделите текст и скопируйте"); });
+      return;
+    }
+    qCopy.textContent = ok ? "скопировано" : ty("выдели текст и скопируй", "выделите текст и скопируйте");
+    setTimeout(function(){ qCopy.textContent = "скопировать ответы"; }, 1800);
+  });
+
+  /* ── запуск ── */
+  uznatImya(function(){
+    pokazatImya();
+
+    START = "fish";
+    TOTAL = 4;
+    answers = {};
+    trail = [START];
+    picked = null;
+    chosen = [];
+
+    var saved = load();
+    if (saved && saved.a && saved.t && saved.t.length){
+      answers = saved.a;
+      trail = saved.t;
+      var last = byId(trail[trail.length - 1]);
+      if (last && answers[last.id] && last.go === "end") return finish(false);
+    }
+    render();
+  });
+})();
+</script>
+<script>
+/* Сцены из двух слоёв: фон стоит, объект плывёт медленнее страницы.
+   Приём тот же, что у звёзд на arisheniaa.ru: scrollY, requestAnimationFrame
+   и translate3d. Меряем неподвижную сцену, а двигаем объект внутри неё —
+   мерить сдвинутый объект значило бы гнаться за собственным сдвигом.
+   Сила сдвига у каждого объекта своя, в data-plyvet. */
+(function(){
+  "use strict";
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  var sceny = Array.prototype.map.call(document.querySelectorAll("[data-scena]"), function(s){
+    return {
+      scena: s,
+      obekty: Array.prototype.map.call(s.querySelectorAll("[data-plyvet]"), function(el){
+        // data-vverh / data-vniz — предел сдвига в пикселях. У угощений тень
+        // бокала касается нижнего края кадра, и выше 12 px под ней мелькнул бы
+        // фон. Целые картинки не обрезаны кадром — без предела они наезжали бы
+        // на заголовок и текст рядом.
+        return { el: el, k: parseFloat(el.getAttribute("data-plyvet")) || 0.04,
+                 vverh: parseFloat(el.getAttribute("data-vverh")) || Infinity,
+                 vniz: parseFloat(el.getAttribute("data-vniz")) || Infinity };
+      })
+    };
+  });
+  if (!sceny.length) return;
+
+  var zhdyom = false;
+  function risuem(){
+    zhdyom = false;
+    var vh = window.innerHeight;
+    sceny.forEach(function(s){
+      var r = s.scena.getBoundingClientRect();
+      if (r.bottom < -vh || r.top > 2 * vh) return;      // далеко за экраном — не трогаем
+      var mimo = r.top + r.height / 2 - vh / 2;
+      s.obekty.forEach(function(o){
+        var sdvig = Math.min(o.vniz, Math.max(-o.vverh, -mimo * o.k));
+        o.el.style.transform = "translate3d(0," + sdvig.toFixed(2) + "px,0)";
+      });
+    });
+  }
+  function tolkaem(){
+    if (zhdyom) return;
+    zhdyom = true;
+    requestAnimationFrame(risuem);
+  }
+  window.addEventListener("scroll", tolkaem, { passive: true });
+  window.addEventListener("resize", tolkaem);
+  window.addEventListener("load", tolkaem);
+  risuem();
+})();
+</script>
+</body>
+</html>

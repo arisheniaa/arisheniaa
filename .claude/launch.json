@@ -4,7 +4,12 @@
     {
       "name": "direction-c",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", ".design/directions/c"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        ".design/directions/c"
+      ],
       "port": 5175
     },
     {
@@ -15,8 +20,24 @@
     {
       "name": "hybrid",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", ".design/hybrid"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        ".design/hybrid"
+      ],
       "port": 5176
+    },
+    {
+      "name": "designer",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        ".design/designer"
+      ],
+      "port": 5180
     }
   ]
 }

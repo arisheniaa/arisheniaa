@@ -1,0 +1,57 @@
+/* B «ДНЕВНОЙ СВЕТ» — бумага, пастельный шейдер, чёрная дидона. */
+:root {
+  --bg: #f1ebe0;
+  --ink: #1b1814;
+  --ink-soft: rgb(27 24 20 / 0.72);
+  --ink-mute: rgb(27 24 20 / 0.48);
+  --accent: #e8650a;
+  --on-accent: #fff;
+  --line: rgb(27 24 20 / 0.16);
+  --card: rgb(241 235 224 / 0.6);
+  --bar: rgb(241 235 224 / 0.72);
+  --hint: rgb(27 24 20 / 0.55);
+  --f-title: 'Yeseva One', 'Times New Roman', serif;
+  --title-ls: -0.01em;
+  --title-size: clamp(52px, 9vw, 150px);
+  --f-ru: 'Yeseva One', 'Times New Roman', serif;
+  --ru-style: normal;
+  --f-body: 'Onest Variable', system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  color-scheme: light;
+}
+
+/* Text Pressure: две строки слогана на всю ширину. Сам заголовок слоя
+   `pointer-events: none`, а курсор компонент слушает на window — работает. */
+.b-press { width: min(600px, 88vw); display: grid; gap: 0; }
+/* Размер букв Text Pressure считает от ширины: ширина/(знаков/2). При
+   600 px это ~110 px на «Retro soul,» и ~90 px на «modern vision». */
+.b-press-line { height: clamp(44px, 7vw, 104px); }
+.b-press .text-pressure-title { font-family: 'Roboto Flex Variable', sans-serif !important; }
+.b-h1 { margin: 14px 0 0; font: 400 clamp(18px, 1.8vw, 26px)/1.2 var(--f-ru); color: var(--ink-soft); }
+
+.b-intro { padding-block: 18vh 12vh; }
+.b-intro p { max-width: 24ch; margin: 0; font: 400 clamp(30px, 4.2vw, 60px)/1.1 var(--f-ru); }
+
+/* ── общий параллакс работ ── */
+.b-par { height: 110svh; min-height: 680px; }
+.b-par-head { text-align: center; padding: 28px 34px; border-radius: 28px; background: rgb(241 235 224 / 0.7); backdrop-filter: blur(16px); }
+.b-par-title { margin: 8px 0 6px; font: 400 clamp(64px, 11vw, 180px)/0.9 var(--f-title); letter-spacing: -0.01em; }
+.b-par-head p { margin: 0; color: var(--ink-soft); font: 400 18px/1.4 var(--f-body); }
+.b-works .p-frame { box-shadow: 0 30px 60px -25px rgb(60 40 20 / 0.45), 0 0 0 1px rgb(27 24 20 / 0.08); }
+
+/* ── flowing menu ── */
+.b-menu { height: clamp(420px, 70vh, 640px); border-block: 1px solid var(--line); background: rgb(241 235 224 / 0.82); backdrop-filter: blur(10px); }
+.b-menu-text { font: 400 clamp(34px, 6.4vh, 72px)/1 var(--f-title); }
+.b-menu-pill { width: clamp(160px, 22vh, 260px); height: clamp(90px, 12vh, 150px); border-radius: 14px; }
+.b-menu-note { padding-block: 18px 0; color: var(--ink-mute); font-size: 14px; }
+
+/* Разделы прозрачные: под ними шейдер, уже бледный (restOpacity 0.28) —
+   основа остаётся светлой, но живой. Сплошная бумага только у меню. */
+.s-about { padding-top: 4vh; }
+
+@media (max-width: 767px) {
+  /* Высота строки — от размера, который Text Pressure посчитает из ширины. */
+  .b-press-line { height: calc(88vw / 5.4); }
+  .b-menu-text { font-size: clamp(26px, 8vw, 40px); }
+  .b-menu-pill { width: 90px; height: 56px; }
+}

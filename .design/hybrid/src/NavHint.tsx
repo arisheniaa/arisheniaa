@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { asset } from './base';
 
 /**
  * СТРЕЛКА-ПОДСКАЗКА НА «ПРИДУМАТЬ СЪЁМКУ» — задание редакции 4 фичи
@@ -196,7 +197,10 @@ function NavHintTag() {
   return (
     <a
       ref={ref}
-      href="/storyboard.html"
+      /* под префиксом сайта `/ph/` — `base.ts`; компонент сейчас не
+         рендерится (Ф64), но при возврате обязан вести на свой сайт, а не
+         в корень домена */
+      href={asset('storyboard.html')}
       className="nav-hint"
       style={{ left: left ?? pos.left, top: pos.top }}
     >
