@@ -958,14 +958,18 @@ img {
       прокрутка, и, как и он, не заставляет браузер перерисовывать пятно.
    2. Оттенок всего градиента уходит по ходу прокрутки на ~40° по кругу:
       наверху тёплый оранжевый, к низу — в розово-лиловую сторону. Это один
-      фильтр на слой фона, считается видеокартой при сведении слоёв. */
-.mesh { filter: hue-rotate(calc(var(--sp) * 40deg)) saturate(calc(1 + var(--sp) * 0.15)); }
-.m-orange { animation: mesh-drift-a 29s ease-in-out infinite alternate; }
-.m-ember { animation: mesh-drift-b 23s ease-in-out infinite alternate; }
-.m-teal { animation: mesh-drift-c 33s ease-in-out infinite alternate; }
-.m-lav { animation: mesh-drift-b 37s ease-in-out infinite alternate-reverse; }
-.m-teal2 { animation: mesh-drift-a 26s ease-in-out infinite alternate-reverse; }
-.mesh-band { animation: mesh-drift-c 31s ease-in-out infinite alternate; }
+      фильтр на слой фона, считается видеокартой при сведении слоёв.
+   Только на телефоне: на компьютере фон — как до этой правки (её правка
+   «на десктопе верни прежнюю версию, мобильную не трогай»). */
+@media (max-width: 767px) {
+  .mesh { filter: hue-rotate(calc(var(--sp) * 40deg)) saturate(calc(1 + var(--sp) * 0.15)); }
+  .m-orange { animation: mesh-drift-a 29s ease-in-out infinite alternate; }
+  .m-ember { animation: mesh-drift-b 23s ease-in-out infinite alternate; }
+  .m-teal { animation: mesh-drift-c 33s ease-in-out infinite alternate; }
+  .m-lav { animation: mesh-drift-b 37s ease-in-out infinite alternate-reverse; }
+  .m-teal2 { animation: mesh-drift-a 26s ease-in-out infinite alternate-reverse; }
+  .mesh-band { animation: mesh-drift-c 31s ease-in-out infinite alternate; }
+}
 @keyframes mesh-drift-a { from { translate: -5vmax -3vmax; } to { translate: 6vmax 4vmax; } }
 @keyframes mesh-drift-b { from { translate: 4vmax -5vmax; } to { translate: -6vmax 5vmax; } }
 @keyframes mesh-drift-c { from { translate: -3vmax 5vmax; } to { translate: 5vmax -4vmax; } }

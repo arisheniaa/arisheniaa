@@ -6,8 +6,6 @@ import '@fontsource-variable/onest';
 import '@fontsource-variable/jetbrains-mono';
 import '../shared/base.css';
 import './a.css';
-/* Последним: размеры и отступы от эталона Full HD (её правка 5 октября). */
-import '../shared/fluid.css';
 import { mount } from '../shared/mount';
 import { copy } from '../shared/copy';
 import { DeviceHero } from '../shared/DeviceHero';
@@ -48,12 +46,15 @@ function A() {
       <DeviceHero
         /* Компьютер — ноутбук, который не разбирается: камера наезжает на
            него целиком. Телефон — телефон: лежит, поворачивается экраном,
-           экран растёт (её правки 5 октября). Надписи «листайте» нет. */
+           экран растёт (её правки 5 октября). Надпись «листайте» — только
+           на компьютере: остальной компьютер вернулся к виду до этих правок
+           (её правка 5 октября, телефон не трогается). */
         device={device}
         zoomWhole
         fx={fx === 'shader' ? 'mesh' : fx}
         glow
         titleHug={40}
+        hint={device === 'laptop' ? copy.hero.scroll : undefined}
         title={
           <>
             <p className="a-slogan" lang="en">

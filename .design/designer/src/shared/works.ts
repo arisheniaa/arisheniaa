@@ -95,13 +95,18 @@ export type Shot = { src: string; kind: 'wide' | 'phone'; cap?: { name: string; 
 /** `everywhere` — показывать все кадры на любом экране (приглашение есть
  *  только мобильное, сертификат — печатный). У остальных услуг на
  *  компьютере — только кадры с ноутбука, на телефоне — только мобильные
- *  (её правка 5 октября). */
-export type Service = { id: string; name: string; text: string; draft: boolean; everywhere?: boolean; shots: Shot[] };
+ *  (её правка 5 октября). `desk` — свой набор для компьютера: там остались
+ *  кадры до правок 5 октября (её правка «на десктопе верни прежнюю версию,
+ *  мобильную не трогай»), `shots` — телефонные. */
+export type Service = { id: string; name: string; text: string; draft: boolean; everywhere?: boolean; shots: Shot[]; desk?: Shot[] };
 
 const byId = (id: string) => WORKS.find((x) => x.id === id)!;
 const capOf = (x: Work) => ({ name: x.name, text: x.text, href: x.href });
 const wideOf = (id: string, k: number): Shot => ({ src: byId(id).wide[k], kind: 'wide', cap: capOf(byId(id)) });
 const phoneOf = (id: string, k: number): Shot => ({ src: byId(id).phone[k], kind: 'phone', cap: capOf(byId(id)) });
+/** Кадр приглашения по номеру файла, а не по месту в списке (список
+ *  переставлен под телефон). */
+const inviteOf = (n: number): Shot => ({ src: w(`invite-m-${n}`), kind: 'phone', cap: capOf(byId('invite')) });
 const blank = (kind: 'wide' | 'phone', ph: string, n: number): Shot => ({ src: `ph-${ph}-${kind}-${n}`, kind, ph });
 /* Сертификат на фотосессию «Юлия и Данила» — её печатная работа
    (`Claude Projects/сертификаты`, вариант 7), снят scripts/capture-cert.mjs. */
@@ -128,6 +133,9 @@ export const SERVICES: Service[] = [
         [`arisheniaa`, 2], [`toto`, 8], [`elegia`, 2], [`toto`, 9], [`toto`, 10], [`arisheniaa`, 3]]
         .map(([id, k]) => phoneOf(id as string, k as number)),
     ],
+    /* Компьютер — прежние пятнадцать кадров с ноутбука, по пять страниц
+       каждого сайта вперемешку. */
+    desk: [0, 1, 2, 3, 4].flatMap((k) => [wideOf('arisheniaa', k), wideOf('toto', k), wideOf('elegia', k)]),
   },
   {
     id: 'multi',
@@ -138,6 +146,7 @@ export const SERVICES: Service[] = [
       ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((n) => blank('wide', 'скоро', n)),
       ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => blank('phone', 'скоро', n)),
     ],
+    desk: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => blank('wide', 'скоро', n)),
   },
   {
     id: 'brand',
@@ -148,6 +157,12 @@ export const SERVICES: Service[] = [
     shots: [
       { src: w('cert-front'), kind: 'wide', cap: CERT },
       ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((k) => phoneOf('invite', k)),
+      { src: w('cert-back'), kind: 'wide', cap: CERT },
+    ],
+    /* Компьютер — её шесть скриншотов приглашения и сертификат. */
+    desk: [
+      { src: w('cert-front'), kind: 'wide', cap: CERT },
+      ...[0, 1, 2, 3, 4, 5].map(inviteOf),
       { src: w('cert-back'), kind: 'wide', cap: CERT },
     ],
   },
