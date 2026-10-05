@@ -48,6 +48,16 @@ npm run dev --prefix .design/designer
 - **Работы** — `src/shared/works.ts`; кадры в `public/works`. Приглашение снято
   `scripts/capture-invite.mjs` с локальной копии `Приглашения/sayt`.
 
+## На сайте (с 5 октября 2026)
+
+Вариант A — главная arisheniaa.ru. `npm run build` собирает только её
+(`index.html` → вариант A) и `public/`; так сайт собирает сервер
+(`server/build.sh`, каталог `site/root/`). Все варианты для сравнения и
+артефакта на claude.ai — `npm run build:variants` (оглавление —
+`variants.html`). Проверка под заголовками сервера — `scripts/csp-check.mjs`,
+боевого сайта — `scripts/live-check.mjs`. Выкладка — пуш в `master`
+(сторож на сервере, DEPLOY.md).
+
 ## Вариант A — выбран (4 октября 2026)
 
 Правки после выбора — BRIEF.md, раздел «Выбор: вариант A». Новые части:
