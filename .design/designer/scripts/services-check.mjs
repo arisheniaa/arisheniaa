@@ -7,10 +7,10 @@ import sharp from 'sharp';
 const browser = await chromium.launch({ args: ['--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist'] });
 const rows = [];
 const errors = [];
-for (const [w, h, dpr] of [[1920, 947, 1], [1536, 730, 1], [390, 844, 2]]) {
+for (const [w, h, dpr] of [[1920, 950, 1], [1536, 730, 1], [390, 844, 2]]) {
   const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: dpr });
   page.on('pageerror', (e) => errors.push(String(e)));
-  await page.goto('http://127.0.0.1:5181/a.html#works', { waitUntil: 'load' });
+  await page.goto('http://127.0.0.1:5181/index.html#works', { waitUntil: 'load' });
   await page.waitForSelector('.svc-col', { timeout: 20000 });
   await page.evaluate(() => document.getElementById('works').scrollIntoView());
   await page.waitForTimeout(3500);

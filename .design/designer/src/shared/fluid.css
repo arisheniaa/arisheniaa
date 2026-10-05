@@ -1,0 +1,69 @@
+/* ── ЭТАЛОН FULL HD (её правка 5 октября) ──────────────────────────────
+   «Адаптируй размеры блоков контента и расстояние между ними, включая
+   межблоковое, под разрешение, с которого смотрят. За эталон — Full HD».
+
+   Единица `--px` — один пиксель Full HD, пересчитанный на нынешнее окно:
+   эталонное окно браузера на Full HD — 1920×950, и масштаб берётся по
+   меньшей из сторон, чтобы блок, который на Full HD занимает экран, и
+   здесь помещался в экран. На Full HD `--px` = 1px, и всё стоит ровно как
+   было; на ноутбуке 1536×730 — 0,77px; на 2560×1440 — 1,33px.
+
+   Каждое число ниже — ЗАМЕР на Full HD (`scripts/measure-fhd.mjs`), а не
+   прикидка. Высота «экранного» блока — тоже в `--px` (950 эталонных), поэтому
+   и расстояния МЕЖДУ блоками на любом окне — те же, что на Full HD, в
+   пропорции. Телефон (уже 768px) не трогается: у него своя вёрстка. */
+@media (min-width: 768px) {
+  :root {
+    --px: min(calc(100vw / 1920), calc(100svh / 950));
+    --gutter: calc(56 * var(--px));
+    --measure: calc(1240 * var(--px));
+  }
+
+  /* шапка */
+  .topbar { padding: calc(14 * var(--px)) var(--gutter); gap: calc(16 * var(--px)); }
+  .topnav { font-size: calc(13 * var(--px)); gap: calc(28 * var(--px)); }
+  .topbar-logo > span { width: calc(128 * var(--px)); }
+  .topbar-star { width: calc(18 * var(--px)); height: calc(18 * var(--px)); }
+
+  /* вступление */
+  .a-intro { padding-block: calc(171 * var(--px)) calc(95 * var(--px)); }
+  .a-intro p { font-size: calc(52 * var(--px)); }
+
+  /* работы = услуги */
+  .svc { min-height: calc(950 * var(--px)); padding-block: calc(95 * var(--px)) calc(38 * var(--px)); }
+  .svc-grid { gap: calc(36 * var(--px)); }
+  .svc-col { min-height: calc(589 * var(--px)); }
+  .svc-w { width: calc(278 * var(--px)); border-radius: calc(10 * var(--px)); }
+  .svc-p { width: calc(119 * var(--px)); border-radius: calc(12 * var(--px)); }
+  .a-card.svc-card { padding: calc(34 * var(--px)); border-radius: calc(22 * var(--px)); }
+  .a-card.svc-card .s-work-name { font-size: calc(26 * var(--px)); margin-bottom: calc(12 * var(--px)); }
+  .a-card.svc-card .s-work-text { font-size: calc(15 * var(--px)); line-height: 1.5; margin-bottom: calc(20 * var(--px)); }
+  .svc-card .s-work-link { font-size: calc(14 * var(--px)); padding: calc(11 * var(--px)) calc(18 * var(--px)); }
+
+  /* раскрытая услуга */
+  .svc-par .p-wide { width: calc(365 * var(--px)); border-radius: calc(10 * var(--px)); }
+  .svc-par .p-phone { width: calc(184 * var(--px)); border-radius: calc(14 * var(--px)); }
+  .a-card.svc-card-big { width: calc(560 * var(--px)); }
+  .a-card.svc-card-big .s-work-name { font-size: calc(54 * var(--px)); }
+  .a-card.svc-card-big .s-work-text { font-size: calc(16 * var(--px)); }
+  .svc-hint { font-size: calc(11 * var(--px)); margin-top: calc(14 * var(--px)); }
+  .svc-close { width: calc(48 * var(--px)); height: calc(48 * var(--px)); font-size: calc(28 * var(--px)); }
+
+  /* скрин крупно — подпись */
+  .lb-cap { width: calc(560 * var(--px)); }
+  .lb-cap-name { font-size: calc(38 * var(--px)); }
+  .lb-cap-text { font-size: calc(14 * var(--px)); }
+  .lb-cap-link { font-size: calc(13 * var(--px)); padding: calc(9 * var(--px)) calc(16 * var(--px)); }
+
+  /* обо мне и контакты — «экранные» блоки */
+  .s-screen { min-height: calc(950 * var(--px)); padding-block: calc(85.5 * var(--px)) calc(57 * var(--px)); }
+  .s-about-grid { gap: calc(80 * var(--px)); }
+  .s-about-lead { font-size: calc(52 * var(--px)); }
+  .s-about-text p:not(.s-about-lead) { font-size: calc(18 * var(--px)); }
+  .s-about-ph { font-size: calc(13 * var(--px)); }
+  .s-finale-in { gap: calc(38 * var(--px)); }
+  .s-finale-line { font-size: calc(64 * var(--px)); }
+  .s-finale-sig { width: calc(560 * var(--px)); }
+  .s-finale-links { gap: calc(12 * var(--px)); }
+  .s-finale-links a { font-size: calc(15 * var(--px)); padding: calc(12 * var(--px)) calc(20 * var(--px)); }
+}

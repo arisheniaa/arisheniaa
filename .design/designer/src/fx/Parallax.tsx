@@ -30,7 +30,9 @@ import { motion, useMotionValue, useScroll, useSpring, useTransform, type Motion
  *  скрина пустая рамка-заглушка с этой надписью (работы ещё готовятся). */
 export type PItem = { src: string; kind: 'wide' | 'phone'; alt?: string; cap?: Cap; ph?: string };
 
-export type Pos = { top: string; left?: string; right?: string; k: 'wide' | 'phone' };
+/** `c: true` — `top`/`left` задают ЦЕНТР кадра, а не его угол (раскладка
+ *  по овалу вокруг карточки во вкладке услуг). */
+export type Pos = { top: string; left?: string; right?: string; k: 'wide' | 'phone'; c?: boolean };
 export const W = 'wide' as const;
 export const P = 'phone' as const;
 /* Слоты в процентах блока. Центр (≈38–62% по ширине) — под карточкой.
@@ -257,7 +259,7 @@ const Frame = memo(function Frame({
   if (item.ph)
     return (
       <motion.div
-        className="p-btn absolute"
+        className={`p-btn absolute ${pos.c ? 'is-c' : ''}`}
         style={{ top: pos.top, left: pos.left, right: pos.right, x, y, zIndex: Math.round(depth * 10) }}
         initial={{ opacity: 0, scale: 0.9 }}
         whileInView={{ opacity: 1, scale: 1 }}
@@ -271,7 +273,7 @@ const Frame = memo(function Frame({
     <motion.button
       type="button"
       aria-label="Открыть скрин крупно"
-      className="p-btn absolute"
+      className={`p-btn absolute ${pos.c ? 'is-c' : ''}`}
       onClick={(e) => onOpen(e.currentTarget.querySelector('img') ?? e.currentTarget)}
       style={{ top: pos.top, left: pos.left, right: pos.right, x, y, zIndex: Math.round(depth * 10) }}
       initial={{ opacity: 0, scale: 0.9 }}

@@ -6,6 +6,8 @@ import '@fontsource-variable/onest';
 import '@fontsource-variable/jetbrains-mono';
 import '../shared/base.css';
 import './a.css';
+/* Последним: размеры и отступы от эталона Full HD (её правка 5 октября). */
+import '../shared/fluid.css';
 import { mount } from '../shared/mount';
 import { copy } from '../shared/copy';
 import { DeviceHero } from '../shared/DeviceHero';
@@ -36,7 +38,7 @@ import { CalmVeil } from '../shared/CalmVeil';
  * стекла и дальних кадров. Разбор и замеры — README.
  */
 function A() {
-  const { fx, tilt } = useMode('full');
+  const { device, fx, tilt } = useMode('full');
   return (
     <LightboxProvider>
       <FilmFx grain={0.12} leak={0} vignette={0.5} />
@@ -44,12 +46,14 @@ function A() {
       <Topbar />
       <div id="top" />
       <DeviceHero
-        /* Ноутбук на любой ширине (её правка: «вижу айфон вместо ноутбука»). */
-        device="laptop"
+        /* Компьютер — ноутбук, который не разбирается: камера наезжает на
+           него целиком. Телефон — телефон: лежит, поворачивается экраном,
+           экран растёт (её правки 5 октября). Надписи «листайте» нет. */
+        device={device}
+        zoomWhole
         fx={fx === 'shader' ? 'mesh' : fx}
         glow
         titleHug={40}
-        hint={copy.hero.scroll}
         title={
           <>
             <p className="a-slogan" lang="en">

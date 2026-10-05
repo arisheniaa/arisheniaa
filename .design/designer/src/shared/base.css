@@ -917,16 +917,22 @@ img {
 }
 .lb-cap-link:hover { background: var(--accent); }
 
-/* Телефон: три услуги строками, в каждой — карточка с названием и пара
-   скринов по бокам. Описание — в раскрытой услуге. */
+/* Телефон (её правка 5 октября): услуги друг под другом, каждая — почти
+   на весь экран. Стеклянная плашка крупнее и с описанием, вокруг — восемь
+   кадров. Раскрытая услуга: кадры по овалу к центру, карточка чуть уже,
+   чтобы кадры по бокам были видны. */
 @media (max-width: 767px) {
-  .svc-grid { grid-template-columns: 1fr; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 12px; }
-  .svc-col { min-height: 0; height: max(170px, calc((100svh - 220px) / 3)); }
-  .svc-card { width: 74%; padding: 14px 16px; }
-  .a-card.svc-card .s-work-name { font-size: clamp(20px, 8cqi, 30px); }
-  .svc-col .s-work-text, .svc-col .s-work-link { display: none; }
-  .svc-w { width: 34vw; }
-  .svc-p { width: 15vw; }
+  .svc { min-height: 0; }
+  .svc-grid { grid-template-columns: 1fr; grid-template-rows: none; gap: 4svh; }
+  .svc-col { min-height: 0; height: 86svh; }
+  .a-card.svc-card { width: 80%; padding: 22px 20px; }
+  .a-card.svc-card .s-work-name { font-size: clamp(26px, 9cqi, 34px); }
+  .a-card.svc-card .s-work-text { font-size: 15px; line-height: 1.45; }
+  .svc-w { width: 46vw; }
+  .svc-p { width: 25vw; }
+  .svc-par .p-phone { width: 22vw; }
+  .svc-par .p-wide { width: 44vw; }
+  .a-card.svc-card-big { width: 80vw; }
 }
 
 /* «Обо мне»: заголовок небольшой и по правому краю, текст — по середине
@@ -934,3 +940,35 @@ img {
 .s-about .s-title { --title-size: clamp(45px, 4.2vw, 69px); }
 .s-about .s-head { justify-items: end; text-align: right; }
 .s-about .s-about-grid { align-items: center; }
+
+/* Кадр, заданный центром (овал вокруг карточки услуги): сдвиг на половину
+   своего размера. Отдельное свойство `translate`, чтобы не спорить с
+   transform, которым motion двигает кадр от мыши и прокрутки. */
+.p-btn.is-c { translate: -50% -50%; }
+
+/* Сцена с ноутбуком целиком (DeviceHero, zoomWhole): наезд «камерой»
+   масштабирует эту обёртку, а перспектива для крышки и корпуса — её. */
+.device-zoom { position: absolute; inset: 0; perspective: 1500px; perspective-origin: 50% -15%; will-change: transform; }
+
+/* ── живой фон (её правка 5 октября: «сделай фон динамичным, чтобы по ходу
+   скролла он немного менялся в оттенках») ──────────────────────────────
+   1. Пятна медленно плывут сами — у каждого свой ритм (23–37 с), туда и
+      обратно, поэтому общий рисунок не повторяется. Двигается отдельное
+      свойство `translate`: оно складывается с transform, который задаёт
+      прокрутка, и, как и он, не заставляет браузер перерисовывать пятно.
+   2. Оттенок всего градиента уходит по ходу прокрутки на ~40° по кругу:
+      наверху тёплый оранжевый, к низу — в розово-лиловую сторону. Это один
+      фильтр на слой фона, считается видеокартой при сведении слоёв. */
+.mesh { filter: hue-rotate(calc(var(--sp) * 40deg)) saturate(calc(1 + var(--sp) * 0.15)); }
+.m-orange { animation: mesh-drift-a 29s ease-in-out infinite alternate; }
+.m-ember { animation: mesh-drift-b 23s ease-in-out infinite alternate; }
+.m-teal { animation: mesh-drift-c 33s ease-in-out infinite alternate; }
+.m-lav { animation: mesh-drift-b 37s ease-in-out infinite alternate-reverse; }
+.m-teal2 { animation: mesh-drift-a 26s ease-in-out infinite alternate-reverse; }
+.mesh-band { animation: mesh-drift-c 31s ease-in-out infinite alternate; }
+@keyframes mesh-drift-a { from { translate: -5vmax -3vmax; } to { translate: 6vmax 4vmax; } }
+@keyframes mesh-drift-b { from { translate: 4vmax -5vmax; } to { translate: -6vmax 5vmax; } }
+@keyframes mesh-drift-c { from { translate: -3vmax 5vmax; } to { translate: 5vmax -4vmax; } }
+@media (prefers-reduced-motion: reduce) {
+  .mesh-spot, .mesh-band { animation: none; }
+}

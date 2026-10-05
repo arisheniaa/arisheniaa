@@ -42,6 +42,7 @@ export function DeviceHero({
   titleSpace = 0.28,
   glow = false,
   titleHug,
+  zoomWhole = false,
   onProgress,
 }: {
   title: ReactNode;
@@ -65,6 +66,11 @@ export function DeviceHero({
    *  видимого верха крышки (вариант A, её правка: «спусти Retro soul поближе
    *  к ноутбуку» — в окне артефакта заголовок наезжал на шапку). */
   titleHug?: number;
+  /** Ноутбук не разбирается: экран не отрывается от клавиатуры, а «камера»
+   *  наезжает на ноутбук целиком, пока экран не закроет окно (вариант A,
+   *  её правка 5 октября: «не отсоединяй экран от клавиатуры — пусть
+   *  картинка ноутбука остаётся ею же, просто увеличивай экран»). */
+  zoomWhole?: boolean;
   onProgress?: (p: number) => void;
 }) {
   const [{ W, H }, setSize] = useState(() => ({ W: window.innerWidth, H: window.innerHeight }));
@@ -117,9 +123,19 @@ export function DeviceHero({
 
   const rot = useTransform(p, [0, 0.32], [a0, 0]);
   const tilt = useTransform(p, [0, 0.32], [phone ? -7 : 0, 0]);
-  const sx = useTransform(p, [0.36, 0.92], [s0x, 1]);
-  const sy = useTransform(p, [0.36, 0.92], [s0y, 1]);
-  const y = useTransform(p, [0.36, 0.92], [hingeY - H, 0]);
+  /* Наезд камерой (zoomWhole): крышка и корпус остаются как в открытом
+     виде, растёт вся сцена — от центра экрана, пока экран не накроет окно
+     целиком (по большей из сторон), и центр экрана съезжает в центр окна.
+     Масштаб растёт по степени, а не линейно: так наезд воспринимается
+     равномерным, без рывка в конце. */
+  const whole = zoomWhole && !phone;
+  const screenCY = hingeY - lidH / 2;
+  const zoomK = Math.max(W / (L - 18), H / (lidH - 18)) * 1.03;
+  const zt = useTransform(p, [0.36, 0.92], [0, 1]);
+  const zoomT = useTransform(zt, (t) => `translate3d(0, ${(H / 2 - screenCY) * t}px, 0) scale(${Math.pow(zoomK, t)})`);
+  const sx = useTransform(p, [0.36, 0.92], whole ? [s0x, s0x] : [s0x, 1]);
+  const sy = useTransform(p, [0.36, 0.92], whole ? [s0y, s0y] : [s0y, 1]);
+  const y = useTransform(p, [0.36, 0.92], whole ? [hingeY - H, hingeY - H] : [hingeY - H, 0]);
   const lidT = useTransform(
     [y, sx, sy, rot, tilt] as const,
     ([yy, ax, ay, rr, tt]: number[]) =>
@@ -128,8 +144,8 @@ export function DeviceHero({
   /* Рамка и скругление — в единицах ДО масштаба: делим на сжатие своей оси,
      чтобы в закрытом виде рамка была ~9 px на экране со всех сторон, и к
      концу сводим в ноль. Скругление эллиптическое по той же причине. */
-  const k = useTransform(p, [0.36, 0.92], [1, 0]);
-  const kb = useTransform(p, [0.36, 0.8], [1, 0]);
+  const k = useTransform(p, [0.36, 0.92], whole ? [1, 1] : [1, 0]);
+  const kb = useTransform(p, [0.36, 0.8], whole ? [1, 1] : [1, 0]);
   const bezel = useTransform(kb, (v) => `${(9 * v) / s0y}px ${(9 * v) / s0x}px`);
   const rr0 = phone ? 38 : 14;
   const ri0 = phone ? 30 : 6;
@@ -142,8 +158,8 @@ export function DeviceHero({
      ширины КРЫШКИ, а не окна (на узком экране иначе выходила крошечной). */
   const sigW = useTransform([sx, sy] as const, ([ax, ay]: number[]) => `${Math.min(62 * (ax / ay), 260)}%`);
 
-  const baseY = useTransform(p, [0.36, 0.8], [0, H * 0.7]);
-  const baseO = useTransform(p, [0.4, 0.7], [1, 0]);
+  const baseY = useTransform(p, [0.36, 0.8], whole ? [0, 0] : [0, H * 0.7]);
+  const baseO = useTransform(p, [0.4, 0.7], whole ? [1, 1] : [1, 0]);
   const baseK = L / 512;
   const baseT = useTransform(baseY, (by) => `translate3d(0, ${by}px, 0) rotateX(76deg) scale3d(${baseK}, ${baseK}, ${baseK})`);
 
@@ -184,6 +200,10 @@ export function DeviceHero({
         {/* Тёплое свечение под ноутбуком — из варианта «Плёнка» (её выбор).
             Неподвижное, гаснет, когда экран начинает расти. */}
         {glow && <motion.div className="hero-glow" style={{ left: W / 2, top: hingeY, opacity: glowO }} />}
+        <motion.div
+          className="device-zoom"
+          style={whole ? { transform: zoomT, transformOrigin: `${W / 2}px ${screenCY}px` } : undefined}
+        >
         {/* Корпус ноутбука: плоскость, лежащая от шарнира к зрителю. */}
         {!phone && (
           <motion.div
@@ -250,6 +270,7 @@ export function DeviceHero({
               top: phone ? 14 / s0y : 3.5 / s0y,
             }}
           />
+        </motion.div>
         </motion.div>
       </motion.div>
 

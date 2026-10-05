@@ -48,8 +48,10 @@ export const WORKS: Work[] = [
     href: 'https://totoshiroph.ru/',
     year: '2026',
     tint: '#7a1f2b',
-    wide: ['toto-desktop', 'toto-snimayu', 'toto-svadebnaya', 'toto-kurs', 'toto-ucheniki'].map(w),
-    phone: ['toto-m1', 'toto-m2', 'toto-m3', 'toto-m4', 'toto-m5'].map(w),
+    /* Кадры x1–x4 и m6–m11 доснят с totoshiroph.ru 5 октября (её правка
+       «добавь ещё скринов с сайта Алёны», scripts/capture-toto.mjs). */
+    wide: ['toto-desktop', 'toto-snimayu', 'toto-svadebnaya', 'toto-kurs', 'toto-ucheniki', 'toto-x1', 'toto-x2', 'toto-x3', 'toto-x4'].map(w),
+    phone: ['toto-m1', 'toto-m2', 'toto-m3', 'toto-m4', 'toto-m5', 'toto-m6', 'toto-m7', 'toto-m8', 'toto-m9', 'toto-m10', 'toto-m11'].map(w),
   },
   {
     id: 'invite',
@@ -64,7 +66,9 @@ export const WORKS: Work[] = [
     /* Только телефонные кадры — приглашение живёт в телефоне. Кадры — её
        скриншоты с айфона (папка «фотографии»), без конверта. */
     wide: [],
-    phone: ['invite-m-0', 'invite-m-1', 'invite-m-2', 'invite-m-3', 'invite-m-4', 'invite-m-5'].map(w),
+    /* Порядок — как идёт приглашение: её шесть скриншотов (0–5) и шесть
+       досняты в том же формате с «дежурной» копии (6–11). */
+    phone: [6, 7, 0, 1, 8, 2, 9, 3, 10, 4, 5, 11].map((k) => w(`invite-m-${k}`)),
   },
   {
     id: 'elegia',
@@ -112,12 +116,17 @@ export const SERVICES: Service[] = [
     name: 'Личный сайт / лендинг',
     text: `Страница о${NB}вас и${NB}вашем деле в${NB}фирменном стиле. Прототип через неделю, готовый сайт${NB}— через две, от${NB}75${NB}тыс.${NB}руб.`,
     draft: false,
-    /* Больше кадров с ноутбука (её правка): все пять страниц каждого сайта,
-       вперемешку, чтобы рядом стояли разные сайты. */
+    /* Кадры вперемешку, чтобы рядом стояли разные сайты; у сайта Алёны
+       (Toto Shiro) их больше всего — её правка «добавь ещё скринов с сайта
+       Алёны». На компьютере берутся кадры с ноутбука, на телефоне —
+       мобильные (Services.tsx), первые по списку — в свёрнутую колонку. */
     shots: [
-      ...[0, 1, 2, 3, 4].flatMap((k) => [wideOf('arisheniaa', k), wideOf('toto', k), wideOf('elegia', k)]),
-      phoneOf('arisheniaa', 0), phoneOf('toto', 0), phoneOf('elegia', 0),
-      phoneOf('arisheniaa', 1), phoneOf('toto', 1), phoneOf('elegia', 1),
+      ...[[`arisheniaa`, 0], [`toto`, 0], [`elegia`, 0], [`toto`, 5], [`arisheniaa`, 1], [`toto`, 1], [`elegia`, 1], [`toto`, 6],
+        [`arisheniaa`, 2], [`toto`, 7], [`elegia`, 2], [`toto`, 8], [`arisheniaa`, 3], [`toto`, 2], [`elegia`, 3], [`toto`, 3]]
+        .map(([id, k]) => wideOf(id as string, k as number)),
+      ...[[`arisheniaa`, 0], [`toto`, 0], [`elegia`, 0], [`toto`, 5], [`arisheniaa`, 1], [`toto`, 6], [`elegia`, 1], [`toto`, 7],
+        [`arisheniaa`, 2], [`toto`, 8], [`elegia`, 2], [`toto`, 9], [`toto`, 10], [`arisheniaa`, 3]]
+        .map(([id, k]) => phoneOf(id as string, k as number)),
     ],
   },
   {
@@ -126,8 +135,8 @@ export const SERVICES: Service[] = [
     text: `Сайт с${NB}разделами: услуги или меню, команда, контакты, оплата. Прототип через неделю, готовый сайт${NB}— до${NB}трёх недель, от${NB}120${NB}тыс.${NB}руб.`,
     draft: false,
     shots: [
-      ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => blank('wide', 'скоро', n)),
-      ...[0, 1, 2, 3, 4, 5].map((n) => blank('phone', 'скоро', n)),
+      ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((n) => blank('wide', 'скоро', n)),
+      ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => blank('phone', 'скоро', n)),
     ],
   },
   {
@@ -138,7 +147,7 @@ export const SERVICES: Service[] = [
     everywhere: true,
     shots: [
       { src: w('cert-front'), kind: 'wide', cap: CERT },
-      ...[0, 1, 2, 3, 4, 5].map((k) => phoneOf('invite', k)),
+      ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((k) => phoneOf('invite', k)),
       { src: w('cert-back'), kind: 'wide', cap: CERT },
     ],
   },

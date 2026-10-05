@@ -2,3 +2,6 @@
 _shots/*.png
 # Исходники reactbits/aceternity, скачанные для сверки.
 _ref/
+
+# Сырые кадры для отбора (capture-toto, capture-invite-more) — в гит не нужны.
+_shots/*-raw/

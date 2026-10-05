@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { SERVICES, type Service, type Shot } from './works';
 import { Draft } from './ui';
-import { MOB_PHONES, Parallax, P, W, type Pos } from '../fx/Parallax';
+import { Parallax, P, W, type Pos } from '../fx/Parallax';
 
 /**
  * РАБОТЫ = УСЛУГИ (её правка 5 октября).
@@ -45,11 +45,28 @@ const COL_W: Pos[] = [
   { k: W, top: '56%', right: '-2%' },
   { k: W, top: '74%', left: '22%' },
 ];
+/* Телефон: каждая услуга — почти на весь экран (её правка), вокруг
+   карточки с описанием восемь мобильных кадров. */
 const COL_P: Pos[] = [
-  { k: P, top: '2%', left: '1%' },
-  { k: P, top: '30%', right: '1%' },
-  { k: P, top: '6%', right: '18%' },
-  { k: P, top: '40%', left: '14%' },
+  { k: P, top: '1%', left: '3%' },
+  { k: P, top: '0%', left: '37%' },
+  { k: P, top: '2%', right: '3%' },
+  { k: P, top: '27%', left: '-4%' },
+  { k: P, top: '29%', right: '-4%' },
+  { k: P, top: '74%', left: '4%' },
+  { k: P, top: '76%', left: '38%' },
+  { k: P, top: '73%', right: '3%' },
+];
+/* Айдентика на телефоне: сертификат сверху и снизу, телефоны по бокам. */
+const COL_MOB_MIX: Pos[] = [
+  { k: W, top: '1%', left: '24%' },
+  { k: P, top: '3%', left: '1%' },
+  { k: P, top: '4%', right: '1%' },
+  { k: P, top: '30%', left: '-4%' },
+  { k: P, top: '32%', right: '-4%' },
+  { k: P, top: '72%', left: '2%' },
+  { k: P, top: '71%', right: '2%' },
+  { k: W, top: '80%', left: '25%' },
 ];
 const COL: Pos[] = [
   { k: W, top: '3%', left: '0%' },
@@ -60,42 +77,71 @@ const COL: Pos[] = [
   { k: P, top: '36%', right: '0%' },
 ];
 
-/* Раскрытая услуга на компьютере — десять кадров с ноутбука плотным
-   кольцом вокруг карточки: четыре сверху, по одному по бокам, четыре снизу. */
-const DESK_WIDE: Pos[] = [
-  { k: W, top: '4%', left: '10%' },
-  { k: W, top: '1%', left: '31%' },
-  { k: W, top: '3%', right: '30%' },
-  { k: W, top: '6%', right: '9%' },
-  { k: W, top: '33%', left: '4%' },
-  { k: W, top: '36%', right: '3%' },
-  { k: W, top: '64%', left: '9%' },
-  { k: W, top: '70%', left: '31%' },
-  { k: W, top: '68%', right: '29%' },
-  { k: W, top: '62%', right: '8%' },
-];
-const SITES = { desk: DESK_WIDE, mob: MOB_PHONES };
+/* РАСКРЫТАЯ УСЛУГА: скрины — по ОВАЛУ, центр которого совпадает с центром
+   карточки (её правка: «при раскрытии блок должен располагаться по центру
+   овала из превью работ»). Карточка стоит в центре окна, значит и овал —
+   вокруг центра окна; каждый кадр ставится своим ЦЕНТРОМ на точку овала
+   (`c: true`), поэтому кольцо симметрично при любом размере кадра.
 
-/* Айдентика: шесть телефонов приглашения и сертификат (лицо и оборот). */
+   На компьютере радиусы — в пикселях Full HD (`--px`, fluid.css): овал
+   масштабируется вместе с кадрами и карточкой и на любом окне той же формы.
+   Кадры расставлены через равные отрезки ДЛИНЫ овала, а не равные углы —
+   иначе они сбиваются у боков, где овал круче. Первый кадр — сверху по
+   центру, дальше по часовой. */
+function ovalAngles(n: number, rx: number, ry: number) {
+  const N = 720;
+  const len: number[] = [0];
+  for (let i = 1; i <= N; i++) {
+    const t0 = ((i - 1) / N) * 2 * Math.PI;
+    const t1 = (i / N) * 2 * Math.PI;
+    len.push(len[i - 1] + Math.hypot(rx * (Math.cos(t1) - Math.cos(t0)), ry * (Math.sin(t1) - Math.sin(t0))));
+  }
+  const total = len[N];
+  const out: number[] = [];
+  for (let k = 0; k < n; k++) {
+    const want = (k / n) * total;
+    let i = 0;
+    while (len[i + 1] < want) i++;
+    out.push((i / N) * 2 * Math.PI - Math.PI / 2);
+  }
+  return out;
+}
+/* Точка овала: на компьютере — в эталонных пикселях от центра окна, на
+   телефоне — в процентах окна. */
+const deskAt = (k: Pos['k'], t: number, rx: number, ry: number): Pos => ({
+  k,
+  c: true,
+  left: `calc(50% + ${(rx * Math.cos(t)).toFixed(1)} * var(--px))`,
+  top: `calc(50% + ${(ry * Math.sin(t)).toFixed(1)} * var(--px))`,
+});
+const mobAt = (k: Pos['k'], t: number, rx: number, ry: number): Pos => ({
+  k,
+  c: true,
+  left: `${(50 + rx * Math.cos(t)).toFixed(1)}%`,
+  top: `${(50 + ry * Math.sin(t)).toFixed(1)}%`,
+});
+const rad = (deg: number) => (deg * Math.PI) / 180;
+
+/* Кадры по точкам овала: вид каждого кадра задан списком, первый —
+   сверху по центру, дальше по часовой. */
+const ring = (at: typeof deskAt, kinds: Pos['k'][], rx: number, ry: number) =>
+  ovalAngles(kinds.length, rx, ry).map((t, i) => at(kinds[i], t, rx, ry));
+const many = (k: Pos['k'], n: number) => Array.from({ length: n }, () => k);
+
+/* Сайты. Компьютер: двенадцать кадров с ноутбука (365×228 на Full HD)
+   вокруг карточки 560 px. Телефон: десять мобильных кадров, овал ближе к
+   центру — сверху и снизу карточки, по бокам кадры чуть заходят под неё
+   (её правка: «скрины стремятся вверх — пусть стремятся к центру»). */
+const SITES = {
+  desk: ring(deskAt, many(W, 12), 630, 335),
+  mob: ring(mobAt, many(P, 10), 36, 34),
+};
+
+/* Айдентика: сертификат (лицо и оборот) — сверху и снизу, телефоны
+   приглашения — по бокам. */
 const BRAND = {
-  desk: [
-    { k: P, top: '4%', left: '26%' },
-    { k: P, top: '36%', left: '17%' },
-    { k: P, top: '60%', left: '28%' },
-    { k: P, top: '6%', right: '25%' },
-    { k: P, top: '34%', right: '16%' },
-    { k: P, top: '60%', right: '28%' },
-    { k: W, top: '2%', left: '39%' },
-    { k: W, top: '72%', left: '39%' },
-  ] as Pos[],
-  mob: [
-    { k: P, top: '3%', left: '4%' },
-    { k: W, top: '5%', right: '3%' },
-    { k: P, top: '2%', left: '36%' },
-    { k: P, top: '72%', left: '5%' },
-    { k: W, top: '78%', right: '3%' },
-    { k: P, top: '70%', left: '38%' },
-  ] as Pos[],
+  desk: ring(deskAt, [W, P, P, P, P, P, W, P, P, P, P, P], 600, 340),
+  mob: ring(mobAt, [W, P, P, P, P, W, P, P, P, P], 36, 34),
 };
 
 /** Скрины колонки: первые по виду под слоты COL. */
@@ -207,7 +253,7 @@ export function Services({ tilt = false }: { tilt?: boolean }) {
                 if (e.key === 'Enter' || e.key === ' ') (e.preventDefault(), show(s));
               }}
             >
-              {thumbs(shotsOf(s), s.everywhere ? COL : mobile ? COL_P : COL_W).map(({ shot, pos }, i) => (
+              {thumbs(shotsOf(s), s.everywhere ? (mobile ? COL_MOB_MIX : COL) : mobile ? COL_P : COL_W).map(({ shot, pos }, i) => (
                 <span key={i} className="svc-thumb" style={{ top: pos.top, left: pos.left, right: pos.right }}>
                   {shot.ph ? (
                     <span className={`p-frame p-ph ${shot.kind === 'wide' ? 'svc-w' : 'svc-p'}`} />
