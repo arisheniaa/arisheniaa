@@ -50,7 +50,11 @@ export const WORKS: Work[] = [
     tint: '#7a1f2b',
     /* Кадры x1–x4 и m6–m11 доснят с totoshiroph.ru 5 октября (её правка
        «добавь ещё скринов с сайта Алёны», scripts/capture-toto.mjs). */
-    wide: ['toto-desktop', 'toto-snimayu', 'toto-svadebnaya', 'toto-kurs', 'toto-ucheniki', 'toto-x1', 'toto-x2', 'toto-x3', 'toto-x4'].map(w),
+    /* toto-plastinka — блок обучения с пластинкой целиком (её правка «можно
+       добавить скрин с блока обучения с пластинкой — очень красивый блок»),
+       из `распиаривание/toto-shiro/скрины/noutbuk/09-plastinka.png`. На
+       телефоне этот блок уже есть — toto-m4. */
+    wide: ['toto-desktop', 'toto-snimayu', 'toto-svadebnaya', 'toto-kurs', 'toto-ucheniki', 'toto-x1', 'toto-x2', 'toto-x3', 'toto-x4', 'toto-plastinka'].map(w),
     phone: ['toto-m1', 'toto-m2', 'toto-m3', 'toto-m4', 'toto-m5', 'toto-m6', 'toto-m7', 'toto-m8', 'toto-m9', 'toto-m10', 'toto-m11'].map(w),
   },
   {
@@ -95,19 +99,41 @@ export type Shot = { src: string; kind: 'wide' | 'phone'; cap?: { name: string; 
 /** `everywhere` — показывать все кадры на любом экране (приглашение есть
  *  только мобильное, сертификат — печатный). У остальных услуг на
  *  компьютере — только кадры с ноутбука, на телефоне — только мобильные
- *  (её правка 5 октября). `desk` — свой набор для компьютера: там остались
- *  кадры до правок 5 октября (её правка «на десктопе верни прежнюю версию,
- *  мобильную не трогай»), `shots` — телефонные. */
-export type Service = { id: string; name: string; text: string; draft: boolean; everywhere?: boolean; shots: Shot[]; desk?: Shot[] };
+ *  (её правка 5 октября). */
+export type Service = { id: string; name: string; text: string; draft: boolean; everywhere?: boolean; shots: Shot[] };
 
 const byId = (id: string) => WORKS.find((x) => x.id === id)!;
 const capOf = (x: Work) => ({ name: x.name, text: x.text, href: x.href });
 const wideOf = (id: string, k: number): Shot => ({ src: byId(id).wide[k], kind: 'wide', cap: capOf(byId(id)) });
 const phoneOf = (id: string, k: number): Shot => ({ src: byId(id).phone[k], kind: 'phone', cap: capOf(byId(id)) });
-/** Кадр приглашения по номеру файла, а не по месту в списке (список
- *  переставлен под телефон). */
-const inviteOf = (n: number): Shot => ({ src: w(`invite-m-${n}`), kind: 'phone', cap: capOf(byId('invite')) });
-const blank = (kind: 'wide' | 'phone', ph: string, n: number): Shot => ({ src: `ph-${ph}-${kind}-${n}`, kind, ph });
+/* РЕСТОРАНЫ — концепции редизайнов (её правка «пока временно также подтяни
+   скрины с сайтов ресторанов, редизайны которых мы делали»; раньше здесь
+   стояли пустые рамки «скоро»). Кадры — scripts/capture-restaurants.mjs из
+   витрины `Редизайн сайтов/showcase`: у каждого ресторана три направления,
+   взяты два — основное (первый экран и меню) и второе (первый экран).
+   В подписи — что это концепция, а не сайт ресторана. */
+const RESTAURANTS: { id: string; main: string; second: string; name: string; text: string }[] = [
+  { id: 'chere-maman', main: 'c', second: 'a', name: 'Chère Maman', text: `французского бистро и${NB}пекарни на${NB}Трубной` },
+  { id: 'zhivago', main: 'c', second: 'a', name: `Dr.${NB}Живаго`, text: `гранд-кафе с${NB}русской кухней напротив Кремля` },
+  { id: 'myaso-ryba', main: 'b', second: 'c', name: 'Мясо&Рыба', text: `стейк-хауса и${NB}рыбного ресторана, сети из${NB}14${NB}адресов` },
+  { id: 'probka', main: 'c', second: 'b', name: 'Probka', text: `итальянского ресторана на${NB}Цветном бульваре` },
+  { id: 'uzbekistan', main: 'a', second: 'b', name: '«Узбекистан»', text: `ресторана на${NB}Неглинной, открытого в${NB}1951${NB}году` },
+];
+const restShots = (kind: 'wide' | 'phone') => {
+  const m = kind === 'phone' ? '-m' : '';
+  const shot = (r: (typeof RESTAURANTS)[number], file: string): Shot => ({
+    src: w(`rest-${r.id}-${file}${m}`),
+    kind,
+    cap: { name: r.name, text: `Концепция нового сайта для${NB}${r.text}. Одно из${NB}трёх направлений, предложенных ресторану.` },
+  });
+  /* Сначала первые экраны основных направлений, потом вторых, потом меню:
+     в свёрнутую колонку и в кольцо попадают первые по списку. */
+  return [
+    ...RESTAURANTS.map((r) => shot(r, r.main)),
+    ...RESTAURANTS.map((r) => shot(r, r.second)),
+    ...RESTAURANTS.map((r) => shot(r, `${r.main}-menu`)),
+  ];
+};
 /* Сертификат на фотосессию «Юлия и Данила» — её печатная работа
    (`Claude Projects/сертификаты`, вариант 7), снят scripts/capture-cert.mjs. */
 const CERT = {
@@ -126,27 +152,20 @@ export const SERVICES: Service[] = [
        Алёны». На компьютере берутся кадры с ноутбука, на телефоне —
        мобильные (Services.tsx), первые по списку — в свёрнутую колонку. */
     shots: [
-      ...[[`arisheniaa`, 0], [`toto`, 0], [`elegia`, 0], [`toto`, 5], [`arisheniaa`, 1], [`toto`, 1], [`elegia`, 1], [`toto`, 6],
-        [`arisheniaa`, 2], [`toto`, 7], [`elegia`, 2], [`toto`, 8], [`arisheniaa`, 3], [`toto`, 2], [`elegia`, 3], [`toto`, 3]]
+      ...[[`arisheniaa`, 0], [`toto`, 0], [`elegia`, 0], [`toto`, 9], [`arisheniaa`, 1], [`toto`, 1], [`elegia`, 1], [`toto`, 5],
+        [`arisheniaa`, 2], [`toto`, 6], [`elegia`, 2], [`toto`, 7], [`arisheniaa`, 3], [`toto`, 8], [`elegia`, 3], [`toto`, 2], [`toto`, 3]]
         .map(([id, k]) => wideOf(id as string, k as number)),
       ...[[`arisheniaa`, 0], [`toto`, 0], [`elegia`, 0], [`toto`, 5], [`arisheniaa`, 1], [`toto`, 6], [`elegia`, 1], [`toto`, 7],
         [`arisheniaa`, 2], [`toto`, 8], [`elegia`, 2], [`toto`, 9], [`toto`, 10], [`arisheniaa`, 3]]
         .map(([id, k]) => phoneOf(id as string, k as number)),
     ],
-    /* Компьютер — прежние пятнадцать кадров с ноутбука, по пять страниц
-       каждого сайта вперемешку. */
-    desk: [0, 1, 2, 3, 4].flatMap((k) => [wideOf('arisheniaa', k), wideOf('toto', k), wideOf('elegia', k)]),
   },
   {
     id: 'multi',
     name: 'Многостраничник для компании',
     text: `Сайт с${NB}разделами: услуги или меню, команда, контакты, оплата. Прототип через неделю, готовый сайт${NB}— до${NB}трёх недель, от${NB}120${NB}тыс.${NB}руб.`,
     draft: false,
-    shots: [
-      ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((n) => blank('wide', 'скоро', n)),
-      ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => blank('phone', 'скоро', n)),
-    ],
-    desk: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => blank('wide', 'скоро', n)),
+    shots: [...restShots('wide'), ...restShots('phone')],
   },
   {
     id: 'brand',
@@ -157,12 +176,6 @@ export const SERVICES: Service[] = [
     shots: [
       { src: w('cert-front'), kind: 'wide', cap: CERT },
       ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((k) => phoneOf('invite', k)),
-      { src: w('cert-back'), kind: 'wide', cap: CERT },
-    ],
-    /* Компьютер — её шесть скриншотов приглашения и сертификат. */
-    desk: [
-      { src: w('cert-front'), kind: 'wide', cap: CERT },
-      ...[0, 1, 2, 3, 4, 5].map(inviteOf),
       { src: w('cert-back'), kind: 'wide', cap: CERT },
     ],
   },

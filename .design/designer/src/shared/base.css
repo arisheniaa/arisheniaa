@@ -12,6 +12,10 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  /* Вместе с body: на iOS страница шире экрана водится пальцем вбок, даже
+     когда у body overflow-x срезан (её правка «при ведении пальцев влево
+     весь экран смещается»). */
+  overflow-x: clip;
 }
 body {
   margin: 0;
@@ -236,6 +240,11 @@ img {
 .content {
   position: relative;
   z-index: 10;
+  /* Свечение за фото «Обо мне» (inset −40% по бокам) и кадры у краёв
+     выходили за окно: на телефоне страница становилась 517 px при экране
+     390 — и водилась вбок. `clip`, а не `hidden`: не делает блок
+     прокручиваемым и не ломает sticky. */
+  overflow-x: clip;
 }
 .wrap {
   width: 100%;
@@ -959,17 +968,15 @@ img {
    2. Оттенок всего градиента уходит по ходу прокрутки на ~40° по кругу:
       наверху тёплый оранжевый, к низу — в розово-лиловую сторону. Это один
       фильтр на слой фона, считается видеокартой при сведении слоёв.
-   Только на телефоне: на компьютере фон — как до этой правки (её правка
-   «на десктопе верни прежнюю версию, мобильную не трогай»). */
-@media (max-width: 767px) {
-  .mesh { filter: hue-rotate(calc(var(--sp) * 40deg)) saturate(calc(1 + var(--sp) * 0.15)); }
-  .m-orange { animation: mesh-drift-a 29s ease-in-out infinite alternate; }
-  .m-ember { animation: mesh-drift-b 23s ease-in-out infinite alternate; }
-  .m-teal { animation: mesh-drift-c 33s ease-in-out infinite alternate; }
-  .m-lav { animation: mesh-drift-b 37s ease-in-out infinite alternate-reverse; }
-  .m-teal2 { animation: mesh-drift-a 26s ease-in-out infinite alternate-reverse; }
-  .mesh-band { animation: mesh-drift-c 31s ease-in-out infinite alternate; }
-}
+   На компьютере и на телефоне (на компьютере он был снят в Ф88 и вернулся
+   её правкой «сделай фон динамичным… на десктопе»). */
+.mesh { filter: hue-rotate(calc(var(--sp) * 40deg)) saturate(calc(1 + var(--sp) * 0.15)); }
+.m-orange { animation: mesh-drift-a 29s ease-in-out infinite alternate; }
+.m-ember { animation: mesh-drift-b 23s ease-in-out infinite alternate; }
+.m-teal { animation: mesh-drift-c 33s ease-in-out infinite alternate; }
+.m-lav { animation: mesh-drift-b 37s ease-in-out infinite alternate-reverse; }
+.m-teal2 { animation: mesh-drift-a 26s ease-in-out infinite alternate-reverse; }
+.mesh-band { animation: mesh-drift-c 31s ease-in-out infinite alternate; }
 @keyframes mesh-drift-a { from { translate: -5vmax -3vmax; } to { translate: 6vmax 4vmax; } }
 @keyframes mesh-drift-b { from { translate: 4vmax -5vmax; } to { translate: -6vmax 5vmax; } }
 @keyframes mesh-drift-c { from { translate: -3vmax 5vmax; } to { translate: 5vmax -4vmax; } }

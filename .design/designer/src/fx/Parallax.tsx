@@ -88,10 +88,10 @@ function place(items: PItem[], mobile: boolean, own?: { desk: Pos[]; mob: Pos[] 
 }
 
 /* Глубина по номеру слота; раскладкам больше восьми кадров (услуги) —
-   ещё четыре значения. */
+   ещё шесть значений (айдентика на компьютере — четырнадцать кадров). */
 const DEPTH = {
-  default: [0.3, 0.35, 0.9, 0.85, 0.4, 0.45, 0.25, 0.2, 0.6, 0.55, 0.7, 0.5],
-  'edge-focus': [0.85, 0.9, 0.3, 0.35, 0.8, 0.85, 0.4, 0.45, 0.6, 0.55, 0.7, 0.5],
+  default: [0.3, 0.35, 0.9, 0.85, 0.4, 0.45, 0.25, 0.2, 0.6, 0.55, 0.7, 0.5, 0.65, 0.4],
+  'edge-focus': [0.85, 0.9, 0.3, 0.35, 0.8, 0.85, 0.4, 0.45, 0.6, 0.55, 0.7, 0.5, 0.65, 0.4],
 };
 const SPRING = { damping: 25, stiffness: 120 };
 
@@ -135,6 +135,7 @@ export function Parallax({
   maxOffset = 40,
   tiltButton = true,
   slots,
+  drift = true,
 }: {
   items: PItem[];
   children?: ReactNode;
@@ -147,6 +148,10 @@ export function Parallax({
   tiltButton?: boolean;
   /** Своя раскладка слотов вместо стандартной (вкладка услуг). */
   slots?: { desk: Pos[]; mob: Pos[] };
+  /** Сдвиг кадров от прокрутки страницы. Выключается в неподвижном слое
+   *  (раскрытая услуга): там блок не едет по экрану, а прогресс прокрутки
+   *  считался бы от места страницы под слоем — и все кадры уезжали вверх. */
+  drift?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const mx = useMotionValue(0);
@@ -209,7 +214,7 @@ export function Parallax({
           sy={sy}
           scroll={scrollYProgress}
           maxOffset={maxOffset}
-          scrollDrift={isTouch ? 160 : 90}
+          scrollDrift={drift ? (isTouch ? 160 : 90) : 0}
           frameClass={big ? `${frameClass} is-big` : frameClass}
         />
       ))}

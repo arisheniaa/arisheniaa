@@ -77,31 +77,61 @@ const COL: Pos[] = [
   { k: P, top: '36%', right: '0%' },
 ];
 
-/* РАСКРЫТАЯ УСЛУГА НА КОМПЬЮТЕРЕ — как до правок 5 октября (её правка
-   «на десктопе верни прежнюю версию»): десять кадров с ноутбука плотным
-   кольцом вокруг карточки — четыре сверху, по одному по бокам, четыре снизу. */
+/* РАСКРЫТАЯ УСЛУГА НА КОМПЬЮТЕРЕ. Кадры ставятся ЦЕНТРОМ (`c: true`) на
+   точки, симметричные относительно центра окна, — а значит, и карточки
+   (её правка: «при нажатии на услугу всё стремится к верхушке, сделай
+   выравнивание по середине»). Раньше слоты задавались верхним углом в
+   процентах высоты, а размер кадра — в процентах ширины, и на окнах разной
+   формы кольцо съезжало; вдобавок кадры уводил вверх сдвиг от прокрутки
+   (выключен: `drift` в Parallax).
+
+   Расстояние рядов от центра — в vh и vw: полвысоты кадра растёт с шириной
+   окна (кадр 19vw × 11,9vw), просвет до карточки — с высотой. */
+const at = (k: Pos['k'], left: string, top: string): Pos => ({ k, c: true, left, top });
+const up = (vh: number) => `calc(50% - ${vh}vh - 6vw)`;
+const down = (vh: number) => `calc(50% + ${vh}vh + 6vw)`;
+
+/* Сайты: десять кадров с ноутбука — четыре сверху, по одному по бокам,
+   четыре снизу, с небольшим разбросом по высоте. */
 const DESK_WIDE: Pos[] = [
-  { k: W, top: '4%', left: '10%' },
-  { k: W, top: '1%', left: '31%' },
-  { k: W, top: '3%', right: '30%' },
-  { k: W, top: '6%', right: '9%' },
-  { k: W, top: '33%', left: '4%' },
-  { k: W, top: '36%', right: '3%' },
-  { k: W, top: '64%', left: '9%' },
-  { k: W, top: '70%', left: '31%' },
-  { k: W, top: '68%', right: '29%' },
-  { k: W, top: '62%', right: '8%' },
+  at(W, '19.5%', up(21)),
+  at(W, '40%', up(22.5)),
+  at(W, '60.5%', up(21.5)),
+  at(W, '81%', up(20)),
+  at(W, '12.5%', 'calc(50% - 1vh)'),
+  at(W, '87.5%', 'calc(50% + 1vh)'),
+  at(W, '18.5%', down(20)),
+  at(W, '40.5%', down(22)),
+  at(W, '61%', down(21)),
+  at(W, '82%', down(22.5)),
 ];
-/* Айдентика на компьютере: шесть телефонов приглашения и сертификат. */
+
+/* Айдентика: двенадцать телефонов приглашения (её правка «добавь ещё
+   скринов с приглашения») — по три столбца на сторону, в два ряда, волной;
+   сертификат — лицом над карточкой и оборотом под ней. Столбцы отсчитаны
+   от края карточки (она `min(560px, 86vw)`), чтобы не уходить под неё на
+   широком окне и не разбегаться к краям на узком. Телефон — 9,6vw ×
+   17,1vw, ряды — на полвысоты телефона от центра. */
+const EDGE = 'min(280px, 43vw)';
+const colL = (vw: number, min: number) => `max(${min}vw, calc(50% - ${EDGE} - ${vw}vw))`;
+const colR = (vw: number, min: number) => `min(${100 - min}vw, calc(50% + ${EDGE} + ${vw}vw))`;
+const rowUp = (vh: number) => `calc(50% - 8.6vw - ${vh}vh)`;
+const rowDown = (vh: number) => `calc(50% + 8.6vw + ${vh}vh)`;
 const BRAND_DESK: Pos[] = [
-  { k: P, top: '4%', left: '26%' },
-  { k: P, top: '36%', left: '17%' },
-  { k: P, top: '60%', left: '28%' },
-  { k: P, top: '6%', right: '25%' },
-  { k: P, top: '34%', right: '16%' },
-  { k: P, top: '60%', right: '28%' },
-  { k: W, top: '2%', left: '39%' },
-  { k: W, top: '72%', left: '39%' },
+  at(W, '50%', up(21)),
+  at(P, colL(26.4, 5.4), rowUp(-1.5)),
+  at(P, colL(16, 15.4), rowUp(4.5)),
+  at(P, colL(5.6, 25.6), rowUp(-1.5)),
+  at(P, colR(5.6, 25.6), rowUp(4.5)),
+  at(P, colR(16, 15.4), rowUp(-1.5)),
+  at(P, colR(26.4, 5.4), rowUp(4.5)),
+  at(P, colL(26.4, 5.4), rowDown(4.5)),
+  at(P, colL(16, 15.4), rowDown(-1.5)),
+  at(P, colL(5.6, 25.6), rowDown(4.5)),
+  at(P, colR(5.6, 25.6), rowDown(-1.5)),
+  at(P, colR(16, 15.4), rowDown(4.5)),
+  at(P, colR(26.4, 5.4), rowDown(-1.5)),
+  at(W, '50%', down(21)),
 ];
 
 /* РАСКРЫТАЯ УСЛУГА НА ТЕЛЕФОНЕ: скрины — по ОВАЛУ, центр которого совпадает
@@ -132,7 +162,7 @@ function ovalAngles(n: number, rx: number, ry: number) {
   return out;
 }
 /* Точка овала в процентах окна. */
-const at = (k: Pos['k'], t: number, rx: number, ry: number): Pos => ({
+const onOval = (k: Pos['k'], t: number, rx: number, ry: number): Pos => ({
   k,
   c: true,
   left: `${(50 + rx * Math.cos(t)).toFixed(1)}%`,
@@ -142,7 +172,7 @@ const at = (k: Pos['k'], t: number, rx: number, ry: number): Pos => ({
 /* Кадры по точкам овала: вид каждого кадра задан списком, первый —
    сверху по центру, дальше по часовой. */
 const ring = (kinds: Pos['k'][], rx: number, ry: number) =>
-  ovalAngles(kinds.length, rx, ry).map((t, i) => at(kinds[i], t, rx, ry));
+  ovalAngles(kinds.length, rx, ry).map((t, i) => onOval(kinds[i], t, rx, ry));
 const many = (k: Pos['k'], n: number) => Array.from({ length: n }, () => k);
 
 /* Сайты. Телефон: десять мобильных кадров, овал ближе к центру — сверху и
@@ -198,13 +228,9 @@ export function Services({ tilt = false }: { tilt?: boolean }) {
   const cards = useRef<Record<string, HTMLDivElement | null>>({});
   const closeBtn = useRef<HTMLButtonElement>(null);
   const mobile = useMemo(() => window.matchMedia('(max-width: 767px)').matches, []);
-  /* Кадры услуги для этого экрана: сайты — только своего вида. На
-     компьютере — свой набор, если он задан (`desk`, works.ts). */
+  /* Кадры услуги для этого экрана: сайты — только своего вида. */
   const shotsOf = useCallback(
-    (s: Service) => {
-      const shots = mobile ? s.shots : (s.desk ?? s.shots);
-      return s.everywhere ? shots : shots.filter((x) => x.kind === (mobile ? 'phone' : 'wide'));
-    },
+    (s: Service) => (s.everywhere ? s.shots : s.shots.filter((x) => x.kind === (mobile ? 'phone' : 'wide'))),
     [mobile],
   );
 
@@ -322,6 +348,7 @@ export function Services({ tilt = false }: { tilt?: boolean }) {
               items={shotsOf(open.s)}
               tilt={tilt}
               tiltButton={false}
+              drift={false}
               slots={open.s.everywhere ? BRAND : SITES}
               variant={open.s.id === 'multi' ? 'edge-focus' : 'default'}
               className="svc-par"
@@ -338,7 +365,7 @@ export function Services({ tilt = false }: { tilt?: boolean }) {
                   {open.s.text}
                   {open.s.draft && <Draft />}
                 </p>
-                <span className="svc-hint">{open.s.id === 'multi' ? 'работы готовятся' : 'нажмите на скрин, чтобы рассмотреть'}</span>
+                <span className="svc-hint">нажмите на скрин, чтобы рассмотреть</span>
               </motion.div>
             </Parallax>
             <motion.button
