@@ -938,6 +938,13 @@ body:has(.lb) .svc-close { visibility: hidden; }
   font: 600 13px/1 var(--f-body, system-ui);
 }
 .lb-cap-link:hover { background: var(--accent); }
+/* «До / После» у работ с прежним видом экрана (Ryze): выбранное — белая
+   капсула, как «посмотреть сайт», второе — полупрозрачное. */
+.lb-ba { display: inline-flex; gap: 4px; margin-top: 6px; padding: 4px; border-radius: 999px; background: rgb(255 255 255 / 0.1); border: 1px solid rgb(255 255 255 / 0.16); }
+.lb-ba button { padding: 8px 16px; border: 0; border-radius: 999px; background: transparent; color: rgb(243 239 230 / 0.75); font: 600 13px/1 var(--f-body, system-ui); cursor: pointer; transition: background-color 0.25s, color 0.25s; }
+.lb-ba button:hover { color: #fff; }
+.lb-ba button[aria-pressed='true'] { background: #fff; color: #111; }
+.lb-ba button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Телефон (её правка 5 октября): услуги друг под другом, каждая — почти
    на весь экран. Стеклянная плашка крупнее и с описанием, вокруг — восемь

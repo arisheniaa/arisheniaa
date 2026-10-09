@@ -27,8 +27,9 @@ import { motion, useMotionValue, useScroll, useSpring, useTransform, type Motion
  *     фильтра пересчитывались на каждом кадре прокрутки (облегчение).
  */
 /** `cap` — подпись в просмотре крупно (чей сайт и ссылка); `ph` — вместо
- *  скрина пустая рамка-заглушка с этой надписью (работы ещё готовятся). */
-export type PItem = { src: string; kind: 'wide' | 'phone'; alt?: string; cap?: Cap; ph?: string };
+ *  скрина пустая рамка-заглушка с этой надписью (работы ещё готовятся);
+ *  `before` — прежний вид экрана для переключателя «До / После». */
+export type PItem = { src: string; kind: 'wide' | 'phone'; alt?: string; cap?: Cap; ph?: string; before?: string };
 
 /** `c: true` — `top`/`left` задают ЦЕНТР кадра, а не его угол (раскладка
  *  по овалу вокруг карточки во вкладке услуг). */
@@ -168,7 +169,7 @@ export function Parallax({
   const open = useLightbox();
   /* Листать в просмотре крупно — только настоящие скрины, без заглушек. */
   const real = useMemo(() => items.filter((i) => !i.ph), [items]);
-  const shots = useMemo(() => real.map((i) => ({ src: i.src, alt: i.alt, cap: i.cap })), [real]);
+  const shots = useMemo(() => real.map((i) => ({ src: i.src, alt: i.alt, cap: i.cap, before: i.before })), [real]);
 
   useEffect(() => {
     if (isTouch) return;

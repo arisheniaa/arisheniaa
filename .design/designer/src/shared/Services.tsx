@@ -228,9 +228,13 @@ export function Services({ tilt = false }: { tilt?: boolean }) {
   const cards = useRef<Record<string, HTMLDivElement | null>>({});
   const closeBtn = useRef<HTMLButtonElement>(null);
   const mobile = useMemo(() => window.matchMedia('(max-width: 767px)').matches, []);
-  /* Кадры услуги для этого экрана: сайты — только своего вида. */
+  /* Кадры услуги для этого экрана: сайты — только своего вида; в айдентике —
+     все, кроме помеченных только для другого экрана (`only`, Ryze). */
   const shotsOf = useCallback(
-    (s: Service) => (s.everywhere ? s.shots : s.shots.filter((x) => x.kind === (mobile ? 'phone' : 'wide'))),
+    (s: Service) =>
+      s.everywhere
+        ? s.shots.filter((x) => !x.only || x.only === (mobile ? 'mob' : 'desk'))
+        : s.shots.filter((x) => x.kind === (mobile ? 'phone' : 'wide')),
     [mobile],
   );
 

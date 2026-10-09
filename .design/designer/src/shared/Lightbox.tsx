@@ -19,7 +19,9 @@ import { CtlIcon } from './ui';
  */
 /** Подпись к скрину (вкладка услуг): чей это сайт, пара слов и ссылка. */
 export type Cap = { name: string; text: string; href?: string };
-type Shot = { src: string; alt?: string; cap?: Cap };
+/** `before` — прежний вид экрана: под подписью переключатель «До / После»
+ *  (её правка для Ryze). Кадры «до» и «после» одного размера. */
+type Shot = { src: string; alt?: string; cap?: Cap; before?: string };
 type Open = (list: Shot[], index: number, from: HTMLElement) => void;
 const Ctx = createContext<Open>(() => {});
 export const useLightbox = () => useContext(Ctx);
@@ -84,6 +86,12 @@ export function LightboxProvider({ children }: { children: ReactNode }) {
 
   const touch = useRef(0);
   const cur = st ? st.list[st.index] : null;
+  /* «До / После»: открывается всегда «после»; при листании — снова «после». */
+  const [showBefore, setShowBefore] = useState(false);
+  useEffect(() => setShowBefore(false), [cur?.src]);
+  useEffect(() => {
+    if (cur?.before) new Image().src = cur.before; // «до» — заранее, чтобы переключение было мгновенным
+  }, [cur?.before]);
   const ratio = !st || !cur ? 1 : ratios[cur.src] ?? (st.stepped ? guess(cur.src) : st.ratio);
   const target = st ? fit(ratio, !!cur?.cap) : null;
   const r = st?.rect;
@@ -116,7 +124,7 @@ export function LightboxProvider({ children }: { children: ReactNode }) {
             <motion.img
               key={cur.src}
               className="lb-img"
-              src={cur.src}
+              src={showBefore && cur.before ? cur.before : cur.src}
               alt={cur.alt ?? ''}
               onLoad={(e) => {
                 const im = e.currentTarget;
@@ -155,6 +163,16 @@ export function LightboxProvider({ children }: { children: ReactNode }) {
               >
                 <b className="lb-cap-name">{cur.cap.name}</b>
                 <span className="lb-cap-text">{cur.cap.text}</span>
+                {cur.before && (
+                  <span className="lb-ba" role="group" aria-label="Сравнить с прежним экраном">
+                    <button type="button" aria-pressed={showBefore} onClick={() => setShowBefore(true)}>
+                      До
+                    </button>
+                    <button type="button" aria-pressed={!showBefore} onClick={() => setShowBefore(false)}>
+                      После
+                    </button>
+                  </span>
+                )}
                 {cur.cap.href && (
                   <a className="lb-cap-link" href={cur.cap.href} {...(/^https?:/.test(cur.cap.href) ? { target: '_blank', rel: 'noreferrer' } : {})}>
                     посмотреть сайт <span aria-hidden>↗</span>
