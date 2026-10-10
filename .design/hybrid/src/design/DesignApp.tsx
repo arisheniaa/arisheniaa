@@ -118,6 +118,13 @@ function Hero() {
         >
           {dcopy.hero.lead}
         </p>
+        {/* Цена открыто, одной строкой. Вид — плашка `.plate`, та же, что у
+            цен съёмок, но БЕЗ `.price-plate`: та прячется в покое и
+            возникает только при наведении на `.offer-card` (Ф40), а здесь
+            карточки нет — плашка не появилась бы никогда. */}
+        <p className="reveal mt-[clamp(1.4rem,3vw,2.2rem)]" style={{ ['--i' as string]: 3 }}>
+          <span className="plate t-num">{dcopy.hero.price}</span>
+        </p>
       </div>
     </section>
   );
