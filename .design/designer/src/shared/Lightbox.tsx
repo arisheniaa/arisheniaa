@@ -19,17 +19,24 @@ import { CtlIcon } from './ui';
  */
 /** Подпись к скрину (вкладка услуг): чей это сайт, пара слов и ссылка. */
 export type Cap = { name: string; text: string; href?: string };
+/** Один из форматов работы: подпись кнопки и кадр. */
+export type Format = { label: string; src: string };
 /** `before` — прежний вид экрана: под подписью переключатель «До / После»
- *  (её правка для Ryze). Кадры «до» и «после» одного размера. */
-type Shot = { src: string; alt?: string; cap?: Cap; before?: string };
+ *  (её правка для Ryze). Кадры «до» и «после» одного размера.
+ *  `formats` — та же работа в других форматах (пост / сторис / PR,
+ *  спортивный уикенд): под подписью переключатель между ними. Размеры
+ *  у форматов разные — рамка подстраивается под каждый. */
+type Shot = { src: string; alt?: string; cap?: Cap; before?: string; formats?: Format[] };
 type Open = (list: Shot[], index: number, from: HTMLElement) => void;
 const Ctx = createContext<Open>(() => {});
 export const useLightbox = () => useContext(Ctx);
 
 type State = { list: Shot[]; index: number; rect: DOMRect; ratio: number; stepped: boolean } | null;
 
-/** Пропорция кадра до загрузки: телефонные скрины 620×1102, остальные ~16:10. */
-const guess = (src: string) => (/-md/.test(src) ? 620 / 1102 : 1.6);
+/** Пропорция кадра до загрузки: телефонные скрины 620×1102, остальные ~16:10;
+ *  форматы спортивного уикенда — пост 4:5, сторис 9:16, PR 16:9. */
+const guess = (src: string) =>
+  /-post\./.test(src) ? 0.8 : /-pr\./.test(src) ? 16 / 9 : /-md|-story\./.test(src) ? 620 / 1102 : 1.6;
 
 /** Место под подпись снизу, если она есть. */
 const CAP_H = 150;
@@ -88,11 +95,15 @@ export function LightboxProvider({ children }: { children: ReactNode }) {
   const cur = st ? st.list[st.index] : null;
   /* «До / После»: открывается всегда «после»; при листании — снова «после». */
   const [showBefore, setShowBefore] = useState(false);
-  useEffect(() => setShowBefore(false), [cur?.src]);
+  /* Форматы: открывается тот, что в кольце (`src`); при листании — снова он. */
+  const [fmt, setFmt] = useState<string | null>(null);
+  useEffect(() => (setShowBefore(false), setFmt(null)), [cur?.src]);
   useEffect(() => {
     if (cur?.before) new Image().src = cur.before; // «до» — заранее, чтобы переключение было мгновенным
-  }, [cur?.before]);
-  const ratio = !st || !cur ? 1 : ratios[cur.src] ?? (st.stepped ? guess(cur.src) : st.ratio);
+    cur?.formats?.forEach((f) => (new Image().src = f.src));
+  }, [cur?.before, cur?.formats]);
+  const shown = !cur ? '' : showBefore && cur.before ? cur.before : fmt ?? cur.src;
+  const ratio = !st || !cur ? 1 : ratios[shown] ?? (shown !== cur.src ? guess(shown) : st.stepped ? guess(cur.src) : st.ratio);
   const target = st ? fit(ratio, !!cur?.cap) : null;
   const r = st?.rect;
 
@@ -124,11 +135,11 @@ export function LightboxProvider({ children }: { children: ReactNode }) {
             <motion.img
               key={cur.src}
               className="lb-img"
-              src={showBefore && cur.before ? cur.before : cur.src}
+              src={shown}
               alt={cur.alt ?? ''}
               onLoad={(e) => {
                 const im = e.currentTarget;
-                setRatios((m) => ({ ...m, [cur.src]: im.naturalWidth / im.naturalHeight }));
+                setRatios((m) => ({ ...m, [shown]: im.naturalWidth / im.naturalHeight }));
               }}
               /* Первый кадр вылетает из скрина; следующие при листании —
                  просто проявляются на месте. */
@@ -171,6 +182,15 @@ export function LightboxProvider({ children }: { children: ReactNode }) {
                     <button type="button" aria-pressed={!showBefore} onClick={() => setShowBefore(false)}>
                       После
                     </button>
+                  </span>
+                )}
+                {cur.formats && (
+                  <span className="lb-ba" role="group" aria-label="Формат">
+                    {cur.formats.map((f) => (
+                      <button key={f.src} type="button" aria-pressed={shown === f.src} onClick={() => setFmt(f.src)}>
+                        {f.label}
+                      </button>
+                    ))}
                   </span>
                 )}
                 {cur.cap.href && (

@@ -96,9 +96,12 @@ export const WORKS: Work[] = [
  * рамка-заглушка, пока его нет.
  */
 /** `before` — прежний вид того же экрана: в просмотре крупно появляется
- *  переключатель «До / После». `only` — кадр только для компьютера (`desk`)
- *  или только для телефона (`mob`). */
-export type Shot = { src: string; kind: 'wide' | 'phone'; cap?: { name: string; text: string; href?: string }; ph?: string; before?: string; only?: 'desk' | 'mob' };
+ *  переключатель «До / После». `formats` — та же работа в других форматах
+ *  (пост / сторис / PR): в просмотре крупно — переключатель между ними.
+ *  `only` — кадр только для компьютера (`desk`) или только для телефона
+ *  (`mob`). */
+export type Format = { label: string; src: string };
+export type Shot = { src: string; kind: 'wide' | 'phone'; cap?: { name: string; text: string; href?: string }; ph?: string; before?: string; formats?: Format[]; only?: 'desk' | 'mob' };
 /** `everywhere` — показывать все кадры на любом экране (приглашение есть
  *  только мобильное, сертификат — печатный). У остальных услуг на
  *  компьютере — только кадры с ноутбука, на телефоне — только мобильные
@@ -153,6 +156,28 @@ const RYZE = {
   text: `Новый первый экран лендинга для владельцев Shopify-магазинов: тёплый градиент, настоящие товары и${NB}заметная кнопка. Переключите «до» и${NB}«после».`,
 };
 
+/* «Большой спортивный уикенд» — её SMM-тестовое (октябрь, PDF
+   `Telegram Desktop/SMM_тестовое_Большой_спортивный_уикенд (2).pdf`): три
+   макета, у каждого пост 1080×1350, сторис 1080×1920 и PR-баннер 1200×675.
+   В кольце — сторис (телефонный кадр), в просмотре крупно — переключатель
+   «Пост / Сторис / PR», открывается на сторис. Кадры вынуты из PDF в полном
+   размере; сторис ужаты до 620×1102, как остальные телефонные кадры.
+   Подписи — черновик по её пояснениям из того же PDF. */
+const BSU = 'Большой спортивный уикенд';
+const bsu = (id: string, text: string): Shot => ({
+  src: w(`bsu-${id}-story`),
+  kind: 'phone',
+  cap: { name: BSU, text },
+  formats: [
+    { label: 'Пост', src: w(`bsu-${id}-post`) },
+    { label: 'Сторис', src: w(`bsu-${id}-story`) },
+    { label: 'PR', src: w(`bsu-${id}-pr`) },
+  ],
+});
+const KLASSIKO = bsu('klassiko', `SMM-тестовое, матч дня: анонс первого Класико сезона. У${NB}Ямаля и${NB}Мбаппе один номер на${NB}двоих${NB}— «10${NB}против${NB}10».`);
+const RYBAKINA = bsu('rybakina', `SMM-тестовое, ситуатив: Рыбакина${NB}— первая ракетка мира, тридцатая в${NB}истории WTA и${NB}первая из${NB}Казахстана.`);
+const PRYZHOK = bsu('pryzhok', `SMM-тестовое, интересный факт: откуда меряют прыжок в${NB}длину. Архивный кадр Джесси Оуэнса, край панели размечен как рулетка.`);
+
 export const SERVICES: Service[] = [
   {
     id: 'landing',
@@ -199,7 +224,17 @@ export const SERVICES: Service[] = [
       { src: w('cert-front'), kind: 'wide', cap: CERT },
       { src: w('ryze-d'), kind: 'wide', cap: RYZE, before: w('ryze-d-do'), only: 'desk' },
       { src: w('ryze-m'), kind: 'phone', cap: RYZE, before: w('ryze-m-do'), only: 'mob' },
-      ...[0, 1, 3, 4, 7, 8, 9, 11].map((k) => phoneOf('invite', k)),
+      /* Сторис спортивного уикенда — вперемешку с приглашением и раньше
+         него по списку: телефонных мест в кольце на компьютере десять, на
+         телефоне восемь (и первым там Ryze), а сторис должны попасть все
+         три. Не поместившиеся скрины приглашения можно долистать стрелками
+         в просмотре крупно. */
+      KLASSIKO,
+      phoneOf('invite', 0),
+      RYBAKINA,
+      phoneOf('invite', 1),
+      PRYZHOK,
+      ...[3, 4, 7, 8, 9, 11].map((k) => phoneOf('invite', k)),
       { src: w('cert-back'), kind: 'wide', cap: CERT, only: 'mob' },
     ],
   },

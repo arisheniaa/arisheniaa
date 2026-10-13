@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useLightbox, type Cap } from '../shared/Lightbox';
+import { useLightbox, type Cap, type Format } from '../shared/Lightbox';
 import { motion, useMotionValue, useScroll, useSpring, useTransform, type MotionValue } from 'motion/react';
 
 /**
@@ -28,8 +28,9 @@ import { motion, useMotionValue, useScroll, useSpring, useTransform, type Motion
  */
 /** `cap` — подпись в просмотре крупно (чей сайт и ссылка); `ph` — вместо
  *  скрина пустая рамка-заглушка с этой надписью (работы ещё готовятся);
- *  `before` — прежний вид экрана для переключателя «До / После». */
-export type PItem = { src: string; kind: 'wide' | 'phone'; alt?: string; cap?: Cap; ph?: string; before?: string };
+ *  `before` — прежний вид экрана для переключателя «До / После»;
+ *  `formats` — та же работа в других форматах (пост / сторис / PR). */
+export type PItem = { src: string; kind: 'wide' | 'phone'; alt?: string; cap?: Cap; ph?: string; before?: string; formats?: Format[] };
 
 /** `c: true` — `top`/`left` задают ЦЕНТР кадра, а не его угол (раскладка
  *  по овалу вокруг карточки во вкладке услуг). */
@@ -169,7 +170,7 @@ export function Parallax({
   const open = useLightbox();
   /* Листать в просмотре крупно — только настоящие скрины, без заглушек. */
   const real = useMemo(() => items.filter((i) => !i.ph), [items]);
-  const shots = useMemo(() => real.map((i) => ({ src: i.src, alt: i.alt, cap: i.cap, before: i.before })), [real]);
+  const shots = useMemo(() => real.map((i) => ({ src: i.src, alt: i.alt, cap: i.cap, before: i.before, formats: i.formats })), [real]);
 
   useEffect(() => {
     if (isTouch) return;
