@@ -58,6 +58,21 @@ export const WORKS: Work[] = [
     phone: ['toto-m1', 'toto-m2', 'toto-m3', 'toto-m4', 'toto-m5', 'toto-m6', 'toto-m7', 'toto-m8', 'toto-m9', 'toto-m10', 'toto-m11'].map(w),
   },
   {
+    /* Сайт фотографа Насти Нико (её правка 19 октября: «добавь в портфолио
+       к лендингам»). Кадры — scripts/capture-niko.mjs, по восемь с ноутбука
+       и телефона: первый экран, разделы главной и страницы «портрет» и
+       «роспись». Имя — как на её сайте, строчными. Текст — её. */
+    id: 'niko',
+    name: 'nastya nico',
+    kind: 'сайт фотографа',
+    text: `Сайт Насти Nico: минимализм, крупные кадры и${NB}интонация фотографа`,
+    href: 'https://arisheniaa.github.io/nastyanico/',
+    year: '2026',
+    tint: '#6b625a',
+    wide: ['niko-desktop', 'niko-zhenskiy', 'niko-muzhskoy', 'niko-para', 'niko-svadba', 'niko-privet', 'niko-portret', 'niko-rospis'].map(w),
+    phone: ['niko-m1', 'niko-m2', 'niko-m3', 'niko-m4', 'niko-m5', 'niko-m6', 'niko-m7', 'niko-m8'].map(w),
+  },
+  {
     id: 'invite',
     /* С маленькой буквы и «на ваш праздник» — её правка; текст — её. */
     name: 'приглашение на ваш праздник',
@@ -187,13 +202,18 @@ export const SERVICES: Service[] = [
     /* Кадры вперемешку, чтобы рядом стояли разные сайты; у сайта Алёны
        (Toto Shiro) их больше всего — её правка «добавь ещё скринов с сайта
        Алёны». На компьютере берутся кадры с ноутбука, на телефоне —
-       мобильные (Services.tsx), первые по списку — в свёрнутую колонку. */
+       мобильные (Services.tsx), первые по списку — в свёрнутую колонку.
+       С сайтом Насти Нико (19 октября) в раскрытой услуге из десяти кадров:
+       Алёна — четыре, Настя — три, arisheniaa — два, Элегия — один;
+       остальные листаются в просмотре крупно. */
     shots: [
-      ...[[`arisheniaa`, 0], [`toto`, 0], [`elegia`, 0], [`toto`, 9], [`arisheniaa`, 1], [`toto`, 1], [`elegia`, 1], [`toto`, 5],
-        [`arisheniaa`, 2], [`toto`, 6], [`elegia`, 2], [`toto`, 7], [`arisheniaa`, 3], [`toto`, 8], [`elegia`, 3], [`toto`, 2], [`toto`, 3]]
+      ...[[`arisheniaa`, 0], [`toto`, 0], [`niko`, 0], [`elegia`, 0], [`toto`, 9], [`niko`, 1], [`arisheniaa`, 1], [`toto`, 1], [`niko`, 2], [`toto`, 5],
+        [`elegia`, 1], [`niko`, 3], [`arisheniaa`, 2], [`toto`, 6], [`niko`, 4], [`elegia`, 2], [`toto`, 7], [`niko`, 5], [`arisheniaa`, 3],
+        [`toto`, 8], [`niko`, 6], [`elegia`, 3], [`niko`, 7], [`toto`, 2], [`toto`, 3]]
         .map(([id, k]) => wideOf(id as string, k as number)),
-      ...[[`arisheniaa`, 0], [`toto`, 0], [`elegia`, 0], [`toto`, 5], [`arisheniaa`, 1], [`toto`, 6], [`elegia`, 1], [`toto`, 7],
-        [`arisheniaa`, 2], [`toto`, 8], [`elegia`, 2], [`toto`, 9], [`toto`, 10], [`arisheniaa`, 3]]
+      ...[[`arisheniaa`, 0], [`toto`, 0], [`niko`, 0], [`elegia`, 0], [`toto`, 5], [`niko`, 1], [`arisheniaa`, 1], [`toto`, 6], [`niko`, 2], [`toto`, 7],
+        [`elegia`, 1], [`niko`, 3], [`arisheniaa`, 2], [`toto`, 8], [`niko`, 4], [`elegia`, 2], [`toto`, 9], [`niko`, 5], [`toto`, 10], [`niko`, 6],
+        [`arisheniaa`, 3], [`niko`, 7]]
         .map(([id, k]) => phoneOf(id as string, k as number)),
     ],
   },
