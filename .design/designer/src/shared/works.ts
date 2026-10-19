@@ -203,17 +203,18 @@ export const SERVICES: Service[] = [
        (Toto Shiro) их больше всего — её правка «добавь ещё скринов с сайта
        Алёны». На компьютере берутся кадры с ноутбука, на телефоне —
        мобильные (Services.tsx), первые по списку — в свёрнутую колонку.
-       С сайтом Насти Нико (19 октября) в раскрытой услуге из десяти кадров:
-       Алёна — четыре, Настя — три, arisheniaa — два, Элегия — один;
-       остальные листаются в просмотре крупно. */
+       С сайтом Насти Нико (19 октября) и без Элегии (её правка «уберём
+       Элегию, вместо неё скринов с других сайтов») в раскрытой услуге из
+       десяти кадров: Алёна — четыре, Настя — три, arisheniaa — три;
+       остальные листаются в просмотре крупно. На компьютере порядок слотов:
+       четыре сверху, по одному по бокам, четыре снизу. */
     shots: [
-      ...[[`arisheniaa`, 0], [`toto`, 0], [`niko`, 0], [`elegia`, 0], [`toto`, 9], [`niko`, 1], [`arisheniaa`, 1], [`toto`, 1], [`niko`, 2], [`toto`, 5],
-        [`elegia`, 1], [`niko`, 3], [`arisheniaa`, 2], [`toto`, 6], [`niko`, 4], [`elegia`, 2], [`toto`, 7], [`niko`, 5], [`arisheniaa`, 3],
-        [`toto`, 8], [`niko`, 6], [`elegia`, 3], [`niko`, 7], [`toto`, 2], [`toto`, 3]]
+      ...[[`arisheniaa`, 0], [`toto`, 0], [`niko`, 0], [`toto`, 9], [`niko`, 1], [`arisheniaa`, 1], [`toto`, 1], [`niko`, 2], [`arisheniaa`, 2], [`toto`, 5],
+        [`niko`, 3], [`toto`, 6], [`arisheniaa`, 3], [`niko`, 4], [`toto`, 7], [`niko`, 5], [`arisheniaa`, 4], [`toto`, 8], [`niko`, 6], [`toto`, 2],
+        [`niko`, 7], [`toto`, 3]]
         .map(([id, k]) => wideOf(id as string, k as number)),
-      ...[[`arisheniaa`, 0], [`toto`, 0], [`niko`, 0], [`elegia`, 0], [`toto`, 5], [`niko`, 1], [`arisheniaa`, 1], [`toto`, 6], [`niko`, 2], [`toto`, 7],
-        [`elegia`, 1], [`niko`, 3], [`arisheniaa`, 2], [`toto`, 8], [`niko`, 4], [`elegia`, 2], [`toto`, 9], [`niko`, 5], [`toto`, 10], [`niko`, 6],
-        [`arisheniaa`, 3], [`niko`, 7]]
+      ...[[`arisheniaa`, 0], [`toto`, 0], [`niko`, 0], [`toto`, 5], [`niko`, 1], [`arisheniaa`, 1], [`toto`, 6], [`niko`, 2], [`arisheniaa`, 2], [`toto`, 7],
+        [`niko`, 3], [`toto`, 8], [`arisheniaa`, 3], [`niko`, 4], [`toto`, 9], [`niko`, 5], [`arisheniaa`, 4], [`toto`, 10], [`niko`, 6], [`niko`, 7]]
         .map(([id, k]) => phoneOf(id as string, k as number)),
     ],
   },
