@@ -207,10 +207,6 @@ a.work:hover { border-color: var(--green); box-shadow: 0 8px 20px rgba(46,58,143
   mix-blend-mode: multiply; pointer-events: none; overflow: visible; }
 .bp-more { display: grid; gap: 14px; margin-top: 18px; }
 @media (min-width: 760px) { .bp-more { grid-template-columns: 1fr 1fr; gap: 28px; } }
-@media (max-width: 760px) {
-  .bp { grid-template-columns: 1fr; }
-  .bp-stub { border-left: 0; border-top: 1.5px dashed #c3c6cc; width: min(100%, 380px); justify-self: center; }
-}
 
 /* генератор объяснительной: барабаны как табло вылетов */
 .reels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -446,7 +442,7 @@ a.work:hover { border-color: var(--green); box-shadow: 0 8px 20px rgba(46,58,143
       <a class="work" href="https://arisheniaa.ru/ph/" target="_blank" rel="noopener"><img src="img/w-my.jpg" alt="Мой сайт фотографа" width="960" height="540" loading="lazy"><div><h3>Мой сайт дизайнера и фотографа<span class="en">My designer and photographer website</span></h3><p>Два сайта на одном домене. А еще тест, который собирает раскадровку будущей съемки.</p><span class="go">Смотреть / Open →</span></div></a>
       <a class="work" href="https://totoshiroph.ru" target="_blank" rel="noopener"><img src="img/w-toto.jpg" alt="Главный экран сайта фотографа Toto Shiro" width="960" height="540" loading="lazy"><div><h3>Сайт фотографа Toto Shiro<span class="en">Photographer website from scratch</span></h3><p>«Дорого и роскошно»: цены в конвертах-приглашениях и уроки курса на пластинке.</p><span class="go">Смотреть / Open →</span></div></a>
       <a class="work" href="https://prazdnik.194.87.187.207.sslip.io/" target="_blank" rel="noopener"><img src="img/w-invite.jpg" alt="Конверт приглашения на день рождения" width="960" height="540" loading="lazy"><div><h3>Приглашение на мой день рождения<span class="en">My birthday invitation</span></h3><p>Конверт открывается, если на него нажать. У каждого гостя своя именная ссылка и тест, а мне приходит сводка ответов.</p><span class="go">Смотреть / Open →</span></div></a>
-      <div class="work"><img src="img/w-posts.jpg" alt="PR-баннер анонса матча" width="900" height="506" loading="lazy"><div><h3>Посты и баннеры<span class="en">Posts and banners</span></h3><p>Система для спортивного медиа: пост, сторис и PR-баннер для каждой публикации.</p></div></div>
+      <a class="work" href="https://arisheniaa.ru/#posty" target="_blank" rel="noopener"><img src="img/w-posts.jpg" alt="PR-баннер анонса матча" width="900" height="506" loading="lazy"><div><h3>Посты и баннеры<span class="en">Posts and banners</span></h3><p>Система для спортивного медиа: пост, сторис и PR-баннер для каждой публикации.</p><span class="go">Смотреть / Open →</span></div></a>
     </div>
   </section>
 
@@ -792,7 +788,6 @@ function renderCity() {
       </div>
       <div class="res-text">
         <div class="tip"><p><b>Что взять с собой.</b> ${c.bag}.</p></div>
-        <p class="rate">Твой выбор: ${picks.join(', ')}</p>
         <div class="actions">
           <button class="btn" type="button" id="g-share">Поделиться <span class="en">/ Share</span></button>
           <button class="btn alt" type="button" id="g-again">Выбрать заново <span class="en">/ Retry</span></button>
@@ -950,8 +945,11 @@ const stage = document.getElementById('cat-stage'), catImg = document.getElement
 const catHud = document.getElementById('cat-time'), catRes = document.getElementById('cat-res'), catStart = document.getElementById('cat-start');
 let spot = -1, t0 = 0, tick = 0, misses = 0, playing = false, lastTouch = false;
 
+function rnd(n) { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
 function hide() {
-  let n; do { n = Math.floor(Math.random() * SPOTS.length); } while (n === spot); spot = n;
+  let prev = spot; try { if (prev < 0) prev = +localStorage.getItem('cat-spot'); } catch (e) { /* нет хранилища */ }
+  let n; do { n = rnd(SPOTS.length); } while (n === prev); spot = n;
+  try { localStorage.setItem('cat-spot', n); } catch (e) { /* нет хранилища */ }
   const s = SPOTS[n], ratio = catImg.naturalHeight / catImg.naturalWidth || .776, sr = stage.clientHeight / stage.clientWidth || .75;
   const h = s.w * ratio / sr;
   Object.assign(catImg.style, { left: (s.x - s.w / 2) * 100 + '%', top: (s.y - h) * 100 + '%', width: s.w * 100 + '%', transform: s.f ? 'scaleX(-1)' : '' });
@@ -966,9 +964,11 @@ function light(e) {
   stage.style.setProperty('--x', x + 'px'); stage.style.setProperty('--y', y + 'px');
 }
 /* радиус фонарика в пикселях: в маске круга проценты не работают */
-function radius() { const w = stage.clientWidth; stage.style.setProperty('--r', Math.round(Math.min(160, Math.max(64, w * (w < 560 ? .2 : .14)))) + 'px'); }
+function radius() { const w = stage.clientWidth; stage.style.setProperty('--r', Math.round(Math.min(105, Math.max(42, w * (w < 560 ? .14 : .09)))) + 'px'); }
 addEventListener('resize', radius);
 function fmt(ms) { const s = ms / 1000; return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`; }
+const touchDevice = matchMedia('(hover: none) and (pointer: coarse)').matches;
+if (touchDevice) document.querySelector('#cat-start p').firstChild.textContent = 'Ночной рейс, в салоне темно, а кошка снова сбежала. Веди фонарик пальцем и отпусти, когда кошка попадет в луч.';
 function start() {
   hide(); radius(); misses = 0; playing = true; catRes.hidden = true;
   stage.classList.remove('found', 'gaveup'); stage.classList.add('on');
@@ -1020,10 +1020,26 @@ function miss(e) {
   p.style.left = e.clientX - r.left + 'px'; p.style.top = e.clientY - r.top + 'px';
   stage.append(p); setTimeout(() => p.remove(), 1300);
 }
+let drag = null;
 stage.addEventListener('pointermove', e => { if (playing) light(e); });
+stage.addEventListener('pointerup', e => {
+  if (!playing || !drag) return;
+  const moved = Math.hypot(e.clientX - drag.x, e.clientY - drag.y); drag = null;
+  if (moved < 12) return tap(e);
+  /* отпустили после ведения: смотрим, попала ли кошка в луч */
+  const r = stage.getBoundingClientRect(), c = catImg.getBoundingClientRect();
+  const lx = parseFloat(stage.style.getPropertyValue('--x')) + r.left, ly = parseFloat(stage.style.getPropertyValue('--y')) + r.top;
+  const R = parseFloat(stage.style.getPropertyValue('--r')) * .8;
+  if (lx > c.left - R && lx < c.right + R && ly > c.top - R && ly < c.bottom + R) finish(true);
+});
+stage.addEventListener('pointercancel', () => { drag = null; });
 stage.addEventListener('pointerdown', e => {
   if (!playing) return;
   light(e);
+  if (e.pointerType !== 'mouse') { drag = { x: e.clientX, y: e.clientY }; try { stage.setPointerCapture(e.pointerId); } catch (err) { /* без захвата */ } return; }
+  tap(e);
+});
+function tap(e) {
   const c = catImg.getBoundingClientRect(), pad = Math.max(c.width * .25, lastTouch ? 22 : 8);
   const inCat = e.clientX > c.left - pad && e.clientX < c.right + pad && e.clientY > c.top - pad && e.clientY < c.bottom + pad;
   /* мышью кошку надо сначала осветить, пальцем свет и так прыгает туда, куда нажал */
@@ -1031,7 +1047,7 @@ stage.addEventListener('pointerdown', e => {
   const cx = (c.left + c.right) / 2 - r.left, cy = (c.top + c.bottom) / 2 - r.top;
   const lit = lastTouch || Math.hypot(cx - lx, cy - ly) < parseFloat(stage.style.getPropertyValue('--r')) * 1.1;
   inCat && lit ? finish(true) : miss(e);
-});
+}
 document.getElementById('cat-go').addEventListener('click', start);
 document.getElementById('cat-giveup').addEventListener('click', () => { if (playing) finish(false); });
 catImg.addEventListener('load', () => { if (spot < 0) hide(); });

@@ -192,6 +192,9 @@ const bsu = (id: string, text: string): Shot => ({
 const KLASSIKO = bsu('klassiko', `Пост для спортивного контента${NB}— первое Класико сезона: «Барселона» против «Реала».`);
 const RYBAKINA = bsu('rybakina', `Пост для спортивного контента${NB}— Рыбакина стала первой ракеткой мира.`);
 const PRYZHOK = bsu('pryzhok', `Пост для спортивного контента${NB}— откуда меряют прыжок в${NB}длину.`);
+/** Посты спортивного уикенда для прямой ссылки `arisheniaa.ru/#posty`
+ *  (страница для Авиасейлс): по ней просмотр открывается сразу на них. */
+export const SPORT_POSTS: Shot[] = [KLASSIKO, RYBAKINA, PRYZHOK];
 
 export const SERVICES: Service[] = [
   {

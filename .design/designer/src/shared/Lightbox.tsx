@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { CtlIcon } from './ui';
+import { SPORT_POSTS } from './works';
 
 /**
  * ПРОСМОТР СКРИНА КРУПНО (её правка: «при нажатии на скрины открывались они
@@ -72,6 +73,26 @@ export function LightboxProvider({ children }: { children: ReactNode }) {
     setSt((s) => (s && fromEl.current ? { ...s, rect: fromEl.current.getBoundingClientRect() } : s));
     requestAnimationFrame(() => setSt(null));
   }, []);
+
+  /* Прямая ссылка `/#posty` (карточка «Посты и баннеры» на странице для
+     Авиасейлс): ждём, пока кольцо услуг отрисует сторис, подводим к нему
+     экран и раскрываем посты, как будто по нему нажали. Нет кадра за пять
+     секунд — открываем от центра экрана, чтобы ссылка не была пустой. */
+  useEffect(() => {
+    if (location.hash !== '#posty') return;
+    const first = SPORT_POSTS[0].src.split('/').pop()!;
+    let tries = 0;
+    const id = window.setInterval(() => {
+      const img = [...document.querySelectorAll('img')].find((x) => x.src.endsWith(first));
+      if (!img && ++tries < 25) return;
+      window.clearInterval(id);
+      const el = img ?? document.body;
+      if (img) img.scrollIntoView({ block: 'center' });
+      requestAnimationFrame(() => open(SPORT_POSTS, 0, el));
+      history.replaceState(null, '', location.pathname + location.search);
+    }, 200);
+    return () => window.clearInterval(id);
+  }, [open]);
 
   const step = useCallback((d: number) => {
     setSt((s) => (s ? { ...s, index: (s.index + d + s.list.length) % s.list.length, stepped: true } : s));
