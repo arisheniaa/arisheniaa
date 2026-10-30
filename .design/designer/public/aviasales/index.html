@@ -288,6 +288,16 @@ a.work:hover { border-color: var(--green); box-shadow: 0 8px 20px rgba(46,58,143
 @media (max-width: 560px) { .cat-intro { gap: 8px; padding: 12px; } .cat-intro p { font-size: 13px; } .cat-intro p .en { font-size: 11px; margin-top: 3px; } .cat-intro .btn { padding: 9px 14px; font-size: 14px; } .cat-giveup .en { display: none; } .cat-hud b { font-size: 15px; } }
 @media (prefers-reduced-motion: reduce) { .cat-fire i, .cat-eyes { animation: none; } .cat-eyes { opacity: .6; } .cat-stage.found #cat-sprite { animation: none; } }
 
+/* подсказка «потрясите телефон»: выезжает сверху, только на телефоне */
+.shake-hint { position: fixed; left: 50%; top: 10px; z-index: 30; display: flex; align-items: center; gap: 10px; max-width: calc(100% - 24px);
+  padding: 9px 14px 9px 10px; border: 2px solid #f5c518; border-radius: 10px; background: #050505; color: #f5c518; font: inherit; font-weight: 700; font-size: 14px; line-height: 1.2;
+  text-align: left; box-shadow: 0 6px 20px rgba(0,0,0,.3); translate: -50% -140%; transition: translate .35s cubic-bezier(.3,1.4,.5,1); cursor: pointer; }
+.shake-hint.show { translate: -50% 0; }
+.shake-hint .en { display: block; font-weight: 400; font-size: 11px; opacity: .8; }
+.shake-hint .ph { font-size: 22px; line-height: 1; animation: shake-ph 1.2s ease-in-out infinite; }
+@keyframes shake-ph { 0%, 60%, 100% { rotate: 0deg; } 10%, 30%, 50% { rotate: -18deg; } 20%, 40% { rotate: 18deg; } }
+@media (prefers-reduced-motion: reduce) { .shake-hint { transition: none; } .shake-hint .ph { animation: none; } }
+
 /* табло вылетов */
 .board { display: grid; gap: 14px; }
 @media (min-width: 860px) { .board { grid-template-columns: repeat(3, 1fr); } }
@@ -346,6 +356,7 @@ a.work:hover { border-color: var(--green); box-shadow: 0 8px 20px rgba(46,58,143
 </head>
 <body>
 
+<button class="shake-hint" id="shake-hint" type="button" hidden><span class="ph" aria-hidden="true">📱</span><span>Потрясите телефон<span class="en">Shake your phone</span></span></button>
 <button class="belt" id="belt" type="button" aria-pressed="false" aria-label="Табло «Пристегните ремни»: включить турбулентность">
   <img src="img/belt-sign.png" alt="" width="600" height="93">
   <span>Пристегните ремни<span class="en">Fasten seat belt</span></span>
@@ -575,6 +586,48 @@ addEventListener('pointermove', e => {
   }
   last = { x: e.clientX, y: e.clientY, t: now };
 }, { passive: true });
+
+/* на телефоне турбулентность от тряски: акселерометр вместо мыши */
+const hint = document.getElementById('shake-hint');
+const touch = matchMedia('(hover: none) and (pointer: coarse)').matches;
+if (touch && 'DeviceMotionEvent' in window) {
+  let armed = false, shown = false, lastShake = 0, prev = null, jolts = 0, joltAt = 0;
+  const onMotion = e => {
+    const a = e.accelerationIncludingGravity; if (!a || a.x == null) return;
+    if (prev) {
+      /* рывок: резкая разница ускорения между замерами; три рывка за секунду = тряска */
+      const d = Math.abs(a.x - prev.x) + Math.abs(a.y - prev.y) + Math.abs(a.z - prev.z), now = performance.now();
+      if (d > 25) {
+        jolts = now - joltAt < 1000 ? jolts + 1 : 1; joltAt = now;
+        if (jolts >= 3) { jolts = 0; if (now - lastShake > 2200) { lastShake = now; turbulence(); hideHint(true); } }
+      }
+    }
+    prev = { x: a.x, y: a.y, z: a.z };
+  };
+  const arm = () => { if (!armed) { armed = true; addEventListener('devicemotion', onMotion); } };
+  /* слушаем сразу: где разрешение не нужно, датчик заработает сам. iPhone пришлет данные только после разрешения, а спросить можно лишь по нажатию */
+  const needsAsk = typeof DeviceMotionEvent.requestPermission === 'function';
+  let granted = !needsAsk;
+  arm();
+  let hideTimer = 0, done = false;
+  function hideHint(forever) { hint.classList.remove('show'); clearTimeout(hideTimer); if (forever) done = true; }
+  function showHint() {
+    if (done || shown) return; shown = true;
+    hint.hidden = false; requestAnimationFrame(() => hint.classList.add('show'));
+    hideTimer = setTimeout(() => { hideHint(false); shown = false; }, 4500);
+  }
+  hint.addEventListener('click', async () => {
+    if (!granted) { try { granted = await DeviceMotionEvent.requestPermission() === 'granted'; } catch (e) { /* не разрешили */ } }
+    else turbulence();
+    hideHint(false);
+  });
+  /* подсказка выезжает, пока листаешь: первый раз после пары экранов, потом изредка */
+  let scrolled = 0, lastY = scrollY, nextAt = innerHeight * 1.5;
+  addEventListener('scroll', () => {
+    scrolled += Math.abs(scrollY - lastY); lastY = scrollY;
+    if (scrolled > nextAt) { nextAt = scrolled + innerHeight * 6; showHint(); }
+  }, { passive: true });
+}
 
 /* игра «Курица или рыба»: семь пар, каждый выбор голосует за города */
 const CITIES = {
