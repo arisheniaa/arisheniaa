@@ -1,0 +1,994 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta name="description" content="Игры в стиле бортовой инструкции и сайты Арины Семкиной">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Развлечения на борту · Арина Семкина</title>
+<meta name="description" content="Бортпроводница пересаживается в веб-дизайн: тест «Какой ты пассажир», мини-игры и резюме Арины Семкиной для отклика в Авиасейлс.">
+<link rel="stylesheet" href="fonts.css">
+<style>
+/*
+  Спецпроект-отклик по мотивам бортовой инструкции по безопасности.
+  Серо-голубой фон, синий заголовок, зеленые плитки-пиктограммы, красные знаки и рамки, голубые панели.
+  Все блоки на двух языках: русский основной, английский светлым. Текст о себе только на русском.
+*/
+:root {
+  --bg: #eef1f6;
+  --paper: #f7f9fc;
+  --navy: #2e3a8f;
+  --ink: #1f2430;
+  --ink-2: #4a5060;
+  --en: #5c6372;
+  --green: #2ea44f;
+  --green-d: #23843f;
+  --red: #e2312b;
+  --blue-panel: #d6e1f0;
+  --rule: #8fa6cc;
+  --line: #b4bdcc;
+  --font: 'Inter', Arial, Helvetica, sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: linear-gradient(180deg, #f4f6fa 0%, var(--bg) 600px); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.5; overflow-x: hidden; }
+h1, h2, h3, p, ul, figure { margin: 0; }
+ul { padding: 0; list-style: none; }
+a { color: inherit; text-underline-offset: 3px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+img { display: block; max-width: 100%; }
+:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+
+.wrap { width: min(1080px, 100% - 32px); margin-inline: auto; }
+.en { color: var(--en); font-weight: 300; }
+.rule { height: 2px; background: var(--rule); opacity: .7; }
+.topline { height: 8px; background: var(--rule); opacity: .6; }
+
+/* шапка */
+.top { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; padding-block: 20px 12px; }
+.model { font-size: clamp(20px, 3vw, 30px); font-weight: 600; color: var(--navy); letter-spacing: -0.01em; }
+.title { padding-block: 22px 8px; }
+.title h1 { font-size: clamp(30px, 5.4vw, 60px); font-weight: 700; letter-spacing: -0.025em; line-height: 1.05; }
+.title p { font-size: clamp(22px, 3.8vw, 44px); font-weight: 300; color: var(--en); line-height: 1.15; }
+
+.mark { display: flex; align-items: center; gap: 10px; color: var(--navy); }
+.mark .star { width: clamp(26px, 3vw, 34px); height: auto; flex: none; }
+.mark-txt { display: grid; justify-items: end; }
+.mark .sig { width: clamp(120px, 16vw, 180px); height: auto; display: block; }
+.mark .air { font-family: var(--font); font-size: 13px; font-weight: 300; font-style: italic; color: var(--en); margin: -5px 22px 0 0; }
+
+/* плитки и знаки */
+.tile { width: 52px; height: 52px; background: var(--green); border-radius: 6px; display: grid; place-items: center; flex: none; }
+.tile svg { width: 36px; height: 36px; }
+.tile.sm { width: 40px; height: 40px; border-radius: 5px; }
+.tile.sm svg { width: 28px; height: 28px; }
+.signs { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding-block: 18px; }
+.tiles { display: flex; align-items: center; gap: 8px; }
+.tile-label { margin-left: 6px; font-weight: 700; line-height: 1.2; }
+.tile-label .en { display: block; font-weight: 400; }
+.bans { display: flex; gap: 10px; }
+.ban { display: grid; justify-items: center; gap: 4px; width: 62px; text-align: center; font-size: 10.5px; line-height: 1.15; color: var(--ink-2); }
+.ban i { width: 52px; height: 52px; border-radius: 50%; border: 5px solid var(--red); background: #fff; position: relative; display: grid; place-items: center; overflow: hidden;
+  font-style: normal; font-weight: 800; font-size: 10px; color: var(--ink); }
+.ban i::after { content: ""; position: absolute; width: 5px; height: 64px; background: var(--red); transform: rotate(45deg); }
+
+/* заголовки разделов */
+section { padding-block: 44px; }
+.sh { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.sh h2 { font-size: clamp(22px, 3vw, 32px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.sh h2 .en { display: block; font-size: .6em; font-weight: 400; letter-spacing: 0; margin-top: 2px; }
+.lead { display: grid; gap: 16px; margin: -6px 0 22px; color: var(--ink-2); }
+@media (min-width: 760px) { .lead { grid-template-columns: 1fr 1fr; gap: 32px; } }
+
+/* первый экран */
+.hero { display: grid; gap: 22px; padding-block: 8px 20px; }
+@media (min-width: 860px) { .hero { grid-template-columns: 380px 1fr; align-items: stretch; } }
+.shot { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #dde3ec; aspect-ratio: 4 / 5; }
+@media (min-width: 860px) { .shot { aspect-ratio: auto; min-height: 520px; } }
+.shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; transform: scale(1.45); transform-origin: 48% 24%; }
+.shot figcaption { position: absolute; left: 12px; right: 12px; bottom: 12px; background: rgba(255,255,255,.94); border-radius: 6px; padding: 8px 12px; font-weight: 700; line-height: 1.3; }
+.shot figcaption .en { display: block; font-size: 14px; font-weight: 400; }
+.brief { display: grid; gap: 18px; align-content: start; }
+.about { font-size: clamp(17px, 1.7vw, 19px); line-height: 1.55; }
+.note { border: 2px solid var(--red); border-radius: 8px; background: #fff; padding: 14px 16px; display: grid; gap: 6px 24px; }
+@media (min-width: 640px) { .note { grid-template-columns: 1fr 1fr; } }
+.exits-h { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.exits-h .en { font-weight: 400; }
+.exits { display: grid; gap: 10px; }
+@media (min-width: 640px) { .exits { grid-template-columns: 1fr 1fr; } }
+.exit { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 8px; background: var(--green); color: #fff; text-decoration: none; font-weight: 700; line-height: 1.25; transition: background .15s, transform .15s; }
+.exit:hover { background: var(--green-d); transform: translateX(3px); }
+.exit .en { display: block; color: rgba(255,255,255,.85); font-size: 13px; font-weight: 400; }
+.exit svg { flex: none; width: 28px; height: 28px; }
+
+/* голубая панель */
+.panel { background: var(--blue-panel); border-radius: 14px; padding: clamp(18px, 3vw, 32px); }
+
+/* тест */
+.quiz { display: grid; gap: 20px; min-height: 440px; align-content: start; }
+.progress { display: flex; gap: 6px; }
+.progress i { flex: 1; height: 8px; border-radius: 99px; background: rgba(46,58,143,.18); transition: background .2s; }
+.progress i.done { background: var(--navy); }
+.qnum { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--navy); }
+.qnum .en, .rate .en { display: block; font-weight: 400; text-transform: none; letter-spacing: 0; margin-top: 3px; }
+.q-title { font-size: clamp(20px, 2.8vw, 30px); font-weight: 700; letter-spacing: -0.015em; line-height: 1.2; }
+.q-title .en { display: block; font-size: .62em; font-weight: 300; letter-spacing: 0; margin-top: 4px; }
+.answers { display: grid; gap: 12px; }
+@media (min-width: 720px) { .answers { grid-template-columns: 1fr 1fr; } }
+.answer { text-align: left; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: #fff; display: flex; gap: 12px; align-items: flex-start; line-height: 1.35; transition: border-color .12s, transform .12s, box-shadow .12s; }
+.answer:hover { border-color: var(--green); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(46,58,143,.12); }
+.answer b { display: block; font-weight: 600; }
+.answer .en { display: block; font-size: 13.5px; margin-top: 2px; }
+.answer .key { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--red); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+
+.result { display: grid; gap: 22px; }
+@media (min-width: 860px) { .result { grid-template-columns: 1fr 1.1fr; align-items: start; } }
+.share-card { background: #fff; border: 2px solid var(--red); border-radius: 12px; padding: 20px; display: grid; gap: 12px; }
+.share-card .qnum { color: var(--red); }
+.share-card h3 { font-size: clamp(26px, 3.2vw, 36px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; overflow-wrap: anywhere; }
+.share-card h3 .en { display: block; font-size: .5em; font-weight: 300; letter-spacing: 0; margin-top: 4px; }
+.illu { aspect-ratio: 4 / 3; border: 2px dashed var(--line); border-radius: 10px; background: var(--paper); display: grid; place-items: center; text-align: center; padding: 16px; font-size: 13px; color: var(--ink-2); }
+.illu b { display: block; font-size: 60px; line-height: 1; margin-bottom: 8px; }
+.illu img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+.illu:has(img) { border: 0; padding: 0; overflow: hidden; }
+.rate { font-size: 13px; font-weight: 700; color: var(--navy); }
+.res-text { display: grid; gap: 14px; }
+.res-text .big { font-size: 18px; }
+.tip { border-left: 5px solid var(--red); padding: 2px 0 2px 14px; display: grid; gap: 4px; }
+.tip b { color: var(--red); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 8px; padding: 12px 18px; font-weight: 700; background: var(--green); color: #fff; text-decoration: none; line-height: 1.2; transition: background .15s; }
+.btn:hover { background: var(--green-d); }
+.btn.alt { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+.btn.alt:hover { border-color: var(--ink); background: #fff; }
+.btn .en { color: inherit; opacity: .8; font-weight: 400; }
+.toast { font-size: 14px; font-weight: 600; color: var(--green-d); min-height: 1.5em; }
+
+/* игра «Курица или рыба» */
+.game { display: grid; gap: 20px; min-height: 420px; align-content: start; }
+.trays { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; }
+.or { font-weight: 800; color: var(--red); text-align: center; line-height: 1.1; }
+.or .en { display: block; font-size: 12px; }
+.tray { position: relative; height: 230px; border: 1px solid var(--line); border-radius: 14px; background: #fff; display: grid; justify-items: center; align-content: end; padding: 16px; overflow: hidden; transition: border-color .15s, box-shadow .15s, transform .15s; }
+.tray:hover { border-color: var(--green); box-shadow: 0 8px 20px rgba(46,58,143,.14); transform: translateY(-3px); }
+.tray::before { content: ""; position: absolute; left: 50%; bottom: 50px; width: 230px; height: 81px; margin-left: -115px; background: url(img/game/tray.png) center / contain no-repeat; }
+.dish { position: absolute; bottom: 84px; font-size: 64px; line-height: 1; opacity: 0; transform: scale(.6); transition: opacity .3s .15s, transform .3s .15s; }
+.cloche { position: absolute; bottom: 78px; width: 172px; height: 112px; background: url(img/game/cloche.png) center bottom / contain no-repeat; transition: transform .5s cubic-bezier(.3,1.4,.5,1); }
+.tray-name { position: relative; font-weight: 700; font-size: 18px; text-align: center; line-height: 1.2; }
+.tray-name .en { display: block; font-size: 13px; }
+.tray.open .cloche { transform: translateY(-150px) rotate(-14deg); }
+.tray.open .dish { opacity: 1; transform: scale(1); }
+.dish img { display: block; width: 110px; height: 110px; object-fit: contain; }
+.tray.open { border-color: var(--green); }
+@media (max-width: 560px) { .trays { grid-template-columns: 1fr; } .tray { height: 215px; } .dish img { width: 92px; height: 92px; } .or { padding-block: 2px; } }
+@media (prefers-reduced-motion: reduce) { .cloche, .dish { transition: none; } }
+.ticket { border-style: dashed; }
+.pass { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line); padding-block: 10px; }
+.pass dt { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-2); }
+.pass dt .en { text-transform: none; letter-spacing: 0; }
+.pass dd { margin: 0; font-weight: 800; font-size: 18px; }
+
+/* предыдущие работы */
+.works { display: grid; gap: 16px; }
+@media (min-width: 760px) { .works { grid-template-columns: 1fr 1fr; } }
+.work { background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: grid; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+a.work:hover { border-color: var(--green); box-shadow: 0 8px 20px rgba(46,58,143,.12); }
+.work img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; object-position: 50% 0; border-bottom: 1px solid var(--line); }
+.work div { padding: 14px 16px 16px; display: grid; gap: 4px; }
+.work h3 { font-size: 18px; font-weight: 700; line-height: 1.2; }
+.work h3 .en { display: block; font-size: 14px; }
+.work p { font-size: 14.5px; color: var(--ink-2); }
+.work .go { font-size: 13px; font-weight: 700; color: var(--green-d); margin-top: 4px; }
+
+/* посадочный талон: раскладка как у бумажного талона авиакомпании, координаты в пикселях скана 1200×488 */
+.bp { --mono: 'Overpass Mono', 'Consolas', monospace; position: relative; display: grid; grid-template-columns: 868fr 332fr; background: #fdfdfb; color: #1d1d1f;
+  border-radius: 6px; box-shadow: 0 1px 0 #c9d2e2, 0 10px 28px rgba(31,36,48,.12); overflow: hidden; text-transform: uppercase; }
+.bp-main, .bp-stub { position: relative; container-type: inline-size; }
+.bp-main { --u: calc(100cqw / 868); aspect-ratio: 868 / 488; }
+.bp-stub { --u: calc(100cqw / 332); aspect-ratio: 332 / 488; border-left: 1.5px dashed #c3c6cc; }
+.bp .p { position: absolute; left: calc(var(--x) * var(--u)); top: calc(var(--y) * var(--u)); white-space: nowrap; line-height: 1; margin: 0; }
+.bp .lb { font-family: var(--font); font-size: calc(7 * var(--u)); font-weight: 500; color: #222; line-height: 1.15; letter-spacing: -.02em; }
+.bp .v { font-family: var(--mono); font-size: calc(23 * var(--u)); font-weight: 400; letter-spacing: .02em; }
+.bp .v.s { font-size: calc(18 * var(--u)); }
+.bp .v.b { font-size: calc(46 * var(--u)); }
+.bp .ttl { font-family: var(--font); font-size: calc(14.5 * var(--u)); font-weight: 700; letter-spacing: -.01em; }
+.bp .ttl.s { font-size: calc(10.5 * var(--u)); line-height: 1.15; }
+.bp .nice { font-family: var(--font); text-transform: none; font-size: calc(12.5 * var(--u)); line-height: 1.25; }
+.bp .nice .h { display: block; font-size: calc(14.5 * var(--u)); font-weight: 400; margin-bottom: calc(5 * var(--u)); text-transform: uppercase; }
+.bp .logo { display: flex; align-items: center; gap: calc(6 * var(--u)); color: var(--navy); text-transform: none; }
+.bp .logo .star { width: calc(26 * var(--u)); height: calc(26 * var(--u)); }
+.bp .logo .sig { width: calc(120 * var(--u)); height: auto; display: block; }
+.bp .logo .mark-txt { display: grid; justify-items: end; }
+.bp .logo .air { font-family: var(--font); font-style: italic; font-weight: 300; font-size: calc(11 * var(--u)); color: #5c6372; margin: calc(-4 * var(--u)) calc(14 * var(--u)) 0 0; }
+.bp .code { position: absolute; left: calc(135 * var(--u)); top: calc(212 * var(--u)); width: calc(90 * var(--u)); height: calc(245 * var(--u)); }
+.bp .code svg { display: block; width: 100%; height: 100%; }
+.bp .stamp { position: absolute; left: calc(var(--x) * var(--u)); top: calc(var(--y) * var(--u)); width: calc(230 * var(--u)); transform: rotate(var(--r));
+  mix-blend-mode: multiply; pointer-events: none; overflow: visible; }
+.bp-more { display: grid; gap: 14px; margin-top: 18px; }
+@media (min-width: 760px) { .bp-more { grid-template-columns: 1fr 1fr; gap: 28px; } }
+@media (max-width: 760px) {
+  .bp { grid-template-columns: 1fr; }
+  .bp-stub { border-left: 0; border-top: 1.5px dashed #c3c6cc; width: min(100%, 380px); justify-self: center; }
+}
+
+/* генератор объяснительной: барабаны как табло вылетов */
+.reels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.reel { background: #23262e; border: 0; border-radius: 10px; padding: 10px 14px 12px; color: #f5c518; text-align: left; font: inherit; cursor: pointer; transition: transform .15s; }
+.reel:hover { transform: translateY(-2px); }
+.reel:disabled { cursor: default; transform: none; }
+.reel .lbl { display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #9aa0ad; }
+.reel .lbl .en { font-weight: 400; letter-spacing: 0; text-transform: none; }
+.reel .win { display: block; position: relative; height: 72px; overflow: hidden; margin-top: 8px; border-radius: 4px; background: #191b21; }
+.reel .strip { will-change: transform; }
+.reel .cell { height: 72px; display: flex; align-items: center; padding: 0 10px; font-weight: 700; font-size: 16px; line-height: 1.2; }
+.ex-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 16px; }
+.ex-bar .hint { font-size: 14px; color: var(--ink-2); }
+.ex-bar .hint .en { color: var(--en); }
+.memo { position: relative; margin-top: 22px; background: #fffefa; border-radius: 6px; box-shadow: 0 1px 0 #c9d2e2, 0 10px 28px rgba(31,36,48,.12); padding: clamp(20px, 4vw, 40px) clamp(18px, 4vw, 48px) 110px; color: #1d1d1f; overflow: hidden; }
+.memo .to { margin-left: auto; max-width: 300px; font-size: 14px; line-height: 1.45; }
+.memo .to .en, .memo .body .en { color: var(--en); }
+.memo h3 { margin: 26px 0 18px; text-align: center; font-size: 18px; font-weight: 800; letter-spacing: .24em; text-transform: uppercase; }
+.memo h3 .en { display: block; font-size: 12px; font-weight: 400; letter-spacing: .14em; }
+.memo .body { font-size: 17px; line-height: 2; }
+.memo .body p.en { font-size: 14px; line-height: 1.6; margin-top: 8px; }
+.memo .fill { font-family: 'Caveat', cursive; font-size: 25px; line-height: 1; color: #2337a0; border-bottom: 1px solid #9aa3b5; padding: 0 6px; }
+.memo .fill.empty { color: transparent; display: inline-block; min-width: 140px; }
+.memo .sign { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-top: 26px; font-size: 14px; }
+.memo .sign .fill { font-size: 22px; }
+.memo .sign .en { white-space: nowrap; }
+.memo .sign svg { width: 120px; height: 44px; display: block; }
+.memo .ex-stamp { position: absolute; right: clamp(14px, 5vw, 56px); bottom: 14px; width: 200px; transform: rotate(-12deg); mix-blend-mode: multiply; pointer-events: none; opacity: 0; transition: opacity .2s, transform .25s cubic-bezier(.3,1.6,.5,1); }
+.memo.done .ex-stamp { opacity: 1; transform: rotate(-12deg) scale(1); }
+.memo:not(.done) .ex-stamp { transform: rotate(-12deg) scale(1.4); }
+.ex-more { display: grid; gap: 14px; margin-top: 18px; }
+@media (min-width: 760px) { .ex-more { grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; } }
+@media (max-width: 760px) { .reels { grid-template-columns: 1fr; } .memo .ex-stamp { width: 160px; bottom: 14px; right: 26px; } }
+@media (prefers-reduced-motion: reduce) { .memo .ex-stamp { transition: none; } }
+
+/* «Найди кошку в салоне»: ночной салон и круг фонарика */
+.cat-stage { --x: 50%; --y: 50%; --r: 110px; position: relative; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden; background: #050d1c; user-select: none; -webkit-user-select: none; }
+.cat-stage.on { cursor: none; touch-action: none; }
+.cat-stage img { -webkit-user-drag: none; pointer-events: none; }
+.cat-stage .layer { position: absolute; inset: 0; }
+.cat-stage .bgimg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cat-night .bgimg { filter: brightness(.32) saturate(.55) contrast(1.05); }
+.cat-night::after { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 100%, rgba(40,170,190,.28), transparent 60%), linear-gradient(rgba(3,16,40,.78), rgba(5,24,52,.72)); mix-blend-mode: multiply; }
+.cat-night::before { content: ""; position: absolute; inset: 0; z-index: 1; background: radial-gradient(90% 70% at 50% 40%, transparent 30%, rgba(0,4,12,.65)); }
+.cat-lit { -webkit-mask-image: radial-gradient(circle var(--r) at var(--x) var(--y), #000 55%, transparent 100%); mask-image: radial-gradient(circle var(--r) at var(--x) var(--y), #000 55%, transparent 100%); transition: opacity .3s; }
+.cat-lit .bgimg { filter: sepia(.18) brightness(1.04); }
+.cat-stage:not(.on):not(.found):not(.gaveup) .cat-lit { opacity: 0; }
+.cat-beam { pointer-events: none; background: radial-gradient(circle calc(var(--r) * 1.25) at var(--x) var(--y), rgba(255,226,150,.28), transparent 70%); mix-blend-mode: screen; opacity: 0; transition: opacity .3s; }
+.cat-stage.on .cat-beam { opacity: 1; }
+#cat-sprite { position: absolute; display: block; }
+.cat-eyes { position: absolute; aspect-ratio: 2.6 / 1; translate: -50% -50%; pointer-events: none; z-index: 2;
+  background: radial-gradient(circle at 22% 50%, #bdfcff 0 18%, rgba(110,240,255,.5) 30%, transparent 48%), radial-gradient(circle at 78% 50%, #bdfcff 0 18%, rgba(110,240,255,.5) 30%, transparent 48%);
+  opacity: 0; animation: cat-blink 4.2s infinite; }
+@keyframes cat-blink { 0%, 72%, 100% { opacity: 0; } 76%, 84% { opacity: .9; } 80% { opacity: .2; } }
+.cat-fire { pointer-events: none; z-index: 2; transition: opacity .6s; }
+.cat-fire i { position: absolute; border-radius: 50%; background: #c9fbff; box-shadow: 0 0 8px 2px rgba(95,225,255,.7); opacity: .55; animation: cat-float ease-in-out infinite alternate; }
+@keyframes cat-float { from { transform: translate(0, 0); opacity: .15; } to { transform: translate(24px, -38px); opacity: .8; } }
+.cat-stage.found .cat-night, .cat-stage.gaveup .cat-night, .cat-stage.found .cat-fire, .cat-stage.gaveup .cat-fire, .cat-stage.found .cat-eyes, .cat-stage.gaveup .cat-eyes { opacity: 0; animation: none; }
+.cat-night { transition: opacity .8s; }
+.cat-stage.found .cat-lit, .cat-stage.gaveup .cat-lit { -webkit-mask-image: none; mask-image: none; }
+.cat-stage.found #cat-sprite { animation: cat-hop .5s cubic-bezier(.3,1.6,.5,1); filter: drop-shadow(0 0 10px rgba(255,214,90,.9)); }
+@keyframes cat-hop { 40% { translate: 0 -14%; } }
+.cat-hud { position: absolute; left: 12px; top: 12px; z-index: 3; display: flex; gap: 8px; align-items: center; pointer-events: none; }
+.cat-hud b { font-family: 'Overpass Mono', monospace; font-size: 18px; font-weight: 500; color: #f5c518; background: #23262e; border-radius: 6px; padding: 4px 10px; letter-spacing: .06em; }
+.cat-giveup { position: absolute; right: 12px; top: 12px; z-index: 3; border: 1px solid rgba(255,255,255,.35); background: rgba(10,20,40,.55); color: #e8f4ff; border-radius: 8px; padding: 7px 12px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.cat-stage:not(.on) .cat-giveup, .cat-stage:not(.on) .cat-hud { display: none; }
+.cat-intro { position: absolute; inset: 0; z-index: 4; display: grid; place-content: center; justify-items: center; gap: 14px; padding: 24px; text-align: center; color: #e8f4ff; }
+.cat-intro[hidden] { display: none; }
+.cat-intro p { max-width: 460px; font-size: 17px; line-height: 1.4; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
+.cat-intro p .en { display: block; font-size: 14px; color: #a9c3dd; margin-top: 6px; }
+.cat-miss { position: absolute; z-index: 3; translate: -50% -130%; pointer-events: none; white-space: nowrap; font-size: 13px; font-weight: 700; color: #e8f4ff; background: rgba(10,20,40,.75); border-radius: 6px; padding: 4px 8px; animation: cat-missf 1.3s forwards; }
+@keyframes cat-missf { to { translate: -50% -220%; opacity: 0; } }
+.cat-res { display: grid; gap: 14px; margin-top: 18px; }
+@media (min-width: 760px) { .cat-res { grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; } }
+@media (max-width: 560px) { .cat-intro { gap: 8px; padding: 12px; } .cat-intro p { font-size: 13px; } .cat-intro p .en { font-size: 11px; margin-top: 3px; } .cat-intro .btn { padding: 9px 14px; font-size: 14px; } .cat-giveup .en { display: none; } .cat-hud b { font-size: 15px; } }
+@media (prefers-reduced-motion: reduce) { .cat-fire i, .cat-eyes { animation: none; } .cat-eyes { opacity: .6; } .cat-stage.found #cat-sprite { animation: none; } }
+
+/* табло вылетов */
+.board { display: grid; gap: 14px; }
+@media (min-width: 860px) { .board { grid-template-columns: repeat(3, 1fr); } }
+.flight { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 8px; align-content: start; }
+.status { justify-self: start; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 4px 9px; border-radius: 4px; background: #23262e; color: #f5c518; }
+.flight h3 { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+.flight h3 .en { display: block; font-size: 14px; font-weight: 300; }
+.flight p { font-size: 14.5px; color: var(--ink-2); }
+.flight p.en { color: var(--en); }
+
+/* что делаю, резюме */
+.two { display: grid; gap: 18px; }
+@media (min-width: 760px) { .two { grid-template-columns: 1fr 1fr; gap: 32px; } }
+.dots li { position: relative; padding-left: 16px; }
+.dots li + li { margin-top: 6px; }
+.dots li::before { content: "•"; position: absolute; left: 2px; top: 0; }
+.sub { font-weight: 700; margin-bottom: 8px; font-size: 17px; }
+.en .sub, .sub.en { font-weight: 400; }
+.when { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--navy); }
+.job { display: grid; gap: 4px; }
+.job + .job { margin-top: 18px; }
+.job h3 { font-size: 17px; font-weight: 700; }
+.kit { display: flex; flex-wrap: wrap; gap: 6px; }
+.kit span { background: #fff; border: 1px solid #b4c4de; border-radius: 6px; padding: 3px 10px; font-weight: 600; font-size: 14px; }
+.soon { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.dot { width: 38px; height: 38px; border-radius: 50%; background: var(--red); color: #fff; display: grid; place-items: center; font-weight: 800; flex: none; }
+
+/* внимание */
+.attn { display: grid; gap: 24px; padding-block: 28px 20px; }
+@media (min-width: 760px) { .attn { grid-template-columns: 1fr 1fr; gap: 40px; } }
+.attn h2 { text-align: center; color: var(--red); font-size: 22px; font-weight: 800; letter-spacing: .02em; margin-bottom: 10px; }
+.attn .en { font-weight: 400; }
+.foot { display: grid; gap: 12px; padding-block: 16px 36px; font-weight: 700; }
+@media (min-width: 760px) { .foot { grid-template-columns: 1fr 1fr; gap: 40px; } }
+.foot small { display: block; font-weight: 400; font-size: 12px; color: var(--ink-2); margin-top: 6px; }
+
+/* табло «пристегните ремни» и турбулентность */
+.belt { position: fixed; bottom: 16px; right: 16px; z-index: 20; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 14px 9px; border-radius: 10px;
+  border: 2px solid #3a3f4b; background: #050505; color: #7d8391; text-align: center; font-weight: 700; font-size: 13px; line-height: 1.15; transition: background .2s, color .2s, box-shadow .2s; }
+.belt img { width: 150px; height: auto; display: block; opacity: .35; filter: saturate(.4); transition: opacity .2s, filter .2s; }
+.belt.on img { opacity: 1; filter: none drop-shadow(0 0 6px rgba(245,197,24,.7)); }
+.belt .en { display: block; color: inherit; opacity: .8; font-weight: 400; font-size: 11px; }
+.belt.on { background: #050505; color: #f5c518; border-color: #f5c518; box-shadow: 0 0 0 6px rgba(245,197,24,.35), 0 0 24px rgba(245,197,24,.6); }
+@media (max-width: 600px) { .belt { padding: 8px 10px; } .belt img { width: 104px; } .belt span { display: none; } }
+@keyframes shake {
+  0%,100% { transform: translate(0,0) rotate(0); }
+  15% { transform: translate(-6px, 3px) rotate(-.4deg); }
+  30% { transform: translate(5px, -4px) rotate(.3deg); }
+  45% { transform: translate(-4px, 5px) rotate(-.2deg); }
+  60% { transform: translate(6px, 2px) rotate(.4deg); }
+  75% { transform: translate(-3px, -3px) rotate(-.3deg); }
+}
+.shaking main { animation: shake .45s linear 3; }
+@media (prefers-reduced-motion: reduce) { .shaking main { animation: none; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<button class="belt" id="belt" type="button" aria-pressed="false" aria-label="Табло «Пристегните ремни»: включить турбулентность">
+  <img src="img/belt-sign.png" alt="" width="600" height="93">
+  <span>Пристегните ремни<span class="en">Fasten seat belt</span></span>
+</button>
+
+<div class="topline" aria-hidden="true"></div>
+<main>
+  <div class="wrap">
+    <header class="top">
+      <p class="model">Web Designer AS</p>
+      <div class="mark" role="img" aria-label="Arisheniaa airlines"><svg class="star" viewBox="0 0 40 40" aria-hidden="true"><path fill="#f4b93f" d="M20.5 1 L24.2 13.8 L36.5 10.4 L28.9 20.6 L39 26.3 L26.4 27.6 L28.2 39 L19.2 31.2 L10.4 38.4 L12.1 26.6 L1 23.4 L11.6 18.2 L6.2 8.1 L18.1 13.2 Z"/></svg><div class="mark-txt"><svg class="sig" viewBox="-20 -200 1305 330" fill="none" aria-hidden="true"><path fill="currentColor" d="M38.53 108.30L38.53 108.30Q34.42 108.30 30.71 107.52L30.71 107.52Q12.65 103.27 3.96 86.04L3.96 86.04Q-1.90 73.10-1.90 56.40L-1.90 56.40Q-1.90 39.36 1.86 19.34L1.86 19.34Q6.20-4.350 21.58-32.37L21.58-32.37Q30.66-48.78 40.36-61.21Q50.05-73.63 60.35-85.21L60.35-85.21Q78.08-104.49 99.07-119.14L99.07-119.14Q114.45-129.44 132.71-137.79L132.71-137.79Q163.23-150.83 194.68-153.96L194.68-153.96Q204.39-154.74 213.62-154.74L213.62-154.74Q248.39-154.74 276.37-143.46L276.37-143.46L277.73-142.82Q278.27-143.55 280.62-146.39L280.62-146.39Q302.00-172.61 303.86-174.32L303.86-174.32Q307.08-177.20 310.11-177.20L310.11-177.20L310.69-177.20Q316.26-176.27 316.26-170.80L316.26-170.80Q316.26-165.87 310.89-155.86L310.89-155.86Q307.96-150.49 302.15-141.36L302.15-141.36Q297.61-134.18 296.48-132.67L296.48-132.67Q296.73-132.57 297.36-132.13L297.36-132.13Q317.53-118.41 325.68-97.12L325.68-97.12Q327.49-92.43 327.91-89.40Q328.32-86.38 328.32-83.69L328.32-83.69Q328.32-82.03 327.78-73.83L327.78-73.83Q325.10-71.53 324.32-71.24Q323.54-70.95 322.66-70.95L322.66-70.95Q320.90-70.95 320.02-71.46Q319.14-71.97 316.94-74.37L316.94-74.37Q317.33-80.57 317.33-81.88L317.33-81.88Q317.33-86.13 316.46-89.70L316.46-89.70Q315.33-94.38 312.06-100.34L312.06-100.34Q309.33-105.66 306.59-109.23L306.59-109.23Q302.69-114.36 295.46-120.07L295.46-120.07Q291.02-123.68 290.87-123.73L290.87-123.73Q289.79-121.88 284.57-113.53L284.57-113.53Q276.42-100.49 275.39-98.73L275.39-98.73Q271.53-92.43 267.29-84.59Q263.04-76.76 254.44-60.25L254.44-60.25Q238.62-30.08 230.22-10.64L230.22-10.64Q224.61 2.83 223.80 5.96Q223.00 9.08 220.46 18.60L220.46 18.60Q216.94 31.59 215.97 45.90L215.97 45.90Q215.82 47.17 215.82 48.34L215.82 48.34Q215.82 49.66 216.02 50.93L216.02 50.93Q216.99 66.02 225.44 66.02L225.44 66.02Q231.88 66.02 240.19 62.45L240.19 62.45Q278.66 44.92 354.25-25.78L354.25-25.78Q356.30-27.64 358.45-27.64L358.45-27.64Q359.67-27.64 361.04-26.90L361.04-26.90Q363.43-24.56 363.43-22.75L363.43-22.75Q363.43-20.70 360.84-17.92L360.84-17.92Q285.21 52.59 243.65 72.17L243.65 72.17Q235.01 76.42 225.73 76.42L225.73 76.42Q224.22 76.42 222.56 76.32L222.56 76.32Q206.20 73.34 205.03 50.44L205.03 50.44Q204.98 49.22 204.98 47.75L204.98 47.75Q204.98 39.84 206.25 32.47L206.25 32.47Q210.94 7.62 217.24-8.06L217.24-8.06Q224.41-26.61 243.31-62.74L243.31-62.74Q258.15-91.21 264.26-101.46L264.26-101.46Q268.12-107.81 273.93-117.04L273.93-117.04Q280.22-127.05 281.59-129.15L281.59-129.15L280.57-129.69Q279.64-128.37 272.17-119.07Q264.70-109.77 236.67-73.68L236.67-73.68Q221.48-54.39 215.04-45.90L215.04-45.90L198.97-25.49Q190.38-14.79 182.42-4.59L182.42-4.59Q129.93 61.33 85.94 90.58L85.94 90.58Q68.46 101.95 54.88 105.81L54.88 105.81Q45.95 108.30 38.53 108.30ZM39.11 97.75L39.11 97.75Q40.14 97.75 41.26 97.66L41.26 97.66Q62.94 96.04 95.46 70.31L95.46 70.31Q112.11 57.42 131.74 37.01L131.74 37.01Q154.83 12.94 173.97-11.47L173.97-11.47Q178.52-17.33 188.53-29.83L188.53-29.83Q196.44-39.75 209.72-56.79L209.72-56.79Q213.13-61.33 223.29-74.27L223.29-74.27Q227.64-79.74 240.92-96.88L240.92-96.88Q254.79-114.99 265.48-128.03L265.48-128.03L270.51-134.28L267.68-135.35Q257.67-139.06 245.41-141.46L245.41-141.46Q229.25-144.19 212.79-144.19L212.79-144.19Q182.32-144.19 152.34-133.98L152.34-133.98Q117.87-122.02 90.28-98.93L90.28-98.93Q76.37-87.26 71.39-81.79Q66.41-76.32 46.09-51.61L46.09-51.61Q15.48-5.27 11.72 33.74L11.72 33.74Q11.52 35.79 11.43 37.84L11.43 37.84Q10.45 42.72 9.77 49.76L9.77 49.76Q9.33 54.15 9.33 58.20L9.33 58.20Q9.33 73.19 15.14 83.84L15.14 83.84Q18.26 89.06 23.10 92.68L23.10 92.68Q29.93 97.75 39.11 97.75Z"/><path fill="currentColor" d="M400.68 49.07L400.68 49.07Q398.34 49.07 396.48 48.68L396.48 48.68Q389.75 46.97 386.04 41.85L386.04 41.85Q383.06 37.84 383.06 31.49L383.06 31.49Q383.06 27.49 384.23 22.61L384.23 22.61Q387.74 6.40 406.25-25L406.25-25Q409.57-30.52 412.79-38.13L412.79-38.13Q414.84-42.82 415.58-45.68Q416.31-48.54 416.31-51.61L416.31-51.61Q416.31-56.15 414.65-58.40Q412.99-60.64 409.08-61.72L409.08-61.72Q407.47-62.16 401.81-62.16L401.81-62.16Q394.14-62.16 385.82-57.96Q377.49-53.76 371.04-47.31Q364.60-40.87 362.60-34.86L362.60-34.86Q361.96-32.81 361.96-31.10L361.96-31.10Q361.96-30.03 362.21-29.00L362.21-29.00Q362.89-26.22 362.89-24.90L362.89-24.90Q362.89-23.39 361.57-22.07L361.57-22.07Q360.01-20.21 357.47-20.21L357.47-20.21Q354.10-20.21 352.34-23.44L352.34-23.44Q350.93-26.17 350.93-31.05L350.93-31.05Q350.93-40.48 358.89-50.10L358.89-50.10Q367.68-60.84 380.86-67.43L380.86-67.43Q391.85-72.90 403.37-72.90L403.37-72.90Q409.08-72.90 413.96-71.29L413.96-71.29Q427.44-66.80 427.44-51.42L427.44-51.42Q427.44-46.78 426.07-42.24L426.07-42.24Q423.00-31.69 413.62-15.82L413.62-15.82Q401.71 4.49 396.78 18.65L396.78 18.65Q394.19 26.86 394.19 31.64L394.19 31.64Q394.19 33.25 394.51 34.30Q394.82 35.35 395.75 36.40Q396.68 37.45 397.66 37.89L397.66 37.89Q399.02 38.43 401.42 38.43L401.42 38.43Q403.22 38.43 404.98 37.99L404.98 37.99Q416.06 35.16 429.64 24.80L429.64 24.80Q434.77 20.75 442.68 13.75Q450.59 6.74 457.67 0L457.67 0Q485.55-26.27 488.82-27.20L488.82-27.20Q489.70-27.34 490.43-27.34L490.43-27.34Q493.07-27.34 494.73-25.39L494.73-25.39Q495.95-23.93 495.95-22.17L495.95-22.17Q495.95-19.24 493.02-17.38L493.02-17.38Q491.46-16.31 485.45-10.84L485.45-10.84Q473.10 0.29 464.65 8.25L464.65 8.25Q448.78 23.29 438.38 31.54L438.38 31.54Q416.36 49.07 400.68 49.07Z"/><path fill="currentColor" d="M491.55 14.36L491.55 14.36Q485.89 14.36 481.59 10.79L481.59 10.79Q476.76 6.84 476.76 0L476.76 0Q476.76-2.88 477.88-7.62L477.88-7.62Q478.66-11.18 479.88-14.70L479.88-14.70Q481.84-19.92 484.62-25.88L484.62-25.88Q489.11-35.50 491.55-36.87L491.55-36.87Q492.77-37.65 494.19-37.65L494.19-37.65Q498.93-37.65 500.29-33.15L500.29-33.15Q500.59-32.23 500.59-31.35L500.59-31.35Q500.59-28.91 499.17-28.05Q497.75-27.20 494.53-20.31L494.53-20.31Q487.79-6.05 487.79 1.56L487.79 1.56Q487.79 2.98 488.38 3.47Q488.96 3.96 490.09 3.96L490.09 3.96Q491.36 3.96 493.65 3.32L493.65 3.32Q497.80 2.29 502.91-0.22Q508.01-2.73 519.48-9.47L519.48-9.47Q528.08-14.45 540.92-22.66L540.92-22.66Q543.90-24.51 548.68-27.39L548.68-27.39Q550.29-28.22 551.81-28.22L551.81-28.22Q554.05-28.22 556.05-26.37L556.05-26.37Q557.18-24.32 557.18-22.66L557.18-22.66Q557.18-19.73 554.69-18.02L554.69-18.02Q552.49-16.94 539.99-8.89L539.99-8.89Q535.94-6.30 528.96-2.20L528.96-2.20Q516.06 5.27 511.23 7.91L511.23 7.91Q498.24 14.36 491.55 14.36ZM499.32-53.03L499.32-53.03Q497.31-53.03 495.70-54.44L495.70-54.44Q493.55-56.10 493.55-58.98L493.55-58.98Q493.55-60.16 494.58-62.21L494.58-62.21Q495.65-64.50 496.97-65.53Q498.29-66.55 500.34-66.55L500.34-66.55Q503.03-66.55 505.20-64.60Q507.37-62.65 507.37-60.55L507.37-60.55Q507.37-59.62 507.03-58.79L507.03-58.79Q506.35-56.88 504.39-56.15L504.39-56.15Q502.78-53.03 499.32-53.03Z"/><path fill="currentColor" d="M548.00 43.26L548.00 43.26Q551.46 43.26 554.83 41.89L554.83 41.89Q556.05 41.41 557.23 40.87L557.23 40.87Q571.14 33.64 575.05 16.70L575.05 16.70Q575.29 15.33 575.29 13.38L575.29 13.38Q575.29 10.64 574.90 8.89L574.90 8.89Q574.80 8.40 574.56 8.11L574.56 8.11L569.09 11.82Q557.28 20.12 550.05 27.59L550.05 27.59Q544.29 33.40 542.48 37.30L542.48 37.30Q541.46 39.36 541.46 40.14L541.46 40.14Q541.46 40.58 541.70 41.06L541.70 41.06Q542.97 43.26 548.00 43.26ZM579.10-6.98L579.10-6.98Q579.59-7.28 580.57-7.81L580.57-7.81Q592.72-14.55 605.91-19.53L605.91-19.53Q613.87-22.41 623.36-24.63Q632.86-26.86 637.94-26.95L637.94-26.95Q644.24-26.90 644.24-22.22L644.24-22.22Q644.24-17.63 641.02-17.09Q637.79-16.55 636.67-16.46L636.67-16.46Q631.20-16.02 622.36-13.72L622.36-13.72Q602.25-8.40 584.18 2.15L584.18 2.15L584.47 3.03Q586.18 7.76 586.18 12.89L586.18 12.89Q586.18 21.44 581.40 30.86L581.40 30.86Q576.76 40.04 568.70 46.12Q560.64 52.20 551.32 53.47L551.32 53.47Q549.27 53.71 547.90 53.71L547.90 53.71Q542.82 53.71 538.48 51.66L538.48 51.66Q530.62 47.95 530.62 40.28L530.62 40.28Q530.62 31.79 543.12 19.63L543.12 19.63Q553.08 9.52 567.09 0.49L567.09 0.49Q569.58-1.17 570.36-1.46L570.36-1.46Q569.82-1.95 568.41-3.61L568.41-3.61Q562.21-10.84 553.47-17.48L553.47-17.48Q545.95-23.19 545.46-25.24L545.46-25.24Q545.17-26.32 544.58-27.78L544.58-27.78Q543.60-30.18 543.60-32.28L543.60-32.28Q543.60-34.47 544.63-36.28L544.63-36.28Q547.07-40.48 551.51-40.48L551.51-40.48Q554.30-40.48 556.30-38.23L556.30-38.23Q558.20-36.33 558.20-33.25L558.20-33.25Q558.20-31.30 557.37-28.81L557.37-28.81Q557.08-27.78 557.08-27.39L557.08-27.39Q557.08-27.49 557.18-27.49L557.18-27.49Q557.67-27.49 559.96-25.78L559.96-25.78Q565.19-21.83 570.48-16.77Q575.78-11.72 578.61-8.01L578.61-8.01Q579.10-7.32 579.10-6.98Z"/><path fill="currentColor" d="M637.60 22.46L637.60 22.46Q635.74 22.46 634.62 21.83L634.62 21.83Q630.52 19.73 630.52 8.25L630.52 8.25Q630.52 3.08 631.88-6.01L631.88-6.01Q634.91-26.22 642.63-50.05L642.63-50.05Q661.38-107.76 690.77-142.53L690.77-142.53Q696.78-149.76 702.54-154.64L702.54-154.64Q717.77-167.48 730.27-167.48L730.27-167.48Q733.15-167.48 735.03-166.99Q736.91-166.50 738.87-165.43L738.87-165.43Q747.66-160.50 748.63-147.22L748.63-147.22Q748.63-141.50 747.27-135.60L747.27-135.60Q745.17-127.93 739.60-116.31L739.60-116.31Q730.71-98.00 717.63-82.37L717.63-82.37Q696.92-58.06 673.88-38.67L673.88-38.67Q658.59-25.88 650.29-21.68L650.29-21.68Q647.80-20.41 645.95-19.73L645.95-19.73Q645.51-19.58 645.46-19.56Q645.41-19.53 644.63-15.58L644.63-15.58Q643.80-11.87 642.82-5.03L642.82-5.03Q641.89 1.22 641.75 6.84L641.75 6.84L648.05-0.10Q661.33-14.65 661.96-15.23L661.96-15.23Q676.37-30.86 682.23-34.42L682.23-34.42Q684.86-35.99 687.84-35.99L687.84-35.99Q691.70-35.99 693.95-34.03L693.95-34.03Q695.80-32.47 701.07-24.56L701.07-24.56Q710.21-10.89 713.13-9.28L713.13-9.28Q716.36-7.42 720.70-7.42L720.70-7.42Q723.19-7.42 731.25-11.91L731.25-11.91Q737.21-15.23 743.60-19.48L743.60-19.48Q754.83-27.69 756.79-27.78L756.79-27.78L757.47-27.88Q759.38-27.88 760.96-26.66Q762.55-25.44 762.55-23.39L762.55-23.39Q762.55-20.90 760.60-19.09L760.60-19.09Q759.77-18.31 747.46-9.67L747.46-9.67Q740.53-4.79 734.13-1.27L734.13-1.27Q728.22 1.51 725.42 2.32Q722.61 3.13 719.92 3.13L719.92 3.13Q711.18 3.13 705.03-1.37L705.03-1.37Q702.49-3.27 699.73-6.86Q696.97-10.45 691.46-18.65L691.46-18.65Q687.30-24.90 687.04-25.15Q686.77-25.39 686.77-25.44L686.77-25.44Q686.77-25.49 686.82-25.49L686.82-25.49Q685.25-25.49 663.18-1.12L663.18-1.12Q653.13 9.96 647.27 16.11L647.27 16.11Q642.43 21.19 640.58 21.92L640.58 21.92Q639.26 22.46 637.60 22.46ZM648.88-32.76L648.88-32.76Q651.86-34.62 656.25-37.89L656.25-37.89Q663.33-43.21 671.12-50.07Q678.91-56.93 684.77-62.55Q690.63-68.16 696.48-74.51L696.48-74.51Q707.81-86.67 714.28-95.12Q720.75-103.56 725.68-112.65L725.68-112.65Q728.96-118.60 731.93-125.37Q734.91-132.13 736.13-136.28L736.13-136.28Q736.77-138.67 737.11-141.72Q737.45-144.78 737.45-146.39L737.45-146.39L737.40-147.46Q736.08-156.69 729.44-156.93L729.44-156.93Q721.83-156.93 710.64-147.75L710.64-147.75Q707.18-144.92 704.64-142.38L704.64-142.38Q699.41-136.91 692.82-128.15Q686.23-119.38 681.35-111.33L681.35-111.33Q664.55-82.76 652.34-44.68L652.34-44.68Q650.49-38.87 648.88-32.76Z"/><path fill="currentColor" d="M767.92 3.96L767.92 3.96Q766.65 3.96 765.63 3.86L765.63 3.86Q757.08 3.03 753.13-0.59Q749.17-4.20 749.17-11.04L749.17-11.04Q749.22-20.41 755.42-29.54L755.42-29.54Q758.50-34.28 765.09-38.57L765.09-38.57Q769.68-41.70 772.85-42.97Q776.03-44.24 779.30-44.24L779.30-44.24Q784.77-44.24 787.11-40.28L787.11-40.28Q788.09-38.62 788.18-37.35L788.18-37.35L788.13-35.79Q788.09-33.30 787.06-31.35Q786.04-29.39 783.64-27.00L783.64-27.00Q779.35-22.61 772.36-19.19L772.36-19.19Q768.85-17.43 766.82-16.82Q764.79-16.21 760.64-16.06L760.64-16.06Q760.01-13.96 760.01-11.52L760.01-11.52Q760.01-9.03 760.45-8.35L760.45-8.35Q761.72-6.59 768.60-6.59L768.60-6.59Q776.95-6.59 787.50-10.01L787.50-10.01Q793.99-12.06 806.74-16.99Q819.48-21.92 828.56-25.83L828.56-25.83Q834.42-28.42 836.72-28.42L836.72-28.42Q837.55-28.42 838.28-28.13L838.28-28.13Q841.55-26.76 841.67-25.12Q841.80-23.49 841.80-23.34L841.80-23.34Q841.80-20.36 838.82-18.80L838.82-18.80Q838.13-18.46 833.94-16.75L833.94-16.75Q795.31-0.73 783.94 1.86L783.94 1.86Q775.05 3.96 767.92 3.96Z"/><path fill="currentColor" d="M837.35-8.84L837.35-8.84Q840.72-11.18 849.66-18.75L849.66-18.75L853.13-21.68Q860.55-28.08 865.92-28.08L865.92-28.08Q871.97-28.08 880.03-20.31L880.03-20.31Q887.30-13.33 892.87-11.57L892.87-11.57Q896.68-10.40 900.93-10.40L900.93-10.40Q909.13-10.40 921.04-13.77L921.04-13.77Q927.49-15.58 939.26-20.31L939.26-20.31Q948.88-24.17 950.88-24.90L950.88-24.90Q955.42-26.76 956.40-27.25L956.40-27.25Q958.59-28.17 960.06-28.17L960.06-28.17Q961.13-28.17 962.35-27.73L962.35-27.73Q965.28-26.32 965.28-23.00L965.28-23.00Q965.28-21.19 963.87-19.68L963.87-19.68Q962.06-17.77 953.13-14.40L953.13-14.40Q945.95-11.67 941.41-9.86L941.41-9.86Q924.17-2.83 912.01-0.88L912.01-0.88Q906.01 0.10 900.93 0.10L900.93 0.10Q896.48 0.10 892.68-0.63L892.68-0.63Q882.76-2.73 872.17-12.89L872.17-12.89Q867.48-17.38 866.02-17.38L866.02-17.38Q865.53-17.38 864.75-16.99L864.75-16.99Q863.18-16.21 854.05-8.45L854.05-8.45Q841.46 2.15 836.38 2.69L836.38 2.69Q835.21 2.83 834.52 2.83L834.52 2.83Q833.50 2.83 832.62 2.59L832.62 2.59Q826.37 0.49 826.37-7.76L826.37-7.76Q826.37-10.74 826.76-12.16L826.76-12.16Q827.69-15.33 830.13-20.46L830.13-20.46Q831.84-24.07 833.54-26.90L833.54-26.90Q836.04-31.20 839.55-33.50L839.55-33.50Q842.68-35.55 845.41-35.55L845.41-35.55Q848.14-35.55 850.29-33.54L850.29-33.54Q851.90-31.690 851.90-29.79L851.90-29.79Q851.90-28.81 851.46-27.83L851.46-27.83Q850.10-24.76 846.24-24.76L846.24-24.76L845.61-24.80Q844.43-24.80 840.48-16.85L840.48-16.85Q837.79-11.52 837.35-8.84Z"/><path fill="currentColor" d="M962.89 14.36L962.89 14.36Q957.23 14.36 952.93 10.79L952.93 10.79Q948.10 6.84 948.10 0L948.10 0Q948.10-2.88 949.22-7.62L949.22-7.62Q950-11.18 951.22-14.70L951.22-14.70Q953.17-19.92 955.96-25.88L955.96-25.88Q960.45-35.50 962.89-36.87L962.89-36.87Q964.11-37.65 965.53-37.65L965.53-37.65Q970.26-37.65 971.63-33.15L971.63-33.15Q971.92-32.23 971.92-31.35L971.92-31.35Q971.92-28.91 970.51-28.05Q969.09-27.20 965.87-20.31L965.87-20.31Q959.13-6.05 959.13 1.56L959.13 1.56Q959.13 2.98 959.72 3.47Q960.30 3.96 961.43 3.96L961.43 3.96Q962.70 3.96 964.99 3.32L964.99 3.32Q969.14 2.29 974.24-0.22Q979.35-2.73 990.82-9.47L990.82-9.47Q999.41-14.45 1012.26-22.66L1012.26-22.66Q1015.23-24.51 1020.02-27.39L1020.02-27.39Q1021.63-28.22 1023.14-28.22L1023.14-28.22Q1025.39-28.22 1027.39-26.37L1027.39-26.37Q1028.52-24.32 1028.52-22.66L1028.52-22.66Q1028.52-19.73 1026.03-18.02L1026.03-18.02Q1023.83-16.94 1011.33-8.89L1011.33-8.89Q1007.28-6.30 1000.29-2.20L1000.29-2.20Q987.40 5.27 982.57 7.91L982.57 7.91Q969.58 14.36 962.89 14.36ZM970.65-53.03L970.65-53.03Q968.65-53.03 967.04-54.44L967.04-54.44Q964.89-56.10 964.89-58.98L964.89-58.98Q964.89-60.16 965.92-62.21L965.92-62.21Q966.99-64.50 968.31-65.53Q969.63-66.55 971.68-66.55L971.68-66.55Q974.37-66.55 976.54-64.60Q978.71-62.65 978.71-60.55L978.71-60.55Q978.71-59.62 978.37-58.79L978.37-58.79Q977.69-56.88 975.73-56.15L975.73-56.15Q974.12-53.03 970.65-53.03Z"/><path fill="currentColor" d="M1026.46-17.97L1024.07-14.89Q1030.81-18.07 1044.24-26.46L1044.24-26.46Q1048.00-28.81 1048.44-29.15L1048.44-29.15Q1047.61-30.08 1044.48-30.08L1044.48-30.08Q1040.23-30.08 1034.47-25.68L1034.47-25.68Q1030.22-22.41 1026.46-17.97L1026.46-17.97ZM1057.76-35.06L1057.76-35.06Q1059.47-36.47 1066.06-41.11L1066.06-41.11Q1070.90-44.58 1071.92-45.09Q1072.95-45.61 1074.17-45.61L1074.17-45.61Q1077.64-45.61 1079.59-41.99L1079.59-41.99Q1080.42-40.43 1080.42-39.06L1080.42-39.06Q1080.42-36.13 1071.53-21.88L1071.53-21.88Q1061.72-5.96 1061.72 0L1061.72 0Q1061.72 2.98 1062.01 3.56L1062.01 3.56Q1062.70 4.79 1065.04 5.47L1065.04 5.47Q1065.72 5.66 1066.50 5.66L1066.50 5.66Q1072.80 5.66 1084.91 0.05L1084.91 0.05Q1095.61-4.83 1104.30-9.77L1104.30-9.77Q1107.08-11.33 1116.60-16.46L1116.60-16.46Q1126.37-21.68 1131.59-24.85L1131.59-24.85Q1137.99-28.66 1140.04-28.66L1140.04-28.66Q1143.26-28.66 1144.34-26.66Q1145.41-24.66 1145.41-23.19L1145.41-23.19Q1145.41-19.63 1141.70-18.12L1141.70-18.12Q1140.48-17.58 1135.35-14.55L1135.35-14.55Q1128.76-10.69 1124.02-8.25L1124.02-8.25L1111.96-1.66Q1101.86 4.05 1092.19 8.54L1092.19 8.54Q1085.45 11.67 1081.25 13.23L1081.25 13.23Q1073.00 16.31 1066.26 16.31L1066.26 16.31Q1064.45 16.31 1063.13 16.06L1063.13 16.06Q1055.37 14.50 1051.81 8.06L1051.81 8.06Q1050.54 5.52 1050.46 3.52Q1050.39 1.51 1050.39 0.98L1050.39 0.98Q1050.39-5.47 1054.69-14.55L1054.69-14.55Q1056.49-18.31 1059.57-23.44L1059.57-23.44L1058.06-22.41Q1053.47-19.29 1051.46-18.21L1051.46-18.21Q1035.25-7.96 1027.59-4.64L1027.59-4.64Q1022.27-2.25 1020.61-2.15Q1018.95-2.05 1018.75-2.05L1018.75-2.05Q1015.19-2.05 1012.89-4.54L1012.89-4.54Q1010.55-6.88 1010.55-10.21L1010.55-10.21Q1010.55-15.43 1016.28-22.88Q1022.02-30.32 1030.03-35.79L1030.03-35.79Q1037.89-40.82 1045.02-40.82L1045.02-40.82Q1051.61-40.82 1055.86-37.11L1055.86-37.11Q1057.03-36.08 1057.76-35.06Z"/><path fill="currentColor" d="M1143.90-17.97L1141.50-14.89Q1148.24-18.07 1161.67-26.46L1161.67-26.46Q1165.43-28.81 1165.87-29.15L1165.87-29.15Q1165.04-30.08 1161.91-30.08L1161.91-30.08Q1157.67-30.08 1151.90-25.68L1151.90-25.68Q1147.66-22.41 1143.90-17.97L1143.90-17.97ZM1175.20-35.06L1175.20-35.06Q1176.90-36.47 1183.50-41.11L1183.50-41.11Q1188.33-44.58 1189.36-45.09Q1190.38-45.61 1191.60-45.61L1191.60-45.61Q1195.07-45.61 1197.02-41.99L1197.02-41.99Q1197.85-40.43 1197.85-39.06L1197.85-39.06Q1197.85-36.13 1188.96-21.88L1188.96-21.88Q1179.15-5.96 1179.15 0L1179.15 0Q1179.15 2.98 1179.44 3.56L1179.44 3.56Q1180.13 4.79 1182.47 5.47L1182.47 5.47Q1183.15 5.66 1183.94 5.66L1183.94 5.66Q1190.23 5.66 1202.34 0.05L1202.34 0.05Q1213.04-4.83 1221.73-9.77L1221.73-9.77Q1224.51-11.33 1234.03-16.46L1234.03-16.46Q1243.80-21.68 1249.02-24.85L1249.02-24.85Q1255.42-28.66 1257.47-28.66L1257.47-28.66Q1260.69-28.66 1261.77-26.66Q1262.84-24.66 1262.84-23.19L1262.84-23.19Q1262.84-19.63 1259.13-18.12L1259.13-18.12Q1257.91-17.58 1252.78-14.55L1252.78-14.55Q1246.19-10.69 1241.46-8.25L1241.46-8.25L1229.39-1.66Q1219.29 4.05 1209.62 8.54L1209.62 8.54Q1202.88 11.67 1198.68 13.23L1198.68 13.23Q1190.43 16.31 1183.69 16.31L1183.69 16.31Q1181.88 16.31 1180.57 16.06L1180.57 16.06Q1172.80 14.50 1169.24 8.06L1169.24 8.06Q1167.97 5.52 1167.90 3.52Q1167.82 1.51 1167.82 0.98L1167.82 0.98Q1167.82-5.47 1172.12-14.55L1172.12-14.55Q1173.93-18.31 1177.00-23.44L1177.00-23.44L1175.49-22.41Q1170.90-19.29 1168.90-18.21L1168.90-18.21Q1152.69-7.96 1145.02-4.64L1145.02-4.64Q1139.70-2.25 1138.04-2.15Q1136.38-2.05 1136.18-2.05L1136.18-2.05Q1132.62-2.05 1130.32-4.54L1130.32-4.54Q1127.98-6.88 1127.98-10.21L1127.98-10.21Q1127.98-15.43 1133.72-22.88Q1139.45-30.32 1147.46-35.79L1147.46-35.79Q1155.32-40.82 1162.45-40.82L1162.45-40.82Q1169.04-40.82 1173.29-37.11L1173.29-37.11Q1174.46-36.08 1175.20-35.06Z"/></svg><span class="air">airlines</span></div></div>
+    </header>
+    <div class="rule"></div>
+
+    <div class="title">
+      <h1>Развлечения на борту</h1>
+      <p>In-flight entertainment</p>
+    </div>
+    <div class="note" style="margin-top:14px">
+      <p><b>Для вашей безопасности</b> все игры работают прямо на этой странице. В случае турбулентности нажмите табло в углу экрана.</p>
+    </div>
+    <nav class="exits" aria-label="Разделы" style="margin-top:14px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+      <a class="exit" href="#test"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h13M12 6l6 6-6 6"/></svg><span>Какой ты пассажир<span class="en">Passenger quiz</span></span></a>
+      <a class="exit" href="#chicken"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h13M12 6l6 6-6 6"/></svg><span>Курица или рыба<span class="en">Chicken or fish</span></span></a>
+      <a class="exit" href="#excuse"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h13M12 6l6 6-6 6"/></svg><span>Объяснительная<span class="en">Excuse generator</span></span></a>
+      <a class="exit" href="#cat"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h13M12 6l6 6-6 6"/></svg><span>Найди кошку в салоне<span class="en">Find the cat</span></span></a>
+      <a class="exit" href="#works"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h13M12 6l6 6-6 6"/></svg><span>Мои сайты<span class="en">My websites</span></span></a>
+    </nav>
+  </div>
+
+  <!-- тест -->
+  <section id="test" class="wrap" aria-labelledby="test-title">
+    <div class="sh"><span class="tile"><svg viewBox="0 0 34 34" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="17" cy="9" r="4"/><path d="M9 29v-8a8 8 0 0 1 16 0v8"/><path d="M13 21h8"/></svg></span><h2 id="test-title">Какой ты пассажир?<span class="en">What kind of passenger are you?</span></h2></div>
+    <div class="lead"><p>Восемь типов пассажиров - все реальные: я встречала их на своих рейсах...</p></div>
+    <div class="panel quiz" id="quiz" aria-live="polite"></div>
+  </section>
+
+  <!-- игра «Курица или рыба» -->
+  <section id="chicken" class="wrap" aria-labelledby="chicken-title">
+    <div class="sh"><span class="tile"><svg viewBox="0 0 34 34" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M5 23h24"/><path d="M8 23a9 9 0 0 1 18 0"/><path d="M17 12v-2"/><path d="M15 10h4"/></svg></span><h2 id="chicken-title">Курица или рыба?<span class="en">Chicken or fish?</span></h2></div>
+    <div class="lead"><p>Бортпроводница всегда предлагает только два варианта. Выбирай, а я по ответам подберу город для отпуска.</p></div>
+    <div class="panel game" id="game" aria-live="polite"></div>
+  </section>
+
+  <!-- генератор объяснительной -->
+  <section id="excuse" class="wrap" aria-labelledby="excuse-title">
+    <div class="sh"><span class="tile"><svg viewBox="0 0 34 34" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M9 5h12l5 5v19H9z"/><path d="M21 5v5h5M13 16h9M13 21h9M13 26h5"/></svg></span><h2 id="excuse-title">Генератор объяснительной<span class="en">Excuse generator</span></h2></div>
+    <div class="lead"><p>Крути барабаны, и я соберу объяснительную, почему тебя не будет в понедельник. Отправлять начальнику на свой страх и риск.</p></div>
+    <div class="panel" id="excuse-box">
+      <div class="reels" id="reels"></div>
+      <div class="ex-bar">
+        <button class="btn" type="button" id="ex-spin">Крутить барабаны <span class="en">/ Spin</span></button>
+        <p class="hint">Не нравится вариант? Нажми на барабан, и он прокрутится еще раз.</p>
+      </div>
+      <article class="memo" id="memo" aria-live="polite"></article>
+      <div class="ex-more" id="ex-more" hidden></div>
+    </div>
+  </section>
+
+  <!-- игра «Найди кошку в салоне» -->
+  <section id="cat" class="wrap" aria-labelledby="cat-title">
+    <div class="sh"><span class="tile"><svg viewBox="0 0 34 34" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M8 27V13l4 3h10l4-3v14z"/><path d="M13 21h.01M21 21h.01M15 24h4"/></svg></span><h2 id="cat-title">Найди кошку в салоне<span class="en">Find the cat in the cabin</span></h2></div>
+    <div class="lead"><p>Реальная история с моего рейса: кошка сбежала из переноски, и мы искали ее всем салоном. Свет выключен, у тебя только фонарик.</p></div>
+    <div class="panel">
+      <div class="cat-stage" id="cat-stage">
+        <div class="layer cat-night"><img class="bgimg" src="img/cabin.jpg" alt=""></div>
+        <span class="cat-eyes" id="cat-eyes" aria-hidden="true"></span>
+        <div class="layer cat-lit"><img class="bgimg" src="img/cabin.jpg" alt=""><img id="cat-sprite" src="img/cat.png" alt=""></div>
+        <div class="layer cat-beam"></div>
+        <div class="layer cat-fire" id="cat-fire" aria-hidden="true"></div>
+        <div class="cat-hud"><b id="cat-time">00:00</b></div>
+        <button class="cat-giveup" type="button" id="cat-giveup">Включить свет <span class="en">/ Lights on</span></button>
+        <div class="cat-intro" id="cat-start">
+          <p>Ночной рейс, в салоне темно, а кошка снова сбежала. Води фонариком и нажми на нее, когда найдешь.</p>
+          <button class="btn" type="button" id="cat-go">Включить фонарик <span class="en">/ Turn on the flashlight</span></button>
+        </div>
+      </div>
+      <div class="cat-res" id="cat-res" aria-live="polite" hidden></div>
+    </div>
+  </section>
+
+  <!-- предыдущие работы -->
+  <section id="works" class="wrap" aria-labelledby="works-title">
+    <div class="sh"><span class="tile"><svg viewBox="0 0 34 34" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="4" y="7" width="26" height="20" rx="2"/><path d="M4 13h26M9 10h.01M12 10h.01"/></svg></span><h2 id="works-title">Мои сайты<span class="en">My websites</span></h2></div>
+    <div class="works">
+      <a class="work" href="https://arisheniaa.github.io/nastyanico/" target="_blank" rel="noopener"><img src="img/w-nico.jpg" alt="Новая обложка сайта фотографа Nastya Nico" width="960" height="540" loading="lazy"><div><h3>Редизайн сайта фотографа Nastya Nico<span class="en">Photographer website redesign</span></h3><p>Перенесла с конструктора на свой сайт. Черно-белый минимализм и наконец-то кнопки связи.</p><span class="go">Смотреть / Open →</span></div></a>
+      <a class="work" href="https://arisheniaa.ru/ph/" target="_blank" rel="noopener"><img src="img/w-my.jpg" alt="Мой сайт фотографа" width="960" height="540" loading="lazy"><div><h3>Мой сайт дизайнера и фотографа<span class="en">My designer and photographer website</span></h3><p>Два сайта на одном домене. А еще тест, который собирает раскадровку будущей съемки.</p><span class="go">Смотреть / Open →</span></div></a>
+      <a class="work" href="https://totoshiroph.ru" target="_blank" rel="noopener"><img src="img/w-toto.jpg" alt="Главный экран сайта фотографа Toto Shiro" width="960" height="540" loading="lazy"><div><h3>Сайт фотографа Toto Shiro<span class="en">Photographer website from scratch</span></h3><p>«Дорого и роскошно»: цены в конвертах-приглашениях и уроки курса на пластинке.</p><span class="go">Смотреть / Open →</span></div></a>
+      <a class="work" href="https://prazdnik.194.87.187.207.sslip.io/" target="_blank" rel="noopener"><img src="img/w-invite.jpg" alt="Конверт приглашения на день рождения" width="960" height="540" loading="lazy"><div><h3>Приглашение на мой день рождения<span class="en">My birthday invitation</span></h3><p>Конверт открывается, если на него нажать. У каждого гостя своя именная ссылка и тест, а мне приходит сводка ответов.</p><span class="go">Смотреть / Open →</span></div></a>
+      <div class="work"><img src="img/w-posts.jpg" alt="PR-баннер анонса матча" width="900" height="506" loading="lazy"><div><h3>Посты и баннеры<span class="en">Posts and banners</span></h3><p>Система для спортивного медиа: пост, сторис и PR-баннер для каждой публикации.</p></div></div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="rule" style="margin-top:20px"></div>
+    <footer class="foot">
+      <p>Просим не уносить дизайнера из самолета</p>
+      <p class="en" style="font-weight:600">Please do not remove the designer from the plane</p>
+      <p style="grid-column:1/-1;font-weight:400;font-size:13px">Арина Семкина<br><a href="https://t.me/arisheniaa">t.me/arisheniaa</a></p>
+    </footer>
+  </div>
+</main>
+
+<script>
+/* тест «Какой ты пассажир» */
+const TYPES = {
+  aplod:  { t: 'Аплодирующий', te: 'The Clapper', e: '👏', img: 'aplod',
+    d: 'Хлопаешь при посадке, как будто пилот тебя слышит. Он не слышит, но экипажу приятно.', de: 'You clap at landing as if the pilot can hear you. He can’t, but the crew appreciates it.',
+    tip: 'Похлопай еще раз, когда найдешь билет дешевле, чем ожидал.', tipe: 'Clap again when you find a ticket cheaper than expected.' },
+  sprint: { t: 'Спринтер', te: 'The Sprinter', e: '🏃', img: 'sprint',
+    d: 'Самолет еще рулит, а ты уже стоишь в проходе с чемоданом. Выход все равно откроют через десять минут, но ты будешь первым в очереди.', de: 'The plane is still taxiing and you are already in the aisle with your suitcase. The door opens in ten minutes anyway, but you’ll be first.',
+    tip: 'Твоя скорость пригодится на распродаже билетов.', tipe: 'Your speed will come in handy at a ticket sale.' },
+  koshka: { t: 'Хозяин сбежавшей кошки', te: 'The Runaway Cat Owner', e: '🐈', img: 'koshka',
+    d: 'Однажды на моем рейсе кошка сбежала из переноски, и мы искали ее всем салоном. Нашли. Если это ты, привет.', de: 'Once on my flight a cat escaped from its carrier and the whole cabin searched for it. We found it. If that was you, hi.',
+    tip: 'Проверь замок переноски до взлета, а не после.', tipe: 'Check the carrier lock before takeoff, not after.' },
+  tamada: { t: 'Тамада на высоте 10 000', te: 'The Toastmaster at 10,000 m', e: '🥂', img: 'tamada',
+    d: 'Уговариваешь экипаж выпить за компанию. Экипаж на работе, но тост оценил.', de: 'You keep inviting the crew for a drink. The crew is on duty, but they liked the toast.',
+    tip: 'Празднуй на земле: найди город, где есть бар с видом на взлетную полосу.', tipe: 'Celebrate on the ground: find a city with a bar overlooking the runway.' },
+  karta:  { t: 'Картограф', te: 'The Cartographer', e: '🗺', img: 'karta',
+    d: 'Весь полет смотришь в окно с развернутой бумажной картой и сверяешь каждую речку. Сосед давно читает ее вместе с тобой.', de: 'You spend the whole flight looking out the window with a paper map unfolded, checking every river. Your neighbor has been reading it with you for a while.',
+    tip: 'Бери место у окна, а следующий город выбирай прямо по карте.', tipe: 'Take the window seat and pick your next city right off the map.' },
+  etno:   { t: 'Этнограф', te: 'The Ethnographer', e: '🧭', img: 'etno',
+    d: 'Пытаешься угадать национальность бортпроводницы. Грузинка? Татарка? Испанка? Нет. Но версии были интересные.', de: 'You try to guess the flight attendant’s nationality. Georgian? Tatar? Spanish? No. But nice guesses.',
+    tip: 'Угадывай лучше города: у тебя явно талант к путешествиям.', tipe: 'Guess cities instead: you clearly have a talent for travel.' },
+  shpion: { t: 'Шпион', te: 'The Spy', e: '🕶', img: 'shpion',
+    d: 'Делаешь вид, что не знаешь русского. Ровно до момента, когда закончилась курица.', de: 'You pretend not to speak Russian. Right until the chicken runs out.',
+    tip: 'Выучи на языке страны назначения хотя бы «спасибо». И на русском тоже.', tipe: 'Learn at least “thank you” in the local language. And in Russian too.' },
+  zhenih: { t: 'Жених на высоте', te: 'The High-Altitude Groom', e: '💍', img: 'zhenih',
+    d: 'Предлагаешь бортпроводнице выйти за тебя на каждом рейсе. Кольца пока не пригодились, но мили копятся.', de: 'You propose to the flight attendant on every flight. The rings are still unused, but the miles add up.',
+    tip: 'Сначала свидание. Например, в Стамбуле.', tipe: 'Start with a date. In Istanbul, for example.' },
+};
+const QS = [
+  { q: 'Самолет коснулся полосы. Твои действия?', qe: 'The plane touches down. What do you do?',
+    a: [['Аплодирую. Пилот старался', 'I clap. The pilot did his best', 'aplod'], ['Отстегиваюсь, пока никто не видит', 'Unbuckle while nobody’s looking', 'sprint'], ['Только проснулся', 'Just woke up', 'koshka'], ['Предлагаю соседу отметить посадку', 'Suggest celebrating with my neighbor', 'tamada']] },
+  { q: 'Тебе достался сосед по креслу. Что дальше?', qe: 'You got a seat neighbor. What next?',
+    a: [['Прошу поменяться: мне нужно окно', 'Ask to swap: I need the window', 'karta'], ['Угадываю, откуда он родом', 'Guess where he is from', 'etno'], ['Делаю вид, что не понимаю по-русски', 'Pretend I don’t speak Russian', 'shpion'], ['Через час зову его на свою свадьбу', 'Invite him to my wedding an hour later', 'zhenih']] },
+  { q: 'Бортпроводница подходит с тележкой. Ты говоришь:', qe: 'The flight attendant comes with the trolley. You say:',
+    a: [['«Девушка, а вы замужем?»', '“Excuse me, are you married?”', 'zhenih'], ['«Дайте угадаю, вы грузинка?»', '“Let me guess, you’re Georgian?”', 'etno'], ['«Sorry, no Russian»', '“Sorry, no Russian”', 'shpion'], ['«Составите компанию? По чуть-чуть»', '“Join me for a little drink?”', 'tamada']] },
+  { q: 'Что у тебя в ручной клади?', qe: 'What’s in your hand luggage?',
+    a: [['Кошка, которая очень хочет на свободу', 'A cat that really wants to be free', 'koshka'], ['Чемодан, который я достану первым', 'A suitcase I’ll grab first', 'sprint'], ['Бумажная карта. На всякий случай', 'A paper map. Just in case', 'karta'], ['Ничего. Я налегке', 'Nothing. I travel light', 'aplod']] },
+  { q: 'Загорелось табло «Пристегните ремни». Ты:', qe: 'The “Fasten seat belt” sign is on. You:',
+    a: [['Встаю в туалет, мне можно', 'Go to the toilet, I’m allowed', 'sprint'], ['Сверяю по карте, над какой мы рекой', 'Check on the map which river we’re over', 'karta'], ['Пристегиваю ремень, конечно, я же послушный пассажир', 'Fasten my seat belt, of course, I’m an obedient passenger', 'aplod'], ['Ищу кошку, она опять сбежала', 'Look for the cat, it escaped again', 'koshka']] },
+  { q: 'Как ты прощаешься с экипажем?', qe: 'How do you say goodbye to the crew?',
+    a: [['Оставляю номер на салфетке', 'Leave my number on a napkin', 'zhenih'], ['«Где вы родились? Я так и думал!»', '“Where were you born? I knew it!”', 'etno'], ['Молча киваю, я же «не говорю по-русски»', 'Nod silently, I “don’t speak Russian”', 'shpion'], ['Зову весь экипаж продолжить в баре', 'Invite the whole crew to a bar', 'tamada']] },
+];
+const quiz = document.getElementById('quiz');
+let step = 0, score = {};
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function renderQ() {
+  const { q, qe, a } = QS[step];
+  const bars = QS.map((_, i) => `<i class="${i < step ? 'done' : ''}"></i>`).join('');
+  quiz.innerHTML = `
+    <div class="progress" aria-hidden="true">${bars}</div>
+    <p class="qnum">Вопрос ${step + 1} из ${QS.length}<span class="en">Question ${step + 1} of ${QS.length}</span></p>
+    <h3 class="q-title">${esc(q)}<span class="en">${esc(qe)}</span></h3>
+    <div class="answers">${a.map(([ru, en, k], i) =>
+      `<button class="answer" type="button" data-k="${k}"><span class="key">${'АБВГ'[i]}</span><span><b>${esc(ru)}</b><span class="en">${esc(en)}</span></span></button>`).join('')}</div>`;
+  quiz.querySelectorAll('.answer').forEach(b => b.addEventListener('click', () => {
+    score[b.dataset.k] = (score[b.dataset.k] || 0) + 1;
+    step++;
+    step < QS.length ? renderQ() : renderResult();
+    quiz.querySelector('button')?.focus({ preventScroll: true });
+  }));
+}
+
+function renderResult() {
+  const best = Math.max(...Object.values(score));
+  const keys = Object.keys(score).filter(k => score[k] === best);
+  const r = TYPES[keys[Math.floor(Math.random() * keys.length)]];
+  const pct = Math.round(best / QS.length * 100);
+  quiz.innerHTML = `
+    <div class="result">
+      <div class="share-card">
+        <p class="qnum">Твой тип пассажира<span class="en">Your passenger type</span></p>
+        <h3>${r.t}<span class="en">${r.te}</span></h3>
+        <div class="illu"><img src="img/${r.img}.jpg" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{innerHTML:'<b aria-hidden=&quot;true&quot;>${r.e}</b>иллюстрация скоро'}))"></div>
+        <p class="rate">Совпадение ${pct}%<br>Подтверждено бортпроводником<span class="en">${pct}% match, crew approved</span></p>
+      </div>
+      <div class="res-text">
+        <p class="big">${r.d}</p>
+        
+        <div class="tip"><p><b>Совет бортпроводника.</b> ${r.tip}</p></div>
+        <div class="actions">
+          <button class="btn" type="button" id="share">Поделиться <span class="en">/ Share</span></button>
+          <button class="btn alt" type="button" id="again">Пройти еще раз <span class="en">/ Retry</span></button>
+        </div>
+        <p class="toast" id="toast" role="status"></p>
+      </div>
+    </div>`;
+  document.getElementById('again').onclick = () => { step = 0; score = {}; renderQ(); };
+  document.getElementById('share').onclick = async () => {
+    const text = `Я в тесте бывшей бортпроводницы: «${r.t}». А ты какой пассажир?`;
+    const url = location.origin + location.pathname + '#test';
+    try {
+      if (navigator.share) await navigator.share({ title: 'Какой ты пассажир?', text, url });
+      else { await navigator.clipboard.writeText(`${text} ${url}`); document.getElementById('toast').textContent = 'Скопировала, вставляй куда угодно'; }
+    } catch (e) { /* окно поделиться закрыли */ }
+  };
+}
+renderQ();
+
+/* турбулентность: табло и резкие движения мыши */
+const belt = document.getElementById('belt');
+const calm = matchMedia('(prefers-reduced-motion: reduce)');
+let busy = false;
+function turbulence() {
+  if (busy) return;
+  busy = true;
+  belt.classList.add('on'); belt.setAttribute('aria-pressed', 'true');
+  if (!calm.matches) document.body.classList.add('shaking');
+  setTimeout(() => {
+    document.body.classList.remove('shaking');
+    belt.classList.remove('on'); belt.setAttribute('aria-pressed', 'false');
+    busy = false;
+  }, 1800);
+}
+belt.addEventListener('click', turbulence);
+let last = null, strikes = 0;
+addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse') return;
+  const now = performance.now();
+  if (last) {
+    const v = Math.hypot(e.clientX - last.x, e.clientY - last.y) / Math.max(now - last.t, 1);
+    strikes = v > 4 ? strikes + 1 : Math.max(strikes - 1, 0);
+    if (strikes > 6) { strikes = 0; turbulence(); }
+  }
+  last = { x: e.clientX, y: e.clientY, t: now };
+}, { passive: true });
+
+/* игра «Курица или рыба»: семь пар, каждый выбор голосует за города */
+const CITIES = {
+  ist: { t: 'Стамбул', te: 'Istanbul', d: 'Кофе с кардамоном, чайки над Босфором и рынок, где торгуются даже за магнит.', de: 'Cardamom coffee, seagulls over the Bosphorus and a bazaar where you haggle even for a magnet.', bag: 'удобные кроссовки и пустой чемодан под сладости', bage: 'comfy sneakers and an empty suitcase for sweets' },
+  tbs: { t: 'Тбилиси', te: 'Tbilisi', d: 'Хинкали, балконы, серные бани и тосты длиннее перелета.', de: 'Khinkali, balconies, sulfur baths and toasts longer than the flight.', bag: 'штаны на резинке', bage: 'pants with an elastic waist' },
+  hkt: { t: 'Пхукет', te: 'Phuket', d: 'Океан, манго, кондиционер на минимум. Говорят, там даже работают с видом на пляж.', de: 'Ocean, mango, AC on max. Rumor has it people even work there with a beach view.', bag: 'SPF 50 и ноутбук, на всякий случай', bage: 'SPF 50 and a laptop, just in case' },
+  mmk: { t: 'Мурманск', te: 'Murmansk', d: 'Северное сияние, полярная ночь и плед, который наконец пригодится.', de: 'Northern lights, polar night and a blanket that finally comes in handy.', bag: 'термос и терпение', bage: 'a thermos and patience' },
+  kgd: { t: 'Калининград', te: 'Kaliningrad', d: 'Море, дюны, янтарь и копченая рыба. Ты же выбрал рыбу.', de: 'Sea, dunes, amber and smoked fish. You did pick the fish.', bag: 'ветровку и мешочек для янтаря', bage: 'a windbreaker and a pouch for amber' },
+  kzn: { t: 'Казань', te: 'Kazan', d: 'Чак-чак, кремль и чай, после которого хочется еще чая.', de: 'Chak-chak, the Kremlin and tea that makes you want more tea.', bag: 'место для чак-чака', bage: 'room for chak-chak' },
+  evn: { t: 'Ереван', te: 'Yerevan', d: 'Розовый город, Арарат на горизонте и соседи, которые сразу зовут в гости.', de: 'The pink city, Ararat on the horizon and neighbors who invite you over right away.', bag: 'хорошее настроение и аппетит', bage: 'a good mood and an appetite' },
+  vvo: { t: 'Владивосток', te: 'Vladivostok', d: 'Сопки, мосты, морской еж на завтрак и туман, который выглядит как фильтр.', de: 'Hills, bridges, sea urchin for breakfast and fog that looks like a filter.', bag: 'куртку и смелость к морепродуктам', bage: 'a jacket and courage for seafood' },
+};
+const PAIRS = [
+  { q: 'Курица или рыба?', qe: 'Chicken or fish?', a: [['Курица', 'Chicken', '🍗', ['tbs', 'ist', 'kzn', 'evn']], ['Рыба', 'Fish', '🐟', ['vvo', 'kgd', 'mmk', 'hkt']]] },
+  { q: 'Чай или кофе?', qe: 'Tea or coffee?', a: [['Чай', 'Tea', '🫖', ['kzn', 'mmk', 'vvo', 'evn']], ['Кофе', 'Coffee', '☕', ['ist', 'tbs', 'kgd', 'hkt']]] },
+  { q: () => `${picks[1] === 'Чай' ? 'В чай' : 'В кофе'}: лимон или молоко?`, qe: () => `${picks[1] === 'Чай' ? 'In your tea' : 'In your coffee'}: lemon or milk?`, a: [['Лимон', 'Lemon', '🍋', ['tbs', 'hkt', 'ist', 'evn']], ['Молоко', 'Milk', '🥛', ['kzn', 'mmk', 'kgd', 'vvo']]] },
+  { q: 'Окно или проход?', qe: 'Window or aisle?', a: [['Окно', 'Window', '🪟', ['mmk', 'vvo', 'tbs', 'hkt']], ['Проход', 'Aisle', '🚶', ['ist', 'kzn', 'kgd', 'evn']]] },
+  { q: 'Плед или кондиционер?', qe: 'Blanket or AC?', a: [['Плед', 'Blanket', '🧣', ['mmk', 'kgd', 'kzn', 'vvo']], ['Кондиционер', 'AC', '❄️', ['hkt', 'ist', 'evn', 'tbs']]] },
+  { q: 'Спать или болтать с соседом?', qe: 'Sleep or chat with a neighbor?', a: [['Спать', 'Sleep', '😴', ['mmk', 'hkt', 'kgd', 'vvo']], ['Болтать', 'Chat', '💬', ['tbs', 'evn', 'ist', 'kzn']]] },
+  { q: 'Вода с газом или без?', qe: 'Sparkling or still?', a: [['С газом', 'Sparkling', '🫧', ['tbs', 'evn', 'kgd', 'mmk']], ['Без газа', 'Still', '💧', ['hkt', 'ist', 'kzn', 'vvo']]] },
+];
+/* картинки предметов лежат в img/game/, пока их нет, показываем эмодзи */
+const GIMG = { 'Курица': 'chicken', 'Рыба': 'fish', 'Чай': 'tea', 'Кофе': 'coffee', 'Лимон': 'lemon', 'Молоко': 'milk', 'Окно': 'window', 'Проход': 'aisle',
+  'Плед': 'blanket', 'Кондиционер': 'ac', 'Спать': 'sleep', 'Болтать': 'chat', 'С газом': 'sparkling', 'Без газа': 'still' };
+const game = document.getElementById('game');
+let round = 0, votes = {}, picks = [];
+
+function renderPair() {
+  const P = PAIRS[round], a = P.a;
+  const q = typeof P.q === 'function' ? P.q() : P.q, qe = typeof P.qe === 'function' ? P.qe() : P.qe;
+  const bars = PAIRS.map((_, i) => `<i class="${i < round ? 'done' : ''}"></i>`).join('');
+  game.innerHTML = `
+    <div class="progress" aria-hidden="true">${bars}</div>
+    <p class="qnum">Бортпроводница спрашивает: ${round + 1} из ${PAIRS.length}<span class="en">The flight attendant asks: ${round + 1} of ${PAIRS.length}</span></p>
+    <h3 class="q-title">${q}<span class="en">${qe}</span></h3>
+    <div class="trays">${a.map(([ru, en, emo], i) => `
+      <button class="tray" type="button" data-i="${i}" aria-label="${ru}">
+        <span class="dish" aria-hidden="true">${GIMG[ru] ? `<img src="img/game/${GIMG[ru]}.png" alt="" onerror="this.replaceWith('${emo}')">` : emo}</span>
+        <span class="cloche" aria-hidden="true"></span>
+        <span class="tray-name">${ru}<span class="en">${en}</span></span>
+      </button>`).join('<span class="or" aria-hidden="true">или<span class="en">or</span></span>')}
+    </div>`;
+  game.querySelectorAll('.tray').forEach(b => b.addEventListener('click', () => {
+    if (game.dataset.busy) return;
+    game.dataset.busy = '1';
+    const [ru, , , cities] = a[b.dataset.i];
+    picks.push(ru);
+    cities.forEach(c => votes[c] = (votes[c] || 0) + 1);
+    b.classList.add('open');
+    setTimeout(() => {
+      delete game.dataset.busy;
+      round++;
+      round < PAIRS.length ? renderPair() : renderCity();
+      game.querySelector('button')?.focus({ preventScroll: true });
+    }, calm.matches ? 0 : 650);
+  }));
+}
+
+const IATA = { ist: 'IST', tbs: 'TBS', hkt: 'HKT', mmk: 'MMK', kgd: 'KGD', kzn: 'KZN', evn: 'EVN', vvo: 'VVO' };
+const LAT = { ist: 'ISTANBUL', tbs: 'TBILISI', hkt: 'PHUKET', mmk: 'MURMANSK', kgd: 'KALININGRAD', kzn: 'KAZAN', evn: 'YEREVAN', vvo: 'VLADIVOSTOK' };
+const MEAL = { 'Курица': 'CHICKEN', 'Рыба': 'FISH' };
+function barcode(seed) {
+  /* двумерный код как на настоящем талоне: случайная сетка, одинаковая для одного города */
+  let s = seed, cells = '';
+  const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  for (let y = 0; y < 120; y++) for (let x = 0; x < 30; x++) if (x < 3 || x > 26 || (x !== 3 && x !== 26 && rnd() > .5)) cells += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
+  return `<svg viewBox="0 0 30 120" preserveAspectRatio="none" width="100%" height="100%" shape-rendering="crispEdges"><g fill="#111">${cells}</g></svg>`;
+}
+function renderCity() {
+  const best = Math.max(...Object.values(votes));
+  const keys = Object.keys(votes).filter(k => votes[k] === best);
+  const k = keys[Math.floor(Math.random() * keys.length)];
+  const c = CITIES[k];
+  const now = new Date();
+  const MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const fmt = d => String(d.getDate()).padStart(2, '0') + MON[d.getMonth()];
+  /* билет выдан сегодня, а рейс через месяц, чтобы дата всегда была в будущем */
+  const fly = new Date(now); fly.setMonth(fly.getMonth() + 1);
+  const today = fmt(now), date = fmt(fly);
+  const gate = 1 + Math.floor(Math.random() * 30);
+  const h = 6 + Math.floor(Math.random() * 16), m = [5, 15, 25, 35, 45, 55][Math.floor(Math.random() * 6)];
+  const dep = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  const bt = h * 60 + m - 40, brd = `${String(Math.floor(bt / 60)).padStart(2, '0')}:${String(bt % 60).padStart(2, '0')}`;
+  const seat = picks.includes('Окно') ? '12A' : '12C';
+  const drink = (picks[1] === 'Чай' ? 'TEA' : 'COFFEE') + (picks[2] === 'Лимон' ? '+LEMON' : '+MILK');
+  const flight = 'AR ' + (2000 + Math.floor(Math.random() * 7999));
+  const seq = String(1 + Math.floor(Math.random() * 180)).padStart(3, '0');
+  const ABC = 'ABCDEFGHJKLMNPQRSTUVWXYZ', pnr = Array.from({ length: 6 }, () => ABC[Math.floor(Math.random() * ABC.length)]).join('');
+  const tkt = '555 ' + String(Math.floor(1e9 + Math.random() * 9e9));
+  const issued = today + String(now.getFullYear()).slice(2);
+  const P = (x, y, cls, txt) => `<span class="p ${cls}" style="--x:${x};--y:${y}">${txt}</span>`;
+  /* печать: шум съедает часть краски, а один край пропечатан слабее, как будто штамп поставили наспех */
+  const stamp = (x, y, r, n) => `<svg class="stamp" style="--x:${x};--y:${y};--r:${r}" viewBox="0 0 230 112" aria-hidden="true">
+    <defs>
+      <filter id="ink${n}" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="${n * 7}" result="n"/>
+        <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3.2 2.25" result="m"/>
+        <feComposite in="SourceGraphic" in2="m" operator="in" result="s"/>
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" seed="${n}" result="w"/><feDisplacementMap in="s" in2="w" scale="4"/></filter>
+      <linearGradient id="fade${n}" x1="0" y1="0" x2="1" y2="0.4"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity=".18"/></linearGradient>
+      <mask id="m${n}"><rect width="230" height="112" fill="url(#fade${n})"/></mask>
+    </defs>
+    <g filter="url(#ink${n})" mask="url(#m${n})" fill="#2b5fd0" stroke="#2b5fd0" opacity=".88">
+      <rect x="4" y="4" width="222" height="104" rx="3" fill="none" stroke-width="4.5"/>
+      <circle cx="44" cy="44" r="21" fill="none" stroke-width="3.5"/>
+      <path stroke="none" d="M44.5 27 L47 37.5 L57 35 L50.5 43.5 L59 48 L48.5 49 L50 58.5 L42.5 52 L35.5 58 L37 48.5 L28 46 L36.5 41.5 L32 33.5 L42 37.5 Z"/>
+      <text x="18" y="94" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="17" stroke="none" letter-spacing="1">ДСАБ</text>
+      <text x="142" y="56" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="25" stroke="none" ${c.t.length > 7 ? 'textLength="150" lengthAdjust="spacingAndGlyphs"' : ''}>${c.t.toUpperCase()}</text>
+      <text x="150" y="94" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="20" stroke="none" letter-spacing="2">1${String(gate).padStart(2, '0')}</text>
+    </g></svg>`;
+  game.innerHTML = `
+    <div class="bp" role="group" aria-label="Посадочный талон: ${c.t}">
+      <div class="bp-main">
+        ${P(105, 16, 'ttl', 'BOARDING PASS/ПОСАДОЧНЫЙ ТАЛОН')}
+        ${P(105, 57, 'lb', 'ISSUED BY<br>ВЫДАН')}
+        <div class="p logo" style="--x:185;--y:44"><svg class="star" viewBox="0 0 40 40" aria-hidden="true"><path fill="#f4b93f" d="M20.5 1 L24.2 13.8 L36.5 10.4 L28.9 20.6 L39 26.3 L26.4 27.6 L28.2 39 L19.2 31.2 L10.4 38.4 L12.1 26.6 L1 23.4 L11.6 18.2 L6.2 8.1 L18.1 13.2 Z"/></svg><div class="mark-txt"><svg class="sig" viewBox="-20 -200 1305 330" fill="none" aria-hidden="true"><path fill="currentColor" d="M38.53 108.30L38.53 108.30Q34.42 108.30 30.71 107.52L30.71 107.52Q12.65 103.27 3.96 86.04L3.96 86.04Q-1.90 73.10-1.90 56.40L-1.90 56.40Q-1.90 39.36 1.86 19.34L1.86 19.34Q6.20-4.350 21.58-32.37L21.58-32.37Q30.66-48.78 40.36-61.21Q50.05-73.63 60.35-85.21L60.35-85.21Q78.08-104.49 99.07-119.14L99.07-119.14Q114.45-129.44 132.71-137.79L132.71-137.79Q163.23-150.83 194.68-153.96L194.68-153.96Q204.39-154.74 213.62-154.74L213.62-154.74Q248.39-154.74 276.37-143.46L276.37-143.46L277.73-142.82Q278.27-143.55 280.62-146.39L280.62-146.39Q302.00-172.61 303.86-174.32L303.86-174.32Q307.08-177.20 310.11-177.20L310.11-177.20L310.69-177.20Q316.26-176.27 316.26-170.80L316.26-170.80Q316.26-165.87 310.89-155.86L310.89-155.86Q307.96-150.49 302.15-141.36L302.15-141.36Q297.61-134.18 296.48-132.67L296.48-132.67Q296.73-132.57 297.36-132.13L297.36-132.13Q317.53-118.41 325.68-97.12L325.68-97.12Q327.49-92.43 327.91-89.40Q328.32-86.38 328.32-83.69L328.32-83.69Q328.32-82.03 327.78-73.83L327.78-73.83Q325.10-71.53 324.32-71.24Q323.54-70.95 322.66-70.95L322.66-70.95Q320.90-70.95 320.02-71.46Q319.14-71.97 316.94-74.37L316.94-74.37Q317.33-80.57 317.33-81.88L317.33-81.88Q317.33-86.13 316.46-89.70L316.46-89.70Q315.33-94.38 312.06-100.34L312.06-100.34Q309.33-105.66 306.59-109.23L306.59-109.23Q302.69-114.36 295.46-120.07L295.46-120.07Q291.02-123.68 290.87-123.73L290.87-123.73Q289.79-121.88 284.57-113.53L284.57-113.53Q276.42-100.49 275.39-98.73L275.39-98.73Q271.53-92.43 267.29-84.59Q263.04-76.76 254.44-60.25L254.44-60.25Q238.62-30.08 230.22-10.64L230.22-10.64Q224.61 2.83 223.80 5.96Q223.00 9.08 220.46 18.60L220.46 18.60Q216.94 31.59 215.97 45.90L215.97 45.90Q215.82 47.17 215.82 48.34L215.82 48.34Q215.82 49.66 216.02 50.93L216.02 50.93Q216.99 66.02 225.44 66.02L225.44 66.02Q231.88 66.02 240.19 62.45L240.19 62.45Q278.66 44.92 354.25-25.78L354.25-25.78Q356.30-27.64 358.45-27.64L358.45-27.64Q359.67-27.64 361.04-26.90L361.04-26.90Q363.43-24.56 363.43-22.75L363.43-22.75Q363.43-20.70 360.84-17.92L360.84-17.92Q285.21 52.59 243.65 72.17L243.65 72.17Q235.01 76.42 225.73 76.42L225.73 76.42Q224.22 76.42 222.56 76.32L222.56 76.32Q206.20 73.34 205.03 50.44L205.03 50.44Q204.98 49.22 204.98 47.75L204.98 47.75Q204.98 39.84 206.25 32.47L206.25 32.47Q210.94 7.62 217.24-8.06L217.24-8.06Q224.41-26.61 243.31-62.74L243.31-62.74Q258.15-91.21 264.26-101.46L264.26-101.46Q268.12-107.81 273.93-117.04L273.93-117.04Q280.22-127.05 281.59-129.15L281.59-129.15L280.57-129.69Q279.64-128.37 272.17-119.07Q264.70-109.77 236.67-73.68L236.67-73.68Q221.48-54.39 215.04-45.90L215.04-45.90L198.97-25.49Q190.38-14.79 182.42-4.59L182.42-4.59Q129.93 61.33 85.94 90.58L85.94 90.58Q68.46 101.95 54.88 105.81L54.88 105.81Q45.95 108.30 38.53 108.30ZM39.11 97.75L39.11 97.75Q40.14 97.75 41.26 97.66L41.26 97.66Q62.94 96.04 95.46 70.31L95.46 70.31Q112.11 57.42 131.74 37.01L131.74 37.01Q154.83 12.94 173.97-11.47L173.97-11.47Q178.52-17.33 188.53-29.83L188.53-29.83Q196.44-39.75 209.72-56.79L209.72-56.79Q213.13-61.33 223.29-74.27L223.29-74.27Q227.64-79.74 240.92-96.88L240.92-96.88Q254.79-114.99 265.48-128.03L265.48-128.03L270.51-134.28L267.68-135.35Q257.67-139.06 245.41-141.46L245.41-141.46Q229.25-144.19 212.79-144.19L212.79-144.19Q182.32-144.19 152.34-133.98L152.34-133.98Q117.87-122.02 90.28-98.93L90.28-98.93Q76.37-87.26 71.39-81.79Q66.41-76.32 46.09-51.61L46.09-51.61Q15.48-5.27 11.72 33.74L11.72 33.74Q11.52 35.79 11.43 37.84L11.43 37.84Q10.45 42.72 9.77 49.76L9.77 49.76Q9.33 54.15 9.33 58.20L9.33 58.20Q9.33 73.19 15.14 83.84L15.14 83.84Q18.26 89.06 23.10 92.68L23.10 92.68Q29.93 97.75 39.11 97.75Z"/><path fill="currentColor" d="M400.68 49.07L400.68 49.07Q398.34 49.07 396.48 48.68L396.48 48.68Q389.75 46.97 386.04 41.85L386.04 41.85Q383.06 37.84 383.06 31.49L383.06 31.49Q383.06 27.49 384.23 22.61L384.23 22.61Q387.74 6.40 406.25-25L406.25-25Q409.57-30.52 412.79-38.13L412.79-38.13Q414.84-42.82 415.58-45.68Q416.31-48.54 416.31-51.61L416.31-51.61Q416.31-56.15 414.65-58.40Q412.99-60.64 409.08-61.72L409.08-61.72Q407.47-62.16 401.81-62.16L401.81-62.16Q394.14-62.16 385.82-57.96Q377.49-53.76 371.04-47.31Q364.60-40.87 362.60-34.86L362.60-34.86Q361.96-32.81 361.96-31.10L361.96-31.10Q361.96-30.03 362.21-29.00L362.21-29.00Q362.89-26.22 362.89-24.90L362.89-24.90Q362.89-23.39 361.57-22.07L361.57-22.07Q360.01-20.21 357.47-20.21L357.47-20.21Q354.10-20.21 352.34-23.44L352.34-23.44Q350.93-26.17 350.93-31.05L350.93-31.05Q350.93-40.48 358.89-50.10L358.89-50.10Q367.68-60.84 380.86-67.43L380.86-67.43Q391.85-72.90 403.37-72.90L403.37-72.90Q409.08-72.90 413.96-71.29L413.96-71.29Q427.44-66.80 427.44-51.42L427.44-51.42Q427.44-46.78 426.07-42.24L426.07-42.24Q423.00-31.69 413.62-15.82L413.62-15.82Q401.71 4.49 396.78 18.65L396.78 18.65Q394.19 26.86 394.19 31.64L394.19 31.64Q394.19 33.25 394.51 34.30Q394.82 35.35 395.75 36.40Q396.68 37.45 397.66 37.89L397.66 37.89Q399.02 38.43 401.42 38.43L401.42 38.43Q403.22 38.43 404.98 37.99L404.98 37.99Q416.06 35.16 429.64 24.80L429.64 24.80Q434.77 20.75 442.68 13.75Q450.59 6.74 457.67 0L457.67 0Q485.55-26.27 488.82-27.20L488.82-27.20Q489.70-27.34 490.43-27.34L490.43-27.34Q493.07-27.34 494.73-25.39L494.73-25.39Q495.95-23.93 495.95-22.17L495.95-22.17Q495.95-19.24 493.02-17.38L493.02-17.38Q491.46-16.31 485.45-10.84L485.45-10.84Q473.10 0.29 464.65 8.25L464.65 8.25Q448.78 23.29 438.38 31.54L438.38 31.54Q416.36 49.07 400.68 49.07Z"/><path fill="currentColor" d="M491.55 14.36L491.55 14.36Q485.89 14.36 481.59 10.79L481.59 10.79Q476.76 6.84 476.76 0L476.76 0Q476.76-2.88 477.88-7.62L477.88-7.62Q478.66-11.18 479.88-14.70L479.88-14.70Q481.84-19.92 484.62-25.88L484.62-25.88Q489.11-35.50 491.55-36.87L491.55-36.87Q492.77-37.65 494.19-37.65L494.19-37.65Q498.93-37.65 500.29-33.15L500.29-33.15Q500.59-32.23 500.59-31.35L500.59-31.35Q500.59-28.91 499.17-28.05Q497.75-27.20 494.53-20.31L494.53-20.31Q487.79-6.05 487.79 1.56L487.79 1.56Q487.79 2.98 488.38 3.47Q488.96 3.96 490.09 3.96L490.09 3.96Q491.36 3.96 493.65 3.32L493.65 3.32Q497.80 2.29 502.91-0.22Q508.01-2.73 519.48-9.47L519.48-9.47Q528.08-14.45 540.92-22.66L540.92-22.66Q543.90-24.51 548.68-27.39L548.68-27.39Q550.29-28.22 551.81-28.22L551.81-28.22Q554.05-28.22 556.05-26.37L556.05-26.37Q557.18-24.32 557.18-22.66L557.18-22.66Q557.18-19.73 554.69-18.02L554.69-18.02Q552.49-16.94 539.99-8.89L539.99-8.89Q535.94-6.30 528.96-2.20L528.96-2.20Q516.06 5.27 511.23 7.91L511.23 7.91Q498.24 14.36 491.55 14.36ZM499.32-53.03L499.32-53.03Q497.31-53.03 495.70-54.44L495.70-54.44Q493.55-56.10 493.55-58.98L493.55-58.98Q493.55-60.16 494.58-62.21L494.58-62.21Q495.65-64.50 496.97-65.53Q498.29-66.55 500.34-66.55L500.34-66.55Q503.03-66.55 505.20-64.60Q507.37-62.65 507.37-60.55L507.37-60.55Q507.37-59.62 507.03-58.79L507.03-58.79Q506.35-56.88 504.39-56.15L504.39-56.15Q502.78-53.03 499.32-53.03Z"/><path fill="currentColor" d="M548.00 43.26L548.00 43.26Q551.46 43.26 554.83 41.89L554.83 41.89Q556.05 41.41 557.23 40.87L557.23 40.87Q571.14 33.64 575.05 16.70L575.05 16.70Q575.29 15.33 575.29 13.38L575.29 13.38Q575.29 10.64 574.90 8.89L574.90 8.89Q574.80 8.40 574.56 8.11L574.56 8.11L569.09 11.82Q557.28 20.12 550.05 27.59L550.05 27.59Q544.29 33.40 542.48 37.30L542.48 37.30Q541.46 39.36 541.46 40.14L541.46 40.14Q541.46 40.58 541.70 41.06L541.70 41.06Q542.97 43.26 548.00 43.26ZM579.10-6.98L579.10-6.98Q579.59-7.28 580.57-7.81L580.57-7.81Q592.72-14.55 605.91-19.53L605.91-19.53Q613.87-22.41 623.36-24.63Q632.86-26.86 637.94-26.95L637.94-26.95Q644.24-26.90 644.24-22.22L644.24-22.22Q644.24-17.63 641.02-17.09Q637.79-16.55 636.67-16.46L636.67-16.46Q631.20-16.02 622.36-13.72L622.36-13.72Q602.25-8.40 584.18 2.15L584.18 2.15L584.47 3.03Q586.18 7.76 586.18 12.89L586.18 12.89Q586.18 21.44 581.40 30.86L581.40 30.86Q576.76 40.04 568.70 46.12Q560.64 52.20 551.32 53.47L551.32 53.47Q549.27 53.71 547.90 53.71L547.90 53.71Q542.82 53.71 538.48 51.66L538.48 51.66Q530.62 47.95 530.62 40.28L530.62 40.28Q530.62 31.79 543.12 19.63L543.12 19.63Q553.08 9.52 567.09 0.49L567.09 0.49Q569.58-1.17 570.36-1.46L570.36-1.46Q569.82-1.95 568.41-3.61L568.41-3.61Q562.21-10.84 553.47-17.48L553.47-17.48Q545.95-23.19 545.46-25.24L545.46-25.24Q545.17-26.32 544.58-27.78L544.58-27.78Q543.60-30.18 543.60-32.28L543.60-32.28Q543.60-34.47 544.63-36.28L544.63-36.28Q547.07-40.48 551.51-40.48L551.51-40.48Q554.30-40.48 556.30-38.23L556.30-38.23Q558.20-36.33 558.20-33.25L558.20-33.25Q558.20-31.30 557.37-28.81L557.37-28.81Q557.08-27.78 557.08-27.39L557.08-27.39Q557.08-27.49 557.18-27.49L557.18-27.49Q557.67-27.49 559.96-25.78L559.96-25.78Q565.19-21.83 570.48-16.77Q575.78-11.72 578.61-8.01L578.61-8.01Q579.10-7.32 579.10-6.98Z"/><path fill="currentColor" d="M637.60 22.46L637.60 22.46Q635.74 22.46 634.62 21.83L634.62 21.83Q630.52 19.73 630.52 8.25L630.52 8.25Q630.52 3.08 631.88-6.01L631.88-6.01Q634.91-26.22 642.63-50.05L642.63-50.05Q661.38-107.76 690.77-142.53L690.77-142.53Q696.78-149.76 702.54-154.64L702.54-154.64Q717.77-167.48 730.27-167.48L730.27-167.48Q733.15-167.48 735.03-166.99Q736.91-166.50 738.87-165.43L738.87-165.43Q747.66-160.50 748.63-147.22L748.63-147.22Q748.63-141.50 747.27-135.60L747.27-135.60Q745.17-127.93 739.60-116.31L739.60-116.31Q730.71-98.00 717.63-82.37L717.63-82.37Q696.92-58.06 673.88-38.67L673.88-38.67Q658.59-25.88 650.29-21.68L650.29-21.68Q647.80-20.41 645.95-19.73L645.95-19.73Q645.51-19.58 645.46-19.56Q645.41-19.53 644.63-15.58L644.63-15.58Q643.80-11.87 642.82-5.03L642.82-5.03Q641.89 1.22 641.75 6.84L641.75 6.84L648.05-0.10Q661.33-14.65 661.96-15.23L661.96-15.23Q676.37-30.86 682.23-34.42L682.23-34.42Q684.86-35.99 687.84-35.99L687.84-35.99Q691.70-35.99 693.95-34.03L693.95-34.03Q695.80-32.47 701.07-24.56L701.07-24.56Q710.21-10.89 713.13-9.28L713.13-9.28Q716.36-7.42 720.70-7.42L720.70-7.42Q723.19-7.42 731.25-11.91L731.25-11.91Q737.21-15.23 743.60-19.48L743.60-19.48Q754.83-27.69 756.79-27.78L756.79-27.78L757.47-27.88Q759.38-27.88 760.96-26.66Q762.55-25.44 762.55-23.39L762.55-23.39Q762.55-20.90 760.60-19.09L760.60-19.09Q759.77-18.31 747.46-9.67L747.46-9.67Q740.53-4.79 734.13-1.27L734.13-1.27Q728.22 1.51 725.42 2.32Q722.61 3.13 719.92 3.13L719.92 3.13Q711.18 3.13 705.03-1.37L705.03-1.37Q702.49-3.27 699.73-6.86Q696.97-10.45 691.46-18.65L691.46-18.65Q687.30-24.90 687.04-25.15Q686.77-25.39 686.77-25.44L686.77-25.44Q686.77-25.49 686.82-25.49L686.82-25.49Q685.25-25.49 663.18-1.12L663.18-1.12Q653.13 9.96 647.27 16.11L647.27 16.11Q642.43 21.19 640.58 21.92L640.58 21.92Q639.26 22.46 637.60 22.46ZM648.88-32.76L648.88-32.76Q651.86-34.62 656.25-37.89L656.25-37.89Q663.33-43.21 671.12-50.07Q678.91-56.93 684.77-62.55Q690.63-68.16 696.48-74.51L696.48-74.51Q707.81-86.67 714.28-95.12Q720.75-103.56 725.68-112.65L725.68-112.65Q728.96-118.60 731.93-125.37Q734.91-132.13 736.13-136.28L736.13-136.28Q736.77-138.67 737.11-141.72Q737.45-144.78 737.45-146.39L737.45-146.39L737.40-147.46Q736.08-156.69 729.44-156.93L729.44-156.93Q721.83-156.93 710.64-147.75L710.64-147.75Q707.18-144.92 704.64-142.38L704.64-142.38Q699.41-136.91 692.82-128.15Q686.23-119.38 681.35-111.33L681.35-111.33Q664.55-82.76 652.34-44.68L652.34-44.68Q650.49-38.87 648.88-32.76Z"/><path fill="currentColor" d="M767.92 3.96L767.92 3.96Q766.65 3.96 765.63 3.86L765.63 3.86Q757.08 3.03 753.13-0.59Q749.17-4.20 749.17-11.04L749.17-11.04Q749.22-20.41 755.42-29.54L755.42-29.54Q758.50-34.28 765.09-38.57L765.09-38.57Q769.68-41.70 772.85-42.97Q776.03-44.24 779.30-44.24L779.30-44.24Q784.77-44.24 787.11-40.28L787.11-40.28Q788.09-38.62 788.18-37.35L788.18-37.35L788.13-35.79Q788.09-33.30 787.06-31.35Q786.04-29.39 783.64-27.00L783.64-27.00Q779.35-22.61 772.36-19.19L772.36-19.19Q768.85-17.43 766.82-16.82Q764.79-16.21 760.64-16.06L760.64-16.06Q760.01-13.96 760.01-11.52L760.01-11.52Q760.01-9.03 760.45-8.35L760.45-8.35Q761.72-6.59 768.60-6.59L768.60-6.59Q776.95-6.59 787.50-10.01L787.50-10.01Q793.99-12.06 806.74-16.99Q819.48-21.92 828.56-25.83L828.56-25.83Q834.42-28.42 836.72-28.42L836.72-28.42Q837.55-28.42 838.28-28.13L838.28-28.13Q841.55-26.76 841.67-25.12Q841.80-23.49 841.80-23.34L841.80-23.34Q841.80-20.36 838.82-18.80L838.82-18.80Q838.13-18.46 833.94-16.75L833.94-16.75Q795.31-0.73 783.94 1.86L783.94 1.86Q775.05 3.96 767.92 3.96Z"/><path fill="currentColor" d="M837.35-8.84L837.35-8.84Q840.72-11.18 849.66-18.75L849.66-18.75L853.13-21.68Q860.55-28.08 865.92-28.08L865.92-28.08Q871.97-28.08 880.03-20.31L880.03-20.31Q887.30-13.33 892.87-11.57L892.87-11.57Q896.68-10.40 900.93-10.40L900.93-10.40Q909.13-10.40 921.04-13.77L921.04-13.77Q927.49-15.58 939.26-20.31L939.26-20.31Q948.88-24.17 950.88-24.90L950.88-24.90Q955.42-26.76 956.40-27.25L956.40-27.25Q958.59-28.17 960.06-28.17L960.06-28.17Q961.13-28.17 962.35-27.73L962.35-27.73Q965.28-26.32 965.28-23.00L965.28-23.00Q965.28-21.19 963.87-19.68L963.87-19.68Q962.06-17.77 953.13-14.40L953.13-14.40Q945.95-11.67 941.41-9.86L941.41-9.86Q924.17-2.83 912.01-0.88L912.01-0.88Q906.01 0.10 900.93 0.10L900.93 0.10Q896.48 0.10 892.68-0.63L892.68-0.63Q882.76-2.73 872.17-12.89L872.17-12.89Q867.48-17.38 866.02-17.38L866.02-17.38Q865.53-17.38 864.75-16.99L864.75-16.99Q863.18-16.21 854.05-8.45L854.05-8.45Q841.46 2.15 836.38 2.69L836.38 2.69Q835.21 2.83 834.52 2.83L834.52 2.83Q833.50 2.83 832.62 2.59L832.62 2.59Q826.37 0.49 826.37-7.76L826.37-7.76Q826.37-10.74 826.76-12.16L826.76-12.16Q827.69-15.33 830.13-20.46L830.13-20.46Q831.84-24.07 833.54-26.90L833.54-26.90Q836.04-31.20 839.55-33.50L839.55-33.50Q842.68-35.55 845.41-35.55L845.41-35.55Q848.14-35.55 850.29-33.54L850.29-33.54Q851.90-31.690 851.90-29.79L851.90-29.79Q851.90-28.81 851.46-27.83L851.46-27.83Q850.10-24.76 846.24-24.76L846.24-24.76L845.61-24.80Q844.43-24.80 840.48-16.85L840.48-16.85Q837.79-11.52 837.35-8.84Z"/><path fill="currentColor" d="M962.89 14.36L962.89 14.36Q957.23 14.36 952.93 10.79L952.93 10.79Q948.10 6.84 948.10 0L948.10 0Q948.10-2.88 949.22-7.62L949.22-7.62Q950-11.18 951.22-14.70L951.22-14.70Q953.17-19.92 955.96-25.88L955.96-25.88Q960.45-35.50 962.89-36.87L962.89-36.87Q964.11-37.65 965.53-37.65L965.53-37.65Q970.26-37.65 971.63-33.15L971.63-33.15Q971.92-32.23 971.92-31.35L971.92-31.35Q971.92-28.91 970.51-28.05Q969.09-27.20 965.87-20.31L965.87-20.31Q959.13-6.05 959.13 1.56L959.13 1.56Q959.13 2.98 959.72 3.47Q960.30 3.96 961.43 3.96L961.43 3.96Q962.70 3.96 964.99 3.32L964.99 3.32Q969.14 2.29 974.24-0.22Q979.35-2.73 990.82-9.47L990.82-9.47Q999.41-14.45 1012.26-22.66L1012.26-22.66Q1015.23-24.51 1020.02-27.39L1020.02-27.39Q1021.63-28.22 1023.14-28.22L1023.14-28.22Q1025.39-28.22 1027.39-26.37L1027.39-26.37Q1028.52-24.32 1028.52-22.66L1028.52-22.66Q1028.52-19.73 1026.03-18.02L1026.03-18.02Q1023.83-16.94 1011.33-8.89L1011.33-8.89Q1007.28-6.30 1000.29-2.20L1000.29-2.20Q987.40 5.27 982.57 7.91L982.57 7.91Q969.58 14.36 962.89 14.36ZM970.65-53.03L970.65-53.03Q968.65-53.03 967.04-54.44L967.04-54.44Q964.89-56.10 964.89-58.98L964.89-58.98Q964.89-60.16 965.92-62.21L965.92-62.21Q966.99-64.50 968.31-65.53Q969.63-66.55 971.68-66.55L971.68-66.55Q974.37-66.55 976.54-64.60Q978.71-62.65 978.71-60.55L978.71-60.55Q978.71-59.62 978.37-58.79L978.37-58.79Q977.69-56.88 975.73-56.15L975.73-56.15Q974.12-53.03 970.65-53.03Z"/><path fill="currentColor" d="M1026.46-17.97L1024.07-14.89Q1030.81-18.07 1044.24-26.46L1044.24-26.46Q1048.00-28.81 1048.44-29.15L1048.44-29.15Q1047.61-30.08 1044.48-30.08L1044.48-30.08Q1040.23-30.08 1034.47-25.68L1034.47-25.68Q1030.22-22.41 1026.46-17.97L1026.46-17.97ZM1057.76-35.06L1057.76-35.06Q1059.47-36.47 1066.06-41.11L1066.06-41.11Q1070.90-44.58 1071.92-45.09Q1072.95-45.61 1074.17-45.61L1074.17-45.61Q1077.64-45.61 1079.59-41.99L1079.59-41.99Q1080.42-40.43 1080.42-39.06L1080.42-39.06Q1080.42-36.13 1071.53-21.88L1071.53-21.88Q1061.72-5.96 1061.72 0L1061.72 0Q1061.72 2.98 1062.01 3.56L1062.01 3.56Q1062.70 4.79 1065.04 5.47L1065.04 5.47Q1065.72 5.66 1066.50 5.66L1066.50 5.66Q1072.80 5.66 1084.91 0.05L1084.91 0.05Q1095.61-4.83 1104.30-9.77L1104.30-9.77Q1107.08-11.33 1116.60-16.46L1116.60-16.46Q1126.37-21.68 1131.59-24.85L1131.59-24.85Q1137.99-28.66 1140.04-28.66L1140.04-28.66Q1143.26-28.66 1144.34-26.66Q1145.41-24.66 1145.41-23.19L1145.41-23.19Q1145.41-19.63 1141.70-18.12L1141.70-18.12Q1140.48-17.58 1135.35-14.55L1135.35-14.55Q1128.76-10.69 1124.02-8.25L1124.02-8.25L1111.96-1.66Q1101.86 4.05 1092.19 8.54L1092.19 8.54Q1085.45 11.67 1081.25 13.23L1081.25 13.23Q1073.00 16.31 1066.26 16.31L1066.26 16.31Q1064.45 16.31 1063.13 16.06L1063.13 16.06Q1055.37 14.50 1051.81 8.06L1051.81 8.06Q1050.54 5.52 1050.46 3.52Q1050.39 1.51 1050.39 0.98L1050.39 0.98Q1050.39-5.47 1054.69-14.55L1054.69-14.55Q1056.49-18.31 1059.57-23.44L1059.57-23.44L1058.06-22.41Q1053.47-19.29 1051.46-18.21L1051.46-18.21Q1035.25-7.96 1027.59-4.64L1027.59-4.64Q1022.27-2.25 1020.61-2.15Q1018.95-2.05 1018.75-2.05L1018.75-2.05Q1015.19-2.05 1012.89-4.54L1012.89-4.54Q1010.55-6.88 1010.55-10.21L1010.55-10.21Q1010.55-15.43 1016.28-22.88Q1022.02-30.32 1030.03-35.79L1030.03-35.79Q1037.89-40.82 1045.02-40.82L1045.02-40.82Q1051.61-40.82 1055.86-37.11L1055.86-37.11Q1057.03-36.08 1057.76-35.06Z"/><path fill="currentColor" d="M1143.90-17.97L1141.50-14.89Q1148.24-18.07 1161.67-26.46L1161.67-26.46Q1165.43-28.81 1165.87-29.15L1165.87-29.15Q1165.04-30.08 1161.91-30.08L1161.91-30.08Q1157.67-30.08 1151.90-25.68L1151.90-25.68Q1147.66-22.41 1143.90-17.97L1143.90-17.97ZM1175.20-35.06L1175.20-35.06Q1176.90-36.47 1183.50-41.11L1183.50-41.11Q1188.33-44.58 1189.36-45.09Q1190.38-45.61 1191.60-45.61L1191.60-45.61Q1195.07-45.61 1197.02-41.99L1197.02-41.99Q1197.85-40.43 1197.85-39.06L1197.85-39.06Q1197.85-36.13 1188.96-21.88L1188.96-21.88Q1179.15-5.96 1179.15 0L1179.15 0Q1179.15 2.98 1179.44 3.56L1179.44 3.56Q1180.13 4.79 1182.47 5.47L1182.47 5.47Q1183.15 5.66 1183.94 5.66L1183.94 5.66Q1190.23 5.66 1202.34 0.05L1202.34 0.05Q1213.04-4.83 1221.73-9.77L1221.73-9.77Q1224.51-11.33 1234.03-16.46L1234.03-16.46Q1243.80-21.68 1249.02-24.85L1249.02-24.85Q1255.42-28.66 1257.47-28.66L1257.47-28.66Q1260.69-28.66 1261.77-26.66Q1262.84-24.66 1262.84-23.19L1262.84-23.19Q1262.84-19.63 1259.13-18.12L1259.13-18.12Q1257.91-17.58 1252.78-14.55L1252.78-14.55Q1246.19-10.69 1241.46-8.25L1241.46-8.25L1229.39-1.66Q1219.29 4.05 1209.62 8.54L1209.62 8.54Q1202.88 11.67 1198.68 13.23L1198.68 13.23Q1190.43 16.31 1183.69 16.31L1183.69 16.31Q1181.88 16.31 1180.57 16.06L1180.57 16.06Q1172.80 14.50 1169.24 8.06L1169.24 8.06Q1167.97 5.52 1167.90 3.52Q1167.82 1.51 1167.82 0.98L1167.82 0.98Q1167.82-5.47 1172.12-14.55L1172.12-14.55Q1173.93-18.31 1177.00-23.44L1177.00-23.44L1175.49-22.41Q1170.90-19.29 1168.90-18.21L1168.90-18.21Q1152.69-7.96 1145.02-4.64L1145.02-4.64Q1139.70-2.25 1138.04-2.15Q1136.38-2.05 1136.18-2.05L1136.18-2.05Q1132.62-2.05 1130.32-4.54L1130.32-4.54Q1127.98-6.88 1127.98-10.21L1127.98-10.21Q1127.98-15.43 1133.72-22.88Q1139.45-30.32 1147.46-35.79L1147.46-35.79Q1155.32-40.82 1162.45-40.82L1162.45-40.82Q1169.04-40.82 1173.29-37.11L1173.29-37.11Q1174.46-36.08 1175.20-35.06Z"/></svg><span class="air">airlines</span></div></div>
+        ${P(540, 62, 'lb', 'DATE OF ISSUE/ДАТА ВЫДАЧИ')}${P(530, 74, 'v', issued)}
+        ${P(828, 62, 'lb', 'ISO')}${P(825, 74, 'v', 'RU')}
+        ${P(425, 93, 'lb', 'ISSAGT_ID')}${P(425, 104, 'v', 'AR1/MOW')}
+        ${P(615, 93, 'lb', 'PLACE OF ISSUE/МЕСТО ВЫДАЧИ')}${P(607, 104, 'v', 'MOSCOW SVO')}
+        ${P(105, 112, 'lb', 'NAME OF PASSENGER/ФАМИЛИЯ ПАССАЖИРА')}${P(130, 126, 'v', 'PASSENGER/YOU')}
+        ${P(130, 145, 'lb', 'FROM/TO')}${P(130, 153, 'v', 'MOSCOW/SVO')}${P(130, 181, 'v', `${LAT[k]}/${IATA[k]}`)}
+        ${P(425, 145, 'lb', 'CARRIER/FLIGHT/РЕЙС')}${P(413, 153, 'v', flight)}
+        ${P(522, 145, 'lb', 'CLASS/КЛАСС')}${P(522, 153, 'v', 'Y')}
+        ${P(606, 145, 'lb', 'DATE/ДАТА')}${P(588, 153, 'v', date)}
+        ${P(705, 145, 'lb', 'TIME/ВРЕМЯ')}${P(690, 153, 'v', dep)}
+        ${P(413, 181, 'v', 'OPERATED BY ARISHENIAA')}
+        ${P(750, 221, 'lb', 'PNR CODE/КОД БРОНИ')}${P(750, 231, 'v', pnr)}
+        <div class="code" aria-hidden="true">${barcode(k.charCodeAt(0) * 31 + k.charCodeAt(1))}</div>
+        ${P(237, 323, 'v', 'GATE')}${P(268, 352, 'v b', gate)}
+        ${P(355, 323, 'v', 'BOARDING TIME')}${P(383, 352, 'v b', brd)}
+        ${P(635, 276, 'v', 'SEAT')}${P(640, 300, 'v', seat)}
+        ${P(724, 276, 'lb', 'MEAL/ПИТАНИЕ')}${P(724, 287, 'v s', MEAL[picks[0]])}
+        ${P(724, 314, 'lb', 'DRINK/НАПИТОК')}${P(724, 325, 'v s', drink)}
+        ${P(676, 364, 'lb', 'SEQ.NO')}${P(680, 375, 'v', seq)}
+        <p class="p nice" style="--x:228;--y:402"><span class="h">Have a nice trip!</span>Gate closes <b>20 minutes</b><br>before departure</p>
+        <p class="p nice" style="--x:390;--y:402"><span class="h">Счастливого пути!</span>Посадка заканчивается<br><b>за 20 минут</b> до времени вылета</p>
+        ${P(620, 425, 'v', 'ELECTRONIC TKT')}${P(620, 450, 'v', tkt)}
+        ${stamp(515, 200, '33deg', 1)}
+      </div>
+      <div class="bp-stub">
+        <div class="p logo" style="--x:14;--y:20"><svg class="star" viewBox="0 0 40 40" aria-hidden="true"><path fill="#f4b93f" d="M20.5 1 L24.2 13.8 L36.5 10.4 L28.9 20.6 L39 26.3 L26.4 27.6 L28.2 39 L19.2 31.2 L10.4 38.4 L12.1 26.6 L1 23.4 L11.6 18.2 L6.2 8.1 L18.1 13.2 Z"/></svg><div class="mark-txt"><svg class="sig" viewBox="-20 -200 1305 330" fill="none" aria-hidden="true"><path fill="currentColor" d="M38.53 108.30L38.53 108.30Q34.42 108.30 30.71 107.52L30.71 107.52Q12.65 103.27 3.96 86.04L3.96 86.04Q-1.90 73.10-1.90 56.40L-1.90 56.40Q-1.90 39.36 1.86 19.34L1.86 19.34Q6.20-4.350 21.58-32.37L21.58-32.37Q30.66-48.78 40.36-61.21Q50.05-73.63 60.35-85.21L60.35-85.21Q78.08-104.49 99.07-119.14L99.07-119.14Q114.45-129.44 132.71-137.79L132.71-137.79Q163.23-150.83 194.68-153.96L194.68-153.96Q204.39-154.74 213.62-154.74L213.62-154.74Q248.39-154.74 276.37-143.46L276.37-143.46L277.73-142.82Q278.27-143.55 280.62-146.39L280.62-146.39Q302.00-172.61 303.86-174.32L303.86-174.32Q307.08-177.20 310.11-177.20L310.11-177.20L310.69-177.20Q316.26-176.27 316.26-170.80L316.26-170.80Q316.26-165.87 310.89-155.86L310.89-155.86Q307.96-150.49 302.15-141.36L302.15-141.36Q297.61-134.18 296.48-132.67L296.48-132.67Q296.73-132.57 297.36-132.13L297.36-132.13Q317.53-118.41 325.68-97.12L325.68-97.12Q327.49-92.43 327.91-89.40Q328.32-86.38 328.32-83.69L328.32-83.69Q328.32-82.03 327.78-73.83L327.78-73.83Q325.10-71.53 324.32-71.24Q323.54-70.95 322.66-70.95L322.66-70.95Q320.90-70.95 320.02-71.46Q319.14-71.97 316.94-74.37L316.94-74.37Q317.33-80.57 317.33-81.88L317.33-81.88Q317.33-86.13 316.46-89.70L316.46-89.70Q315.33-94.38 312.06-100.34L312.06-100.34Q309.33-105.66 306.59-109.23L306.59-109.23Q302.69-114.36 295.46-120.07L295.46-120.07Q291.02-123.68 290.87-123.73L290.87-123.73Q289.79-121.88 284.57-113.53L284.57-113.53Q276.42-100.49 275.39-98.73L275.39-98.73Q271.53-92.43 267.29-84.59Q263.04-76.76 254.44-60.25L254.44-60.25Q238.62-30.08 230.22-10.64L230.22-10.64Q224.61 2.83 223.80 5.96Q223.00 9.08 220.46 18.60L220.46 18.60Q216.94 31.59 215.97 45.90L215.97 45.90Q215.82 47.17 215.82 48.34L215.82 48.34Q215.82 49.66 216.02 50.93L216.02 50.93Q216.99 66.02 225.44 66.02L225.44 66.02Q231.88 66.02 240.19 62.45L240.19 62.45Q278.66 44.92 354.25-25.78L354.25-25.78Q356.30-27.64 358.45-27.64L358.45-27.64Q359.67-27.64 361.04-26.90L361.04-26.90Q363.43-24.56 363.43-22.75L363.43-22.75Q363.43-20.70 360.84-17.92L360.84-17.92Q285.21 52.59 243.65 72.17L243.65 72.17Q235.01 76.42 225.73 76.42L225.73 76.42Q224.22 76.42 222.56 76.32L222.56 76.32Q206.20 73.34 205.03 50.44L205.03 50.44Q204.98 49.22 204.98 47.75L204.98 47.75Q204.98 39.84 206.25 32.47L206.25 32.47Q210.94 7.62 217.24-8.06L217.24-8.06Q224.41-26.61 243.31-62.74L243.31-62.74Q258.15-91.21 264.26-101.46L264.26-101.46Q268.12-107.81 273.93-117.04L273.93-117.04Q280.22-127.05 281.59-129.15L281.59-129.15L280.57-129.69Q279.64-128.37 272.17-119.07Q264.70-109.77 236.67-73.68L236.67-73.68Q221.48-54.39 215.04-45.90L215.04-45.90L198.97-25.49Q190.38-14.79 182.42-4.59L182.42-4.59Q129.93 61.33 85.94 90.58L85.94 90.58Q68.46 101.95 54.88 105.81L54.88 105.81Q45.95 108.30 38.53 108.30ZM39.11 97.75L39.11 97.75Q40.14 97.75 41.26 97.66L41.26 97.66Q62.94 96.04 95.46 70.31L95.46 70.31Q112.11 57.42 131.74 37.01L131.74 37.01Q154.83 12.94 173.97-11.47L173.97-11.47Q178.52-17.33 188.53-29.83L188.53-29.83Q196.44-39.75 209.72-56.79L209.72-56.79Q213.13-61.33 223.29-74.27L223.29-74.27Q227.64-79.74 240.92-96.88L240.92-96.88Q254.79-114.99 265.48-128.03L265.48-128.03L270.51-134.28L267.68-135.35Q257.67-139.06 245.41-141.46L245.41-141.46Q229.25-144.19 212.79-144.19L212.79-144.19Q182.32-144.19 152.34-133.98L152.34-133.98Q117.87-122.02 90.28-98.93L90.28-98.93Q76.37-87.26 71.39-81.79Q66.41-76.32 46.09-51.61L46.09-51.61Q15.48-5.27 11.72 33.74L11.72 33.74Q11.52 35.79 11.43 37.84L11.43 37.84Q10.45 42.72 9.77 49.76L9.77 49.76Q9.33 54.15 9.33 58.20L9.33 58.20Q9.33 73.19 15.14 83.84L15.14 83.84Q18.26 89.06 23.10 92.68L23.10 92.68Q29.93 97.75 39.11 97.75Z"/><path fill="currentColor" d="M400.68 49.07L400.68 49.07Q398.34 49.07 396.48 48.68L396.48 48.68Q389.75 46.97 386.04 41.85L386.04 41.85Q383.06 37.84 383.06 31.49L383.06 31.49Q383.06 27.49 384.23 22.61L384.23 22.61Q387.74 6.40 406.25-25L406.25-25Q409.57-30.52 412.79-38.13L412.79-38.13Q414.84-42.82 415.58-45.68Q416.31-48.54 416.31-51.61L416.31-51.61Q416.31-56.15 414.65-58.40Q412.99-60.64 409.08-61.72L409.08-61.72Q407.47-62.16 401.81-62.16L401.81-62.16Q394.14-62.16 385.82-57.96Q377.49-53.76 371.04-47.31Q364.60-40.87 362.60-34.86L362.60-34.86Q361.96-32.81 361.96-31.10L361.96-31.10Q361.96-30.03 362.21-29.00L362.21-29.00Q362.89-26.22 362.89-24.90L362.89-24.90Q362.89-23.39 361.57-22.07L361.57-22.07Q360.01-20.21 357.47-20.21L357.47-20.21Q354.10-20.21 352.34-23.44L352.34-23.44Q350.93-26.17 350.93-31.05L350.93-31.05Q350.93-40.48 358.89-50.10L358.89-50.10Q367.68-60.84 380.86-67.43L380.86-67.43Q391.85-72.90 403.37-72.90L403.37-72.90Q409.08-72.90 413.96-71.29L413.96-71.29Q427.44-66.80 427.44-51.42L427.44-51.42Q427.44-46.78 426.07-42.24L426.07-42.24Q423.00-31.69 413.62-15.82L413.62-15.82Q401.71 4.49 396.78 18.65L396.78 18.65Q394.19 26.86 394.19 31.64L394.19 31.64Q394.19 33.25 394.51 34.30Q394.82 35.35 395.75 36.40Q396.68 37.45 397.66 37.89L397.66 37.89Q399.02 38.43 401.42 38.43L401.42 38.43Q403.22 38.43 404.98 37.99L404.98 37.99Q416.06 35.16 429.64 24.80L429.64 24.80Q434.77 20.75 442.68 13.75Q450.59 6.74 457.67 0L457.67 0Q485.55-26.27 488.82-27.20L488.82-27.20Q489.70-27.34 490.43-27.34L490.43-27.34Q493.07-27.34 494.73-25.39L494.73-25.39Q495.95-23.93 495.95-22.17L495.95-22.17Q495.95-19.24 493.02-17.38L493.02-17.38Q491.46-16.31 485.45-10.84L485.45-10.84Q473.10 0.29 464.65 8.25L464.65 8.25Q448.78 23.29 438.38 31.54L438.38 31.54Q416.36 49.07 400.68 49.07Z"/><path fill="currentColor" d="M491.55 14.36L491.55 14.36Q485.89 14.36 481.59 10.79L481.59 10.79Q476.76 6.84 476.76 0L476.76 0Q476.76-2.88 477.88-7.62L477.88-7.62Q478.66-11.18 479.88-14.70L479.88-14.70Q481.84-19.92 484.62-25.88L484.62-25.88Q489.11-35.50 491.55-36.87L491.55-36.87Q492.77-37.65 494.19-37.65L494.19-37.65Q498.93-37.65 500.29-33.15L500.29-33.15Q500.59-32.23 500.59-31.35L500.59-31.35Q500.59-28.91 499.17-28.05Q497.75-27.20 494.53-20.31L494.53-20.31Q487.79-6.05 487.79 1.56L487.79 1.56Q487.79 2.98 488.38 3.47Q488.96 3.96 490.09 3.96L490.09 3.96Q491.36 3.96 493.65 3.32L493.65 3.32Q497.80 2.29 502.91-0.22Q508.01-2.73 519.48-9.47L519.48-9.47Q528.08-14.45 540.92-22.66L540.92-22.66Q543.90-24.51 548.68-27.39L548.68-27.39Q550.29-28.22 551.81-28.22L551.81-28.22Q554.05-28.22 556.05-26.37L556.05-26.37Q557.18-24.32 557.18-22.66L557.18-22.66Q557.18-19.73 554.69-18.02L554.69-18.02Q552.49-16.94 539.99-8.89L539.99-8.89Q535.94-6.30 528.96-2.20L528.96-2.20Q516.06 5.27 511.23 7.91L511.23 7.91Q498.24 14.36 491.55 14.36ZM499.32-53.03L499.32-53.03Q497.31-53.03 495.70-54.44L495.70-54.44Q493.55-56.10 493.55-58.98L493.55-58.98Q493.55-60.16 494.58-62.21L494.58-62.21Q495.65-64.50 496.97-65.53Q498.29-66.55 500.34-66.55L500.34-66.55Q503.03-66.55 505.20-64.60Q507.37-62.65 507.37-60.55L507.37-60.55Q507.37-59.62 507.03-58.79L507.03-58.79Q506.35-56.88 504.39-56.15L504.39-56.15Q502.78-53.03 499.32-53.03Z"/><path fill="currentColor" d="M548.00 43.26L548.00 43.26Q551.46 43.26 554.83 41.89L554.83 41.89Q556.05 41.41 557.23 40.87L557.23 40.87Q571.14 33.64 575.05 16.70L575.05 16.70Q575.29 15.33 575.29 13.38L575.29 13.38Q575.29 10.64 574.90 8.89L574.90 8.89Q574.80 8.40 574.56 8.11L574.56 8.11L569.09 11.82Q557.28 20.12 550.05 27.59L550.05 27.59Q544.29 33.40 542.48 37.30L542.48 37.30Q541.46 39.36 541.46 40.14L541.46 40.14Q541.46 40.58 541.70 41.06L541.70 41.06Q542.97 43.26 548.00 43.26ZM579.10-6.98L579.10-6.98Q579.59-7.28 580.57-7.81L580.57-7.81Q592.72-14.55 605.91-19.53L605.91-19.53Q613.87-22.41 623.36-24.63Q632.86-26.86 637.94-26.95L637.94-26.95Q644.24-26.90 644.24-22.22L644.24-22.22Q644.24-17.63 641.02-17.09Q637.79-16.55 636.67-16.46L636.67-16.46Q631.20-16.02 622.36-13.72L622.36-13.72Q602.25-8.40 584.18 2.15L584.18 2.15L584.47 3.03Q586.18 7.76 586.18 12.89L586.18 12.89Q586.18 21.44 581.40 30.86L581.40 30.86Q576.76 40.04 568.70 46.12Q560.64 52.20 551.32 53.47L551.32 53.47Q549.27 53.71 547.90 53.71L547.90 53.71Q542.82 53.71 538.48 51.66L538.48 51.66Q530.62 47.95 530.62 40.28L530.62 40.28Q530.62 31.79 543.12 19.63L543.12 19.63Q553.08 9.52 567.09 0.49L567.09 0.49Q569.58-1.17 570.36-1.46L570.36-1.46Q569.82-1.95 568.41-3.61L568.41-3.61Q562.21-10.84 553.47-17.48L553.47-17.48Q545.95-23.19 545.46-25.24L545.46-25.24Q545.17-26.32 544.58-27.78L544.58-27.78Q543.60-30.18 543.60-32.28L543.60-32.28Q543.60-34.47 544.63-36.28L544.63-36.28Q547.07-40.48 551.51-40.48L551.51-40.48Q554.30-40.48 556.30-38.23L556.30-38.23Q558.20-36.33 558.20-33.25L558.20-33.25Q558.20-31.30 557.37-28.81L557.37-28.81Q557.08-27.78 557.08-27.39L557.08-27.39Q557.08-27.49 557.18-27.49L557.18-27.49Q557.67-27.49 559.96-25.78L559.96-25.78Q565.19-21.83 570.48-16.77Q575.78-11.72 578.61-8.01L578.61-8.01Q579.10-7.32 579.10-6.98Z"/><path fill="currentColor" d="M637.60 22.46L637.60 22.46Q635.74 22.46 634.62 21.83L634.62 21.83Q630.52 19.73 630.52 8.25L630.52 8.25Q630.52 3.08 631.88-6.01L631.88-6.01Q634.91-26.22 642.63-50.05L642.63-50.05Q661.38-107.76 690.77-142.53L690.77-142.53Q696.78-149.76 702.54-154.64L702.54-154.64Q717.77-167.48 730.27-167.48L730.27-167.48Q733.15-167.48 735.03-166.99Q736.91-166.50 738.87-165.43L738.87-165.43Q747.66-160.50 748.63-147.22L748.63-147.22Q748.63-141.50 747.27-135.60L747.27-135.60Q745.17-127.93 739.60-116.31L739.60-116.31Q730.71-98.00 717.63-82.37L717.63-82.37Q696.92-58.06 673.88-38.67L673.88-38.67Q658.59-25.88 650.29-21.68L650.29-21.68Q647.80-20.41 645.95-19.73L645.95-19.73Q645.51-19.58 645.46-19.56Q645.41-19.53 644.63-15.58L644.63-15.58Q643.80-11.87 642.82-5.03L642.82-5.03Q641.89 1.22 641.75 6.84L641.75 6.84L648.05-0.10Q661.33-14.65 661.96-15.23L661.96-15.23Q676.37-30.86 682.23-34.42L682.23-34.42Q684.86-35.99 687.84-35.99L687.84-35.99Q691.70-35.99 693.95-34.03L693.95-34.03Q695.80-32.47 701.07-24.56L701.07-24.56Q710.21-10.89 713.13-9.28L713.13-9.28Q716.36-7.42 720.70-7.42L720.70-7.42Q723.19-7.42 731.25-11.91L731.25-11.91Q737.21-15.23 743.60-19.48L743.60-19.48Q754.83-27.69 756.79-27.78L756.79-27.78L757.47-27.88Q759.38-27.88 760.96-26.66Q762.55-25.44 762.55-23.39L762.55-23.39Q762.55-20.90 760.60-19.09L760.60-19.09Q759.77-18.31 747.46-9.67L747.46-9.67Q740.53-4.79 734.13-1.27L734.13-1.27Q728.22 1.51 725.42 2.32Q722.61 3.13 719.92 3.13L719.92 3.13Q711.18 3.13 705.03-1.37L705.03-1.37Q702.49-3.27 699.73-6.86Q696.97-10.45 691.46-18.65L691.46-18.65Q687.30-24.90 687.04-25.15Q686.77-25.39 686.77-25.44L686.77-25.44Q686.77-25.49 686.82-25.49L686.82-25.49Q685.25-25.49 663.18-1.12L663.18-1.12Q653.13 9.96 647.27 16.11L647.27 16.11Q642.43 21.19 640.58 21.92L640.58 21.92Q639.26 22.46 637.60 22.46ZM648.88-32.76L648.88-32.76Q651.86-34.62 656.25-37.89L656.25-37.89Q663.33-43.21 671.12-50.07Q678.91-56.93 684.77-62.55Q690.63-68.16 696.48-74.51L696.48-74.51Q707.81-86.67 714.28-95.12Q720.75-103.56 725.68-112.65L725.68-112.65Q728.96-118.60 731.93-125.37Q734.91-132.13 736.13-136.28L736.13-136.28Q736.77-138.67 737.11-141.72Q737.45-144.78 737.45-146.39L737.45-146.39L737.40-147.46Q736.08-156.69 729.44-156.93L729.44-156.93Q721.83-156.93 710.64-147.75L710.64-147.75Q707.18-144.92 704.64-142.38L704.64-142.38Q699.41-136.91 692.82-128.15Q686.23-119.38 681.35-111.33L681.35-111.33Q664.55-82.76 652.34-44.68L652.34-44.68Q650.49-38.87 648.88-32.76Z"/><path fill="currentColor" d="M767.92 3.96L767.92 3.96Q766.65 3.96 765.63 3.86L765.63 3.86Q757.08 3.03 753.13-0.59Q749.17-4.20 749.17-11.04L749.17-11.04Q749.22-20.41 755.42-29.54L755.42-29.54Q758.50-34.28 765.09-38.57L765.09-38.57Q769.68-41.70 772.85-42.97Q776.03-44.24 779.30-44.24L779.30-44.24Q784.77-44.24 787.11-40.28L787.11-40.28Q788.09-38.62 788.18-37.35L788.18-37.35L788.13-35.79Q788.09-33.30 787.06-31.35Q786.04-29.39 783.64-27.00L783.64-27.00Q779.35-22.61 772.36-19.19L772.36-19.19Q768.85-17.43 766.82-16.82Q764.79-16.21 760.64-16.06L760.64-16.06Q760.01-13.96 760.01-11.52L760.01-11.52Q760.01-9.03 760.45-8.35L760.45-8.35Q761.72-6.59 768.60-6.59L768.60-6.59Q776.95-6.59 787.50-10.01L787.50-10.01Q793.99-12.06 806.74-16.99Q819.48-21.92 828.56-25.83L828.56-25.83Q834.42-28.42 836.72-28.42L836.72-28.42Q837.55-28.42 838.28-28.13L838.28-28.13Q841.55-26.76 841.67-25.12Q841.80-23.49 841.80-23.34L841.80-23.34Q841.80-20.36 838.82-18.80L838.82-18.80Q838.13-18.46 833.94-16.75L833.94-16.75Q795.31-0.73 783.94 1.86L783.94 1.86Q775.05 3.96 767.92 3.96Z"/><path fill="currentColor" d="M837.35-8.84L837.35-8.84Q840.72-11.18 849.66-18.75L849.66-18.75L853.13-21.68Q860.55-28.08 865.92-28.08L865.92-28.08Q871.97-28.08 880.03-20.31L880.03-20.31Q887.30-13.33 892.87-11.57L892.87-11.57Q896.68-10.40 900.93-10.40L900.93-10.40Q909.13-10.40 921.04-13.77L921.04-13.77Q927.49-15.58 939.26-20.31L939.26-20.31Q948.88-24.17 950.88-24.90L950.88-24.90Q955.42-26.76 956.40-27.25L956.40-27.25Q958.59-28.17 960.06-28.17L960.06-28.17Q961.13-28.17 962.35-27.73L962.35-27.73Q965.28-26.32 965.28-23.00L965.28-23.00Q965.28-21.19 963.87-19.68L963.87-19.68Q962.06-17.77 953.13-14.40L953.13-14.40Q945.95-11.67 941.41-9.86L941.41-9.86Q924.17-2.83 912.01-0.88L912.01-0.88Q906.01 0.10 900.93 0.10L900.93 0.10Q896.48 0.10 892.68-0.63L892.68-0.63Q882.76-2.73 872.17-12.89L872.17-12.89Q867.48-17.38 866.02-17.38L866.02-17.38Q865.53-17.38 864.75-16.99L864.75-16.99Q863.18-16.21 854.05-8.45L854.05-8.45Q841.46 2.15 836.38 2.69L836.38 2.69Q835.21 2.83 834.52 2.83L834.52 2.83Q833.50 2.83 832.62 2.59L832.62 2.59Q826.37 0.49 826.37-7.76L826.37-7.76Q826.37-10.74 826.76-12.16L826.76-12.16Q827.69-15.33 830.13-20.46L830.13-20.46Q831.84-24.07 833.54-26.90L833.54-26.90Q836.04-31.20 839.55-33.50L839.55-33.50Q842.68-35.55 845.41-35.55L845.41-35.55Q848.14-35.55 850.29-33.54L850.29-33.54Q851.90-31.690 851.90-29.79L851.90-29.79Q851.90-28.81 851.46-27.83L851.46-27.83Q850.10-24.76 846.24-24.76L846.24-24.76L845.61-24.80Q844.43-24.80 840.48-16.85L840.48-16.85Q837.79-11.52 837.35-8.84Z"/><path fill="currentColor" d="M962.89 14.36L962.89 14.36Q957.23 14.36 952.93 10.79L952.93 10.79Q948.10 6.84 948.10 0L948.10 0Q948.10-2.88 949.22-7.62L949.22-7.62Q950-11.18 951.22-14.70L951.22-14.70Q953.17-19.92 955.96-25.88L955.96-25.88Q960.45-35.50 962.89-36.87L962.89-36.87Q964.11-37.65 965.53-37.65L965.53-37.65Q970.26-37.65 971.63-33.15L971.63-33.15Q971.92-32.23 971.92-31.35L971.92-31.35Q971.92-28.91 970.51-28.05Q969.09-27.20 965.87-20.31L965.87-20.31Q959.13-6.05 959.13 1.56L959.13 1.56Q959.13 2.98 959.72 3.47Q960.30 3.96 961.43 3.96L961.43 3.96Q962.70 3.96 964.99 3.32L964.99 3.32Q969.14 2.29 974.24-0.22Q979.35-2.73 990.82-9.47L990.82-9.47Q999.41-14.45 1012.26-22.66L1012.26-22.66Q1015.23-24.51 1020.02-27.39L1020.02-27.39Q1021.63-28.22 1023.14-28.22L1023.14-28.22Q1025.39-28.22 1027.39-26.37L1027.39-26.37Q1028.52-24.32 1028.52-22.66L1028.52-22.66Q1028.52-19.73 1026.03-18.02L1026.03-18.02Q1023.83-16.94 1011.33-8.89L1011.33-8.89Q1007.28-6.30 1000.29-2.20L1000.29-2.20Q987.40 5.27 982.57 7.91L982.57 7.91Q969.58 14.36 962.89 14.36ZM970.65-53.03L970.65-53.03Q968.65-53.03 967.04-54.44L967.04-54.44Q964.89-56.10 964.89-58.98L964.89-58.98Q964.89-60.16 965.92-62.21L965.92-62.21Q966.99-64.50 968.31-65.53Q969.63-66.55 971.68-66.55L971.68-66.55Q974.37-66.55 976.54-64.60Q978.71-62.65 978.71-60.55L978.71-60.55Q978.71-59.62 978.37-58.79L978.37-58.79Q977.69-56.88 975.73-56.15L975.73-56.15Q974.12-53.03 970.65-53.03Z"/><path fill="currentColor" d="M1026.46-17.97L1024.07-14.89Q1030.81-18.07 1044.24-26.46L1044.24-26.46Q1048.00-28.81 1048.44-29.15L1048.44-29.15Q1047.61-30.08 1044.48-30.08L1044.48-30.08Q1040.23-30.08 1034.47-25.68L1034.47-25.68Q1030.22-22.41 1026.46-17.97L1026.46-17.97ZM1057.76-35.06L1057.76-35.06Q1059.47-36.47 1066.06-41.11L1066.06-41.11Q1070.90-44.58 1071.92-45.09Q1072.95-45.61 1074.17-45.61L1074.17-45.61Q1077.64-45.61 1079.59-41.99L1079.59-41.99Q1080.42-40.43 1080.42-39.06L1080.42-39.06Q1080.42-36.13 1071.53-21.88L1071.53-21.88Q1061.72-5.96 1061.72 0L1061.72 0Q1061.72 2.98 1062.01 3.56L1062.01 3.56Q1062.70 4.79 1065.04 5.47L1065.04 5.47Q1065.72 5.66 1066.50 5.66L1066.50 5.66Q1072.80 5.66 1084.91 0.05L1084.91 0.05Q1095.61-4.83 1104.30-9.77L1104.30-9.77Q1107.08-11.33 1116.60-16.46L1116.60-16.46Q1126.37-21.68 1131.59-24.85L1131.59-24.85Q1137.99-28.66 1140.04-28.66L1140.04-28.66Q1143.26-28.66 1144.34-26.66Q1145.41-24.66 1145.41-23.19L1145.41-23.19Q1145.41-19.63 1141.70-18.12L1141.70-18.12Q1140.48-17.58 1135.35-14.55L1135.35-14.55Q1128.76-10.69 1124.02-8.25L1124.02-8.25L1111.96-1.66Q1101.86 4.05 1092.19 8.54L1092.19 8.54Q1085.45 11.67 1081.25 13.23L1081.25 13.23Q1073.00 16.31 1066.26 16.31L1066.26 16.31Q1064.45 16.31 1063.13 16.06L1063.13 16.06Q1055.37 14.50 1051.81 8.06L1051.81 8.06Q1050.54 5.52 1050.46 3.52Q1050.39 1.51 1050.39 0.98L1050.39 0.98Q1050.39-5.47 1054.69-14.55L1054.69-14.55Q1056.49-18.31 1059.57-23.44L1059.57-23.44L1058.06-22.41Q1053.47-19.29 1051.46-18.21L1051.46-18.21Q1035.25-7.96 1027.59-4.64L1027.59-4.64Q1022.27-2.25 1020.61-2.15Q1018.95-2.05 1018.75-2.05L1018.75-2.05Q1015.19-2.05 1012.89-4.54L1012.89-4.54Q1010.55-6.88 1010.55-10.21L1010.55-10.21Q1010.55-15.43 1016.28-22.88Q1022.02-30.32 1030.03-35.79L1030.03-35.79Q1037.89-40.82 1045.02-40.82L1045.02-40.82Q1051.61-40.82 1055.86-37.11L1055.86-37.11Q1057.03-36.08 1057.76-35.06Z"/><path fill="currentColor" d="M1143.90-17.97L1141.50-14.89Q1148.24-18.07 1161.67-26.46L1161.67-26.46Q1165.43-28.81 1165.87-29.15L1165.87-29.15Q1165.04-30.08 1161.91-30.08L1161.91-30.08Q1157.67-30.08 1151.90-25.68L1151.90-25.68Q1147.66-22.41 1143.90-17.97L1143.90-17.97ZM1175.20-35.06L1175.20-35.06Q1176.90-36.47 1183.50-41.11L1183.50-41.11Q1188.33-44.58 1189.36-45.09Q1190.38-45.61 1191.60-45.61L1191.60-45.61Q1195.07-45.61 1197.02-41.99L1197.02-41.99Q1197.85-40.43 1197.85-39.06L1197.85-39.06Q1197.85-36.13 1188.96-21.88L1188.96-21.88Q1179.15-5.96 1179.15 0L1179.15 0Q1179.15 2.98 1179.44 3.56L1179.44 3.56Q1180.13 4.79 1182.47 5.47L1182.47 5.47Q1183.15 5.66 1183.94 5.66L1183.94 5.66Q1190.23 5.66 1202.34 0.05L1202.34 0.05Q1213.04-4.83 1221.73-9.77L1221.73-9.77Q1224.51-11.33 1234.03-16.46L1234.03-16.46Q1243.80-21.68 1249.02-24.85L1249.02-24.85Q1255.42-28.66 1257.47-28.66L1257.47-28.66Q1260.69-28.66 1261.77-26.66Q1262.84-24.66 1262.84-23.19L1262.84-23.19Q1262.84-19.63 1259.13-18.12L1259.13-18.12Q1257.91-17.58 1252.78-14.55L1252.78-14.55Q1246.19-10.69 1241.46-8.25L1241.46-8.25L1229.39-1.66Q1219.29 4.05 1209.62 8.54L1209.62 8.54Q1202.88 11.67 1198.68 13.23L1198.68 13.23Q1190.43 16.31 1183.69 16.31L1183.69 16.31Q1181.88 16.31 1180.57 16.06L1180.57 16.06Q1172.80 14.50 1169.24 8.06L1169.24 8.06Q1167.97 5.52 1167.90 3.52Q1167.82 1.51 1167.82 0.98L1167.82 0.98Q1167.82-5.47 1172.12-14.55L1172.12-14.55Q1173.93-18.31 1177.00-23.44L1177.00-23.44L1175.49-22.41Q1170.90-19.29 1168.90-18.21L1168.90-18.21Q1152.69-7.96 1145.02-4.64L1145.02-4.64Q1139.70-2.25 1138.04-2.15Q1136.38-2.05 1136.18-2.05L1136.18-2.05Q1132.62-2.05 1130.32-4.54L1130.32-4.54Q1127.98-6.88 1127.98-10.21L1127.98-10.21Q1127.98-15.43 1133.72-22.88Q1139.45-30.32 1147.46-35.79L1147.46-35.79Q1155.32-40.82 1162.45-40.82L1162.45-40.82Q1169.04-40.82 1173.29-37.11L1173.29-37.11Q1174.46-36.08 1175.20-35.06Z"/></svg><span class="air">airlines</span></div></div>
+        ${P(204, 30, 'ttl s', 'BOARDING PASS<br>ПОСАДОЧНЫЙ ТАЛОН')}
+        ${P(17, 90, 'lb', 'NAME OF PASSENGER/ФАМИЛИЯ ПАССАЖИРА')}${P(10, 101, 'v', 'PASSENGER/YOU')}
+        ${P(30, 143, 'lb', 'FROM/TO')}${P(30, 153, 'v', 'MOSCOW/SVO')}${P(30, 181, 'v', `${LAT[k]}/${IATA[k]}`)}
+        ${P(17, 205, 'v', 'ARISHENIAA')}${P(17, 232, 'v', 'TERMINAL: D')}
+        ${P(17, 263, 'lb', 'FLIGHT/РЕЙС/CLASS/КЛАСС')}${P(132, 263, 'lb', 'DATE/ДАТА')}${P(282, 263, 'lb', 'TIME/ВРЕМЯ')}
+        ${P(17, 277, 'v', `${flight.replace(' ', '')}Y ${date} ${dep}`)}
+        ${P(17, 311, 'lb', 'GATE/ВЫХОД')}${P(62, 311, 'lb', 'BOARDING/ПОСАДКА')}${P(185, 311, 'lb', 'SEAT/МЕСТО')}
+        ${P(30, 324, 'v', gate)}${P(92, 324, 'v', brd)}${P(210, 324, 'v', seat)}
+        ${P(17, 357, 'lb', 'PCS/КОЛ-ВО')}${P(70, 357, 'lb', 'WT/ВЕС')}${P(200, 357, 'lb', 'SEQ.NO')}${P(200, 375, 'v', seq)}
+        ${P(17, 400, 'lb', 'MEAL/ПИТАНИЕ')}${P(17, 411, 'v s', MEAL[picks[0]])}
+        ${P(150, 400, 'lb', 'DRINK/НАПИТОК')}${P(150, 411, 'v s', drink)}
+        ${P(17, 451, 'v', 'AR1/MOW')}
+        ${stamp(-5, 215, '33deg', 2)}
+      </div>
+    </div>
+    <div class="bp-more">
+      <div class="res-text">
+        <p class="big-t" style="font-size:22px;font-weight:700;line-height:1.2">${c.t}<span class="en" style="display:block;font-size:15px">${c.te}</span></p>
+        <p style="font-size:17px">${c.d}</p>
+        
+      </div>
+      <div class="res-text">
+        <div class="tip"><p><b>Что взять с собой.</b> ${c.bag}.</p></div>
+        <p class="rate">Твой выбор: ${picks.join(', ')}</p>
+        <div class="actions">
+          <button class="btn" type="button" id="g-share">Поделиться <span class="en">/ Share</span></button>
+          <button class="btn alt" type="button" id="g-again">Выбрать заново <span class="en">/ Retry</span></button>
+        </div>
+        <p class="toast" id="g-toast" role="status"></p>
+      </div>
+    </div>`;
+  document.getElementById('g-again').onclick = () => { round = 0; votes = {}; picks = []; renderPair(); };
+  document.getElementById('g-share').onclick = async () => {
+    const text = `Бортпроводница спросила «курица или рыба», и я лечу в ${c.t}. А ты куда?`;
+    const url = location.origin + location.pathname + '#chicken';
+    try {
+      if (navigator.share) await navigator.share({ title: 'Курица или рыба?', text, url });
+      else { await navigator.clipboard.writeText(`${text} ${url}`); document.getElementById('g-toast').textContent = 'Скопировала, вставляй куда угодно'; }
+    } catch (e) { /* окно поделиться закрыли */ }
+  };
+}
+renderPair();
+
+/* генератор объяснительной: три барабана, кто + что сделал + куда я теперь лечу */
+const REELS = [
+  { l: 'Кто', le: 'Who', items: [
+    ['мой кот', 'my cat'], ['соседский попугай', 'the neighbor’s parrot'], ['бабушкин фикус', 'grandma’s ficus'], ['робот-пылесос', 'the robot vacuum'],
+    ['мой гороскоп', 'my horoscope'], ['навигатор', 'the navigator'], ['мой чемодан', 'my suitcase'], ['сосед сверху', 'the upstairs neighbor']] },
+  { l: 'Что сделал', le: 'What happened', items: [
+    ['спрятал ключи от квартиры в морозилку', 'hid my keys in the freezer'], ['записал меня на мастер-класс по сальсе', 'signed me up for a salsa class'],
+    ['объявил забастовку', 'went on strike'], ['съел мой пропуск', 'ate my office pass'], ['ушел в отпуск без меня', 'went on vacation without me'],
+    ['заговорил только по-итальянски', 'started speaking only Italian'], ['поставил будильник на воскресенье', 'set my alarm for Sunday'],
+    ['забронировал мне место у окна', 'booked me a window seat']] },
+  { l: 'Поэтому я', le: 'So now I’m', items: [
+    ['улетаю в Стамбул, пока все не уляжется', 'flying to Istanbul until things calm down', 'ist'],
+    ['лечу в Тбилиси на переговоры', 'flying to Tbilisi for negotiations', 'tbs'],
+    ['восстанавливаю нервы на Пхукете', 'restoring my nerves in Phuket', 'hkt'],
+    ['улетаю в Мурманск: успокоит только северное сияние', 'flying to Murmansk: only the northern lights can calm me down', 'mmk'],
+    ['лечу в Калининград за янтарем на удачу', 'flying to Kaliningrad for some lucky amber', 'kgd'],
+    ['лечу в Казань за чак-чаком для всего отдела', 'flying to Kazan to get chak-chak for the whole team', 'kzn'],
+    ['улетаю в Ереван, там меня поймут', 'flying to Yerevan, they’ll understand me there', 'evn'],
+    ['лечу во Владивосток: там понедельник начинается раньше, отработаю заранее', 'flying to Vladivostok: Monday starts earlier there, I’ll work it off in advance', 'vvo']] },
+];
+const LOOPS = 5;
+const reelsEl = document.getElementById('reels'), memo = document.getElementById('memo'), exMore = document.getElementById('ex-more'), spinBtn = document.getElementById('ex-spin');
+let pick = [null, null, null], spinning = 0;
+
+reelsEl.innerHTML = REELS.map((r, i) => `
+  <button class="reel" type="button" data-i="${i}" aria-label="${r.l}: прокрутить еще раз">
+    <span class="lbl">${r.l} <span class="en">/ ${r.le}</span></span>
+    <span class="win" aria-hidden="true"><span class="strip" style="display:block">${
+      Array.from({ length: LOOPS }, () => r.items.map(([ru]) => `<span class="cell">${ru}</span>`).join('')).join('')
+    }</span></span>
+  </button>`).join('');
+const strips = [...reelsEl.querySelectorAll('.strip')];
+const cellH = () => strips[0].firstElementChild.getBoundingClientRect().height;
+/* пока не крутили, на барабанах вопросительные знаки */
+strips.forEach(s => { s.insertAdjacentHTML('afterbegin', '<span class="cell">? ? ?</span>'); });
+
+function spin(i, delay = 0) {
+  const n = REELS[i].items.length, s = strips[i];
+  let next; do { next = Math.floor(Math.random() * n); } while (next === pick[i]);
+  const h = cellH(), first = s.firstElementChild.textContent === '? ? ?' ? 1 : 0;
+  /* сбрасываем ленту на текущее значение в первом круге и докручиваем до нового в последнем */
+  s.style.transition = 'none';
+  s.style.transform = `translateY(${-(first + (pick[i] ?? 0)) * h}px)`;
+  s.getBoundingClientRect();
+  const target = first + (LOOPS - 1) * n + next;
+  const dur = calm.matches ? 0 : 900 + delay;
+  s.style.transition = dur ? `transform ${dur}ms cubic-bezier(.12,.75,.2,1)` : 'none';
+  s.style.transform = `translateY(${-target * h}px)`;
+  pick[i] = next; spinning++;
+  setTimeout(() => {
+    s.style.transition = 'none';
+    s.style.transform = `translateY(${-(first + next) * h}px)`;
+    spinning--;
+    if (!spinning) renderMemo();
+  }, dur + 30);
+}
+function spinAll() {
+  if (spinning) return;
+  memo.classList.remove('done');
+  [0, 1, 2].forEach(i => spin(i, i * 400));
+}
+spinBtn.addEventListener('click', spinAll);
+reelsEl.querySelectorAll('.reel').forEach(b => b.addEventListener('click', () => {
+  if (spinning) return;
+  if (pick.includes(null)) return spinAll();
+  memo.classList.remove('done');
+  spin(+b.dataset.i);
+}));
+addEventListener('resize', () => strips.forEach((s, i) => {
+  const first = s.firstElementChild.textContent === '? ? ?' ? 1 : 0;
+  s.style.transform = `translateY(${-(first + (pick[i] ?? -first)) * cellH()}px)`;
+}));
+
+function nextMonday() {
+  const d = new Date(); d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7));
+  return d;
+}
+const STAMP = `<svg class="ex-stamp" viewBox="0 0 230 112" aria-hidden="true">
+  <defs><filter id="ink-ex" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="11" result="n"/>
+    <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3.2 2.3" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in" result="s"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.035" seed="5" result="w"/><feDisplacementMap in="s" in2="w" scale="4"/></filter>
+    <linearGradient id="fade-ex" x1="0" y1="0" x2="1" y2="0.3"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".45" stop-color="#fff"/><stop offset="1" stop-color="#fff"/></linearGradient>
+    <mask id="m-ex"><rect width="230" height="112" fill="url(#fade-ex)"/></mask></defs>
+  <g filter="url(#ink-ex)" mask="url(#m-ex)" fill="#2b5fd0" stroke="#2b5fd0" opacity=".9">
+    <rect x="4" y="4" width="222" height="104" rx="10" fill="none" stroke-width="4.5"/><rect x="13" y="13" width="204" height="86" rx="6" fill="none" stroke-width="1.6"/>
+    <text x="115" y="58" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="24" stroke="none" letter-spacing="1">СОГЛАСОВАНО</text>
+    <text x="115" y="84" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="11" stroke="none" letter-spacing="1.5">ОТДЕЛ ПУТЕШЕСТВИЙ · APPROVED</text>
+  </g></svg>`;
+const SIGN = '<svg viewBox="0 0 120 44" fill="none" stroke="#2337a0" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 32c8-20 14-26 16-18s-6 22 0 18 10-22 16-16-2 16 6 12 10-14 16-10 4 10 12 6 12-12 18-8 8 6 28 2"/></svg>';
+
+function renderMemo() {
+  const ready = !pick.includes(null);
+  const [a, b, c] = pick.map((p, i) => p === null ? null : REELS[i].items[p]);
+  const fill = v => v ? `<span class="fill">${v[0]}</span>` : '<span class="fill empty">.</span>';
+  const now = new Date(), mon = nextMonday();
+  const dd = d => `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+  memo.innerHTML = `
+    <p class="to">Начальнику отдела<br>от сотрудника, который очень старался</p>
+    <h3>Объяснительная</h3>
+    <div class="body">
+      <p>Я не смогу выйти на работу в понедельник, ${dd(mon)}, потому что ${fill(a)} ${fill(b)}, и теперь я ${fill(c)}.</p>
+    </div>
+    <div class="sign"><span>${dd(now)}</span><span style="display:flex;align-items:end;gap:10px">Подпись ${ready ? SIGN : '<span class="fill empty" style="min-width:110px">.</span>'}</span></div>
+    ${STAMP}`;
+  if (!ready) { exMore.hidden = true; return; }
+  requestAnimationFrame(() => setTimeout(() => memo.classList.add('done'), calm.matches ? 0 : 250));
+  const k = c[2], city = CITIES[k];
+  const ddmm = String(mon.getDate()).padStart(2, '0') + String(mon.getMonth() + 1).padStart(2, '0');
+  exMore.hidden = false;
+  exMore.innerHTML = `
+    <div class="tip"><p><b>Начальник уже согласовал.</b> Осталось купить билет: Москва → ${city.t}, вылет в понедельник.</p></div>
+    <div class="actions">
+      <a class="btn" href="https://www.aviasales.ru/search/MOW${ddmm}${IATA[k]}1" target="_blank" rel="noopener">Найти билет <span class="en">/ Find a ticket</span></a>
+      <button class="btn alt" type="button" id="ex-share">Поделиться <span class="en">/ Share</span></button>
+      <p class="toast" id="ex-toast" role="status" style="flex-basis:100%"></p>
+    </div>`;
+  document.getElementById('ex-share').onclick = async () => {
+    const text = `Не выйду в понедельник: ${a[0]} ${b[0]}, и теперь я ${c[0]}. Начальник уже согласовал.`;
+    const url = location.origin + location.pathname + '#excuse';
+    try {
+      if (navigator.share) await navigator.share({ title: 'Генератор объяснительной', text, url });
+      else { await navigator.clipboard.writeText(`${text} ${url}`); document.getElementById('ex-toast').textContent = 'Скопировала, вставляй куда угодно'; }
+    } catch (e) { /* окно поделиться закрыли */ }
+  };
+}
+renderMemo();
+
+/* игра «Найди кошку в салоне»: темный салон, фонарик за курсором или пальцем, кошка каждый раз в новом месте */
+/* места в долях картинки салона: центр низа кошки, ширина, отражение */
+const SPOTS = [
+  { x: .905, y: .885, w: .12, f: 0 }, { x: .20, y: .93, w: .11, f: 1 }, { x: .37, y: .63, w: .05, f: 0 },
+  { x: .30, y: .135, w: .075, f: 1 }, { x: .83, y: .27, w: .06, f: 1 }, { x: .735, y: .235, w: .045, f: 0 }, { x: .78, y: .115, w: .07, f: 0 },
+];
+const MISS = ['Тут только чей-то плед', 'Это шарф, а не кошка', 'Пусто', 'Мяу? Нет, показалось', 'Здесь спит пассажир', 'Только крошки от печенья'];
+const stage = document.getElementById('cat-stage'), catImg = document.getElementById('cat-sprite'), eyes = document.getElementById('cat-eyes');
+const catHud = document.getElementById('cat-time'), catRes = document.getElementById('cat-res'), catStart = document.getElementById('cat-start');
+let spot = -1, t0 = 0, tick = 0, misses = 0, playing = false, lastTouch = false;
+
+function hide() {
+  let n; do { n = Math.floor(Math.random() * SPOTS.length); } while (n === spot); spot = n;
+  const s = SPOTS[n], ratio = catImg.naturalHeight / catImg.naturalWidth || .776, sr = stage.clientHeight / stage.clientWidth || .75;
+  const h = s.w * ratio / sr;
+  Object.assign(catImg.style, { left: (s.x - s.w / 2) * 100 + '%', top: (s.y - h) * 100 + '%', width: s.w * 100 + '%', transform: s.f ? 'scaleX(-1)' : '' });
+  /* глаза светятся в темноте: голова кошки примерно на трети ширины от морды */
+  const ex = s.f ? s.x + s.w * .17 : s.x - s.w * .17;
+  Object.assign(eyes.style, { left: ex * 100 + '%', top: (s.y - h * .64) * 100 + '%', width: s.w * 22 + '%' });
+}
+function light(e) {
+  const r = stage.getBoundingClientRect();
+  lastTouch = e.pointerType !== 'mouse';
+  const x = e.clientX - r.left, y = e.clientY - r.top - (lastTouch ? 60 : 0);
+  stage.style.setProperty('--x', x + 'px'); stage.style.setProperty('--y', y + 'px');
+}
+/* радиус фонарика в пикселях: в маске круга проценты не работают */
+function radius() { const w = stage.clientWidth; stage.style.setProperty('--r', Math.round(Math.min(160, Math.max(64, w * (w < 560 ? .2 : .14)))) + 'px'); }
+addEventListener('resize', radius);
+function fmt(ms) { const s = ms / 1000; return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`; }
+function start() {
+  hide(); radius(); misses = 0; playing = true; catRes.hidden = true;
+  stage.classList.remove('found', 'gaveup'); stage.classList.add('on');
+  catStart.hidden = true;
+  const r = stage.getBoundingClientRect();
+  stage.style.setProperty('--x', r.width / 2 + 'px'); stage.style.setProperty('--y', r.height / 2 + 'px');
+  t0 = performance.now(); catHud.textContent = '00:00';
+  clearInterval(tick); tick = setInterval(() => { catHud.textContent = fmt(performance.now() - t0); }, 250);
+}
+function finish(won) {
+  playing = false; clearInterval(tick);
+  const ms = performance.now() - t0, sec = (ms / 1000).toFixed(1).replace('.', ',');
+  stage.classList.add(won ? 'found' : 'gaveup'); stage.classList.remove('on');
+  catRes.hidden = false;
+  catRes.innerHTML = won ? `
+    <div class="res-text">
+      <p class="big-t" style="font-size:22px;font-weight:700;line-height:1.2">Кошка найдена за ${sec} с<span class="en" style="display:block;font-size:15px">Cat found in ${sec.replace(',', '.')} s</span></p>
+      <p style="font-size:17px">${misses ? `Промахов: ${misses}. ` : 'Ни одного промаха. '}На моем рейсе мы искали ее всем салоном и тоже нашли.</p>
+      
+    </div>` : `
+    <div class="res-text">
+      <p class="big-t" style="font-size:22px;font-weight:700;line-height:1.2">Свет включили<span class="en" style="display:block;font-size:15px">Lights on</span></p>
+      <p style="font-size:17px">Кошка все это время сидела на месте и умывалась. Попробуй еще раз, она уже перепряталась.</p>
+      
+    </div>`;
+  catRes.insertAdjacentHTML('beforeend', `
+    <div class="res-text">
+      <div class="actions">
+        <button class="btn" type="button" id="cat-again">Спрятать еще раз <span class="en">/ Play again</span></button>
+        ${won ? '<button class="btn alt" type="button" id="cat-share">Поделиться <span class="en">/ Share</span></button>' : ''}
+      </div>
+      <p class="toast" id="cat-toast" role="status"></p>
+    </div>`);
+  document.getElementById('cat-again').onclick = start;
+  const sh = document.getElementById('cat-share');
+  if (sh) sh.onclick = async () => {
+    const text = `Нашли кошку в темном салоне за ${sec} с. Сможешь быстрее?`;
+    const url = location.origin + location.pathname + '#cat';
+    try {
+      if (navigator.share) await navigator.share({ title: 'Найди кошку в салоне', text, url });
+      else { await navigator.clipboard.writeText(`${text} ${url}`); document.getElementById('cat-toast').textContent = 'Скопировала, вставляй куда угодно'; }
+    } catch (e) { /* окно поделиться закрыли */ }
+  };
+}
+function miss(e) {
+  misses++;
+  const r = stage.getBoundingClientRect(), p = document.createElement('span');
+  p.className = 'cat-miss'; p.textContent = MISS[Math.floor(Math.random() * MISS.length)];
+  p.style.left = e.clientX - r.left + 'px'; p.style.top = e.clientY - r.top + 'px';
+  stage.append(p); setTimeout(() => p.remove(), 1300);
+}
+stage.addEventListener('pointermove', e => { if (playing) light(e); });
+stage.addEventListener('pointerdown', e => {
+  if (!playing) return;
+  light(e);
+  const c = catImg.getBoundingClientRect(), pad = Math.max(c.width * .25, lastTouch ? 22 : 8);
+  const inCat = e.clientX > c.left - pad && e.clientX < c.right + pad && e.clientY > c.top - pad && e.clientY < c.bottom + pad;
+  /* мышью кошку надо сначала осветить, пальцем свет и так прыгает туда, куда нажал */
+  const r = stage.getBoundingClientRect(), lx = parseFloat(stage.style.getPropertyValue('--x')), ly = parseFloat(stage.style.getPropertyValue('--y'));
+  const cx = (c.left + c.right) / 2 - r.left, cy = (c.top + c.bottom) / 2 - r.top;
+  const lit = lastTouch || Math.hypot(cx - lx, cy - ly) < parseFloat(stage.style.getPropertyValue('--r')) * 1.1;
+  inCat && lit ? finish(true) : miss(e);
+});
+document.getElementById('cat-go').addEventListener('click', start);
+document.getElementById('cat-giveup').addEventListener('click', () => { if (playing) finish(false); });
+catImg.addEventListener('load', () => { if (spot < 0) hide(); });
+if (catImg.complete) hide();
+/* светлячки как в «Ori»: случайные точки, которые медленно плавают */
+const fire = document.getElementById('cat-fire');
+fire.innerHTML = Array.from({ length: 26 }, () => {
+  const s = 2 + Math.random() * 4;
+  return `<i style="left:${Math.random() * 100}%;top:${Math.random() * 100}%;width:${s}px;height:${s}px;animation-duration:${7 + Math.random() * 9}s;animation-delay:${-Math.random() * 10}s"></i>`;
+}).join('');
+</script>
+</body>
+</html>
