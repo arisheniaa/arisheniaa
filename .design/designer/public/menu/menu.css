@@ -1,0 +1,735 @@
+/* Oswald (OFL), свои файлы — CSP сайта не пускает Google Fonts */
+@font-face { font-family: "Oswald"; font-style: normal; font-weight: 200 700; font-display: swap; src: url("fonts/oswald-cyrillic.woff2") format("woff2"); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Oswald"; font-style: normal; font-weight: 200 700; font-display: swap; src: url("fonts/oswald-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+/* Направление B · «Спичечная этикетка (живой лист)» · черновик лока */
+
+@font-face { font-family: "HN"; font-weight: 400; src: local("Helvetica Neue"), local("HelveticaNeue-Roman"), local("HelveticaNeue"), local("Helvetica"); }
+@font-face { font-family: "HN"; font-weight: 500; src: local("Helvetica Neue Medium"), local("HelveticaNeue-Medium"), local("Helvetica Neue"), local("Helvetica"); }
+@font-face { font-family: "HN"; font-weight: 700; src: local("Helvetica Neue Bold"), local("HelveticaNeue-Bold"), local("Helvetica Bold"), local("Helvetica-Bold"); }
+
+:root {
+  --cream: #FCF5E6;
+  --blue: #0C7384;
+  --red: #F65910;
+  --ink: #033E69;
+  --ochre: #A8743A;
+  --table: #E9DFCB;
+  --sans: "HN", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  /* машинопись: черновик на системном Courier New (кириллица есть); на локе — лицензионный моно */
+  --type: "Courier New", Courier, "Nimbus Mono PS", monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--table);
+  color: var(--ink);
+  font: 400 16px/1.4 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+button { font: inherit; color: inherit; }
+#app { height: 100%; }
+
+/* ---------- ПАНЕЛЬ = ЭТИКЕТКА ---------- */
+.panel {
+  container-type: inline-size;
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  background: var(--cream);
+  overflow: hidden;
+}
+
+/* Плашка: большая цветная плоскость, иллюстрация ведёт */
+.plate {
+  position: relative;
+  flex: 0 0 auto;
+  height: 46%;
+  min-height: 0;
+  background: var(--red);
+  overflow: hidden;
+  isolation: isolate;
+  touch-action: pan-y;
+}
+/* аэрограф: зернистый градиент (техника 07) отдельным слоем, чтобы контраст не трогал рисунок */
+.plate .air {
+  position: absolute; inset: -2px; z-index: -1;
+  background:
+    radial-gradient(ellipse 70% 60% at var(--gx, 22%) var(--gy, 18%), rgba(252,245,230,.55) 0, rgba(252,245,230,0) 70%),
+    radial-gradient(ellipse 90% 70% at 90% 110%, rgba(199,66,37,.55) 0, rgba(199,66,37,0) 70%),
+    var(--red);
+  filter: contrast(135%);
+}
+.plate .air::after, .cover .air::after {
+  content: ""; position: absolute; inset: 0;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mix-blend-mode: soft-light; opacity: .75;
+}
+.plate .art {
+  position: absolute; left: 0; right: 0; bottom: -2px; width: 100%; height: 100%;
+  /* заглушки рисуются прямо в краски; её линогравюру (крем + синяя краска) класть с mix-blend-mode: multiply — крем уйдёт в цвет плашки */
+}
+.fine {
+  position: absolute; left: 5cqi; right: 5cqi; top: 4cqi;
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  font: 700 clamp(10px, 2.9cqi, 12px)/1 var(--type);
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink);
+  z-index: 2;
+}
+.fine .stub { font-weight: 400; letter-spacing: .03em; text-transform: none; opacity: .8; }
+
+/* Лента с названием раздела: синяя полоса, как нижняя строка спичечной этикетки */
+.band {
+  flex: 0 0 auto;
+  margin: 0;
+  background: var(--blue);
+  color: var(--cream);
+  padding: 2.2cqi 5cqi 2.6cqi;
+  font: 700 17cqi/.86 var(--sans);
+  letter-spacing: -.045em;
+  touch-action: pan-y;
+}
+.band.two { font-size: 12.2cqi; line-height: .9; }
+.band small {
+  display: block; margin-top: 1.6cqi;
+  font: 400 clamp(10.5px, 3cqi, 12.5px)/1.2 var(--type);
+  letter-spacing: .06em; opacity: .85;
+}
+
+/* Список блюд */
+.dishes {
+  flex: 1 1 auto; min-height: 0;
+  list-style: none; margin: 0; padding: 2.4cqi 0 1cqi;
+  overflow-y: auto; overscroll-behavior: contain;
+  touch-action: pan-y;
+  scrollbar-width: none;
+}
+.dishes::-webkit-scrollbar { display: none; }
+.dish {
+  position: relative;
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2cqi;
+  padding: 2.3cqi 5cqi 2.5cqi;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: background-color 120ms ease-out;
+}
+.dish + .dish::before {
+  content: ""; position: absolute; left: 5cqi; right: 5cqi; top: 0; height: 1px;
+  background: var(--ink); opacity: .14;
+}
+.dish.press { background: rgba(12,115,132,.07); }
+.dish .txt { position: relative; min-width: 0; }
+.dish .name {
+  position: relative; display: inline-block;
+  font: 500 clamp(17px, 5.7cqi, 23px)/1.12 var(--sans);
+  letter-spacing: -.015em;
+  transition: color 90ms linear;
+}
+.dish .prod {
+  display: block; margin-top: .9cqi;
+  font: 400 clamp(12.5px, 3.6cqi, 14.5px)/1.25 var(--type);
+  letter-spacing: .015em; color: var(--blue);
+}
+/* машинопись: неровная базовая линия, ноль JS (техника 12) */
+.prod i { font-style: normal; display: inline-block; }
+.prod i:nth-child(3n) { transform: translateY(.5px); }
+.prod i:nth-child(4n+1) { transform: translateY(-.4px); opacity: .88; }
+
+/* любимое = кофейное кольцо (кружку ставили чаще всего) */
+.fav {
+  position: relative; width: clamp(54px, 17cqi, 68px); height: clamp(54px, 17cqi, 68px);
+  display: grid; place-items: center;
+  font: 400 clamp(9.5px, 2.7cqi, 11px)/1 var(--type); letter-spacing: .02em;
+  color: var(--ink);
+  margin: -2cqi 0;
+}
+.fav svg { position: absolute; inset: -8%; width: 116%; height: 116%; mix-blend-mode: multiply; pointer-events: none; }
+.nofav { width: clamp(54px, 17cqi, 68px); }
+
+/* состояние: перебор, выбор, приготовлено */
+.dish.hop .name { color: var(--red); }
+.dish.won .name { color: var(--ink); }
+.dish .mark { position: absolute; pointer-events: none; overflow: visible; }
+.dish .oval path { fill: none; stroke: var(--red); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.dish .strike path { fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; opacity: .66; filter: url(#pencil); }
+.dish.done .name, .dish.done .prod { opacity: .5; }
+.dish.done .fav { opacity: .55; }
+
+/* Кнопка выбора */
+.actions {
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: 3cqi;
+  padding: 2.4cqi 5cqi calc(3.4cqi + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(3,62,105,.16);
+}
+.pick {
+  appearance: none; border: 0; cursor: pointer;
+  flex: 1 1 auto;
+  min-height: 48px;
+  background: var(--red); color: var(--ink);
+  font: 700 clamp(15px, 4.6cqi, 18px)/1 var(--sans); letter-spacing: -.01em;
+  padding: 0 4cqi;
+  border-radius: 999px;
+  transition: transform 100ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+.pick:active, .pick.press { transform: scale(.97); }
+.pick:focus-visible, .dish:focus-visible, .ghost:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.hint {
+  flex: 0 1 40%;
+  font: 400 clamp(10.5px, 2.9cqi, 12px)/1.25 var(--type); color: var(--blue);
+}
+
+/* ---------- ОБЛОЖКА ---------- */
+.cover { background: var(--blue); color: var(--cream); }
+.cover .air {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 45% at 30% 30%, rgba(252,245,230,.35) 0, rgba(252,245,230,0) 68%),
+    radial-gradient(ellipse 60% 40% at 85% 8%, rgba(252,245,230,.55) 0, rgba(252,245,230,0) 70%),
+    var(--blue);
+  filter: contrast(130%);
+}
+.cover .sun { position: absolute; left: 14cqi; right: -2cqi; top: 27cqi; bottom: 12cqi; }
+.cover .sun .figure { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cover .script {
+  position: absolute; left: 3cqi; right: 2cqi; top: 9cqi; z-index: 3;
+  width: 92cqi; overflow: visible;
+}
+.cover .script path { fill: none; stroke: var(--cream); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
+.cover .fine { color: var(--cream); }
+.cover .foot {
+  position: absolute; left: 5cqi; right: 5cqi; bottom: calc(5cqi + env(safe-area-inset-bottom));
+  display: flex; justify-content: space-between; align-items: end; gap: 8px;
+  font: 400 clamp(10.5px, 3cqi, 12.5px)/1.3 var(--type); letter-spacing: .05em;
+}
+.pull { display: inline-flex; align-items: center; gap: 6px; }
+.pull b { display: inline-block; width: 26px; height: 2px; background: var(--cream); border-radius: 2px; }
+
+/* ---------- ТЕЛЕФОН: тетрадь ---------- */
+.phone { position: fixed; inset: 0; perspective: 1100px; perspective-origin: 0% 50%; background: var(--ink); }
+.stack { position: absolute; inset: 0; transform-style: preserve-3d; }
+.page {
+  position: absolute; inset: 0;
+  transform-origin: 0% 50%;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  will-change: transform;
+}
+.page .shade, .face .shade {
+  position: absolute; inset: 0; pointer-events: none; z-index: 5; opacity: 0;
+  background: linear-gradient(90deg, rgba(3,62,105,.0) 0%, rgba(3,62,105,.55) 100%);
+}
+.page .under {
+  position: absolute; inset: 0; pointer-events: none; z-index: 5; opacity: 0;
+  background: linear-gradient(90deg, rgba(3,62,105,.6) 0%, rgba(3,62,105,0) 70%);
+}
+/* корешок: тонкий сгиб слева */
+.page .spine { position: absolute; left: 0; top: 0; bottom: 0; width: 7px; z-index: 6; pointer-events: none;
+  background: linear-gradient(90deg, rgba(3,62,105,.28), rgba(3,62,105,0)); }
+.pager {
+  position: fixed; right: 4.5vw; top: calc(4vw + env(safe-area-inset-top)); z-index: 50;
+  display: flex; gap: 4px; align-items: center;
+}
+.ghost { appearance: none; border: 0; background: transparent; padding: 6px 4px; cursor: pointer;
+  font: 700 12px/1 var(--type); letter-spacing: .06em; color: var(--ink); }
+
+/* ---------- КОМПЬЮТЕР: лист втрое ---------- */
+.desk {
+  position: fixed; inset: 0;
+  display: grid; place-items: center;
+  perspective: 2600px;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 45%, #F1E8D6 0, var(--table) 70%);
+}
+.sheet { position: relative; transform-style: preserve-3d; }
+.col { position: absolute; top: 0; transform-style: preserve-3d; will-change: transform; }
+.face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  box-shadow: 0 1px 0 rgba(3,62,105,.06); }
+.face.back { transform: rotateY(180deg); }
+.face .panel { position: absolute; inset: 0; }
+.floor { position: absolute; top: 0; height: 100%; pointer-events: none;
+  box-shadow: 0 40px 70px -30px rgba(3,62,105,.45), 0 10px 22px -12px rgba(3,62,105,.25); }
+.crease { position: absolute; top: 0; bottom: 0; width: 1px; z-index: 6; pointer-events: none;
+  background: linear-gradient(180deg, rgba(3,62,105,.0), rgba(3,62,105,.18) 15%, rgba(3,62,105,.18) 85%, rgba(3,62,105,0)); }
+.desk .caption {
+  position: fixed; left: 0; right: 0; bottom: 22px; text-align: center;
+  font: 400 12.5px/1.3 var(--type); letter-spacing: .06em; color: var(--blue);
+}
+.desk .caption button { appearance: none; border: 0; background: none; color: var(--blue); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font: inherit; }
+.grab { cursor: grab; }
+.grabbing, .grabbing * { cursor: grabbing !important; }
+
+/* заглушки: метка, чтобы не перепутать с финалом */
+.stubtag { position: absolute; right: 5cqi; bottom: 2.6cqi; z-index: 2; font: 400 clamp(9.5px, 2.6cqi, 11px)/1.2 var(--type); letter-spacing: .03em; color: var(--ink); background: rgba(252,245,230,.78); padding: 3px 6px; }
+.phone .cover .fine .stub { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dish, .pick, .dish .name { transition: none; }
+}
+@media (prefers-contrast: more) {
+  .plate .air::after, .cover .air::after { display: none; }
+  .fav svg { opacity: .5; }
+}
+
+/* ---------- обложка: её иллюстрация + лента с «Меню» (вариант зелёная) ---------- */
+.cover { background: var(--ink); }
+.cover .air { display: none; }
+.cover .sun { left: 0; right: 0; top: 0; bottom: auto; height: 76%; overflow: hidden; }
+.cover .sun .poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; display: block; }
+.cover .fine { display: none; }
+.cover .script { top: auto; bottom: calc(10cqi + env(safe-area-inset-bottom)); left: 4cqi; width: 66cqi; }
+.cover .script path { stroke: var(--cream); stroke-width: 8; }
+.cover .foot { color: var(--cream); bottom: calc(4cqi + env(safe-area-inset-bottom)); }
+.cover .foot > span:first-child { display: none; }
+.cover .foot .pull { margin-left: auto; }
+
+/* ---------- Вариант «столбцы»: по её референсу (меню девушки с видео) ----------
+   Текст ведёт: крупный заголовок раздела сверху, список блюд, рисунок раздела внизу на цветной волне. */
+.panel:not(.cover) { background: var(--cream); }
+.panel:not(.cover) .band {
+  order: 0;
+  background: none; color: #C74225;
+  padding: 8cqi 6cqi 2.6cqi;
+  margin: 0 6cqi;
+  padding-left: 0; padding-right: 0;
+  font: 700 10.5cqi/.95 var(--sans);
+  letter-spacing: .01em; text-transform: uppercase;
+  border-bottom: 2px solid var(--ink);
+}
+.panel:not(.cover) .band.two { font-size: 8.6cqi; line-height: 1; }
+.panel:not(.cover) .dishes { order: 1; padding-top: 1.4cqi; }
+.panel:not(.cover) .dish { padding: 2cqi 6cqi 2.2cqi; }
+.panel:not(.cover) .dish + .dish::before { display: none; }
+.panel:not(.cover) .dish .name {
+  font: 700 clamp(14px, 4.5cqi, 18px)/1.15 var(--sans);
+  letter-spacing: .02em; text-transform: uppercase;
+}
+.panel:not(.cover) .dish .prod { margin-top: .6cqi; color: var(--ink); opacity: .78; }
+.panel:not(.cover) .fav { width: clamp(46px, 14cqi, 58px); height: clamp(46px, 14cqi, 58px); }
+.panel:not(.cover) .nofav { width: clamp(46px, 14cqi, 58px); }
+
+.panel:not(.cover) .plate {
+  order: 2;
+  height: 27%;
+  background: none;
+  margin-top: -1cqi;
+  pointer-events: none;
+}
+.panel:not(.cover) .plate .air {
+  inset: auto; left: -14%; right: 30%; bottom: -38%; height: 120%;
+  border-radius: 0 70% 0 0 / 0 85% 0 0;
+  background: var(--blue);
+  filter: none;
+}
+.panel:not(.cover) .plate::after {
+  content: ""; position: absolute; z-index: -1;
+  right: -18%; bottom: -55%; width: 55%; height: 110%;
+  border-radius: 60% 0 0 0 / 70% 0 0 0;
+  background: var(--red); opacity: .9;
+}
+.panel:not(.cover) .plate .art { left: 18%; width: 64%; height: 100%; bottom: 0; }
+.panel:not(.cover) .plate .fine { display: none; }
+.panel:not(.cover) .actions { order: 3; border-top: 0; background: var(--blue); }
+.panel:not(.cover) .actions .hint { color: var(--cream); }
+.panel:not(.cover) .actions .pick { color: var(--ink); }
+@media (min-width: 900px) {
+  .panel:not(.cover) .plate { height: 21%; }
+  .panel:not(.cover) .dish { padding-top: 1.5cqi; padding-bottom: 1.6cqi; }
+}
+
+/* обратная сторона листа на компьютере: салаты | десерты | обложка */
+.outside { position: relative; display: flex; box-shadow: 0 40px 70px -30px rgba(3,62,105,.45), 0 10px 22px -12px rgba(3,62,105,.25); }
+.outside[hidden], .sheet[hidden], .desk .caption[hidden] { display: none; }
+.outside .flat { position: relative; flex: 1 1 0; height: 100%; container-type: inline-size; }
+.outside .flat .panel { position: absolute; inset: 0; }
+.outside .crease { position: absolute; top: 0; bottom: 0; width: 1px; background: linear-gradient(180deg, rgba(3,62,105,0), rgba(3,62,105,.22) 15%, rgba(3,62,105,.22) 85%, rgba(3,62,105,0)); pointer-events: none; z-index: 5; }
+.desk .flipbar { margin: 10px 0 0; text-align: center; }
+.desk .flipbar button { appearance: none; border: 0; background: none; cursor: pointer; font: 400 13px/1.3 var(--type); color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.desk .flipbar { position: fixed; left: 0; right: 0; bottom: 44px; margin: 0; }
+.desk .sheet, .desk .outside { grid-area: 1 / 1; }
+.outside .pull { visibility: hidden; }
+
+/* ---------- «МЕНЮ» как «АЭРОФЛОТ» на постерах: широкий жирный гротеск поверх картинки, слоган над ним ---------- */
+.cover .sun { height: 100%; }
+.cover .sun::after { content: ""; position: absolute; inset: auto 0 0 0; height: 34%; background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.22)); pointer-events: none; }
+.cover .wordmark {
+  position: absolute; z-index: 3; left: 7cqi; right: 7cqi; bottom: calc(13cqi + env(safe-area-inset-bottom));
+  color: #FFF8EC;
+}
+.cover .tagline { display: block; margin: 0 0 1.6cqi .4cqi; font: 500 4.6cqi/1.15 var(--sans); letter-spacing: -.005em; }
+.cover .mark { margin: 0; line-height: 0; }
+.cover .mark svg { display: block; width: 100%; height: auto; overflow: visible; }
+.cover .mark text { font: 700 200px/1 var(--sans); fill: currentColor; letter-spacing: 0; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.cover .foot { bottom: calc(4cqi + env(safe-area-inset-bottom)); }
+.cover .foot .pull { color: #FFF8EC; }
+
+/* без поясняющих приписок (её правка 2026-11-02) */
+.desk .caption, .stubtag { display: none !important; }
+.hint:empty { display: none; }
+
+/* ===== Правка 2026-11-02: её рисунки, текст мельче, один шрифт, заголовок наезжает на картинку (как «ТУРЦИЯ» на постере) ===== */
+:root { --type: var(--sans); --paper: #FCF5E6; }
+.panel:not(.cover) { background: var(--paper); }
+.panel:not(.cover) .plate {
+  order: 0; flex: 0 0 auto; height: auto; margin: 0;
+  padding: 7cqi 0 0; background: none; overflow: visible;
+}
+.panel:not(.cover) .plate .air, .panel:not(.cover) .plate::after { display: none; }
+.dishart {
+  display: block; width: 56cqi; height: auto; margin: 0 auto;
+  mix-blend-mode: multiply; user-select: none; -webkit-user-drag: none;
+}
+.panel:not(.cover) .band {
+  order: 1; position: relative; z-index: 3;
+  margin: -10cqi 0 0; padding: 0 6cqi; border: 0;
+  color: var(--ink); background: none;
+  font: 700 11.5cqi/.92 var(--sans); letter-spacing: 0; text-transform: uppercase;
+  transform: scaleX(1.24); transform-origin: 0 100%; width: calc(100% / 1.24);
+}
+.panel:not(.cover) .band.two { font-size: 8.4cqi; line-height: .95; }
+.panel:not(.cover) .dishes { order: 2; padding: 3.4cqi 0 1cqi; }
+.panel:not(.cover) .dish { padding: 1.5cqi 6cqi 1.6cqi; gap: 2cqi; }
+.panel:not(.cover) .dish .name {
+  font: 700 clamp(12px, 3.5cqi, 14px)/1.2 var(--sans);
+  letter-spacing: .035em; text-transform: uppercase; color: var(--ink);
+}
+.panel:not(.cover) .dish .prod {
+  margin-top: .5cqi; font: 400 clamp(11px, 3.1cqi, 12.5px)/1.3 var(--sans);
+  letter-spacing: .005em; color: var(--ink); opacity: .7;
+}
+.prod i, .prod i:nth-child(3n), .prod i:nth-child(4n+1) { transform: none; opacity: 1; }
+.panel:not(.cover) .fav, .panel:not(.cover) .nofav { width: clamp(38px, 11cqi, 46px); height: clamp(38px, 11cqi, 46px); }
+.panel:not(.cover) .actions {
+  order: 3; background: none; border: 0; justify-content: flex-start;
+  padding: 2cqi 6cqi calc(5cqi + env(safe-area-inset-bottom));
+}
+.panel:not(.cover) .actions .pick {
+  flex: 0 0 auto; min-height: 40px; padding: 0 5.5cqi;
+  font: 700 clamp(12px, 3.4cqi, 13.5px)/1 var(--sans); letter-spacing: .06em; text-transform: uppercase;
+  background: var(--red); color: var(--paper);
+}
+.panel:not(.cover) .actions .hint { color: var(--ink); font: 400 clamp(11px, 3.1cqi, 12.5px)/1.3 var(--sans); }
+@media (min-width: 900px) {
+  .dishart { width: 50cqi; }
+  .panel:not(.cover) .plate { padding-top: 6cqi; }
+}
+/* заголовок наезжает на картинку, но не тонет в синих частях рисунка: мягкий ореол цвета бумаги */
+.panel:not(.cover) .band { margin-top: -8cqi; text-shadow: 0 0 .5cqi var(--paper), 0 0 1.4cqi var(--paper), 0 0 2.6cqi rgba(252,245,230,.9); }
+/* одинаковая высота рисунков — заголовки в разных столбцах стоят на одной линии */
+.dishart { width: 76cqi; height: 50cqi; object-fit: contain; object-position: 50% 100%; }
+@media (min-width: 900px) { .dishart { width: 74cqi; height: 42cqi; } }
+
+/* ===== рисунки в разброс (её правка 2026-11-02): у каждого раздела своё место, размер и лёгкий наклон ===== */
+.panel[data-sec] .dishart { transform-origin: 50% 100%; }
+/* Завтрак: справа сверху, заголовок наезжает слева */
+.panel[data-sec="zavtrak"] .dishart { width: 64cqi; height: 46cqi; margin: 0 3cqi 0 auto; object-position: 100% 100%; transform: rotate(-4deg); }
+/* Горячее: слева сверху, крупнее */
+.panel[data-sec="goryachee"] .dishart { width: 62cqi; height: 46cqi; margin: 0 auto 0 2cqi; object-position: 0 100%; transform: rotate(3deg); }
+.panel[data-sec="goryachee"] .band { margin-left: 22cqi; }
+/* Супы и десерты: заголовок сверху, рисунок внизу, под списком, наезжает на него */
+.panel[data-sec="supy"] .plate, .panel[data-sec="deserty"] .plate { order: 3; padding-top: 0; margin-top: -4cqi; position: relative; z-index: 0; }
+.panel[data-sec="supy"] .band, .panel[data-sec="deserty"] .band { margin-top: 0; padding-top: 9cqi; }
+.panel[data-sec="supy"] .actions, .panel[data-sec="deserty"] .actions { order: 4; }
+.panel[data-sec="supy"] .dishes, .panel[data-sec="deserty"] .dishes { flex: 0 1 auto; }
+.panel[data-sec="supy"] .dishart { width: 60cqi; height: 50cqi; margin: 0 1cqi 0 auto; object-position: 100% 100%; transform: rotate(-3deg); }
+.panel[data-sec="deserty"] .dishart { width: 74cqi; height: 60cqi; margin: 0 auto 0 4cqi; object-position: 0 100%; transform: rotate(4deg); }
+.panel[data-sec="supy"] .plate + .actions, .panel[data-sec="deserty"] .actions { margin-top: auto; }
+/* Салаты: слева, с наклоном, заголовок справа от центра */
+.panel[data-sec="salaty"] .dishart { width: 58cqi; height: 46cqi; margin: 0 auto 0 -3cqi; object-position: 0 100%; transform: rotate(-2.5deg); }
+.panel[data-sec="salaty"] .band { margin-left: 16cqi; }
+@media (min-width: 900px) {
+  .panel[data-sec="zavtrak"] .dishart, .panel[data-sec="goryachee"] .dishart, .panel[data-sec="salaty"] .dishart { height: 40cqi; }
+  .panel[data-sec="supy"] .dishart { height: 48cqi; }
+  .panel[data-sec="deserty"] .dishart { height: 64cqi; }
+}
+/* супы и десерты: рисунок прижат к низу, над кнопкой, не наезжает на список */
+.panel[data-sec="supy"] .plate, .panel[data-sec="deserty"] .plate { margin-top: auto; }
+.panel[data-sec="supy"] .actions, .panel[data-sec="deserty"] .actions { margin-top: 0; }
+.panel[data-sec="supy"] .dishes, .panel[data-sec="deserty"] .dishes { position: relative; z-index: 1; }
+@media (min-width: 900px) {
+  .panel[data-sec="salaty"] .dishart { width: 64cqi; height: 50cqi; }
+  .panel[data-sec="supy"] .dishart { height: 58cqi; width: 70cqi; }
+}
+
+/* разделительные полоски (её правка 2026-11-02): линейка под заголовком раздела и тонкие между блюдами */
+.panel:not(.cover) .dishes { margin: 2.6cqi 6cqi 0; padding: 1.2cqi 0 1cqi; border-top: 1.5px solid var(--ink); }
+.panel:not(.cover) .dish { padding: 1.9cqi 0 2cqi; }
+.panel:not(.cover) .dish + .dish::before { display: block; left: 0; right: 0; opacity: .22; }
+/* «ГОРЯЧЕЕ» не вылезает за край */
+.panel[data-sec="goryachee"] .band { margin-left: 9cqi; }
+/* полоса только между заголовком и списком; между блюдами линий нет (её правка) */
+.panel:not(.cover) .dish + .dish::before { display: none; }
+/* названия блюд легче (её правка): Medium вместо Bold */
+.panel:not(.cover) .dish .name { font-weight: 500; letter-spacing: .03em; }
+
+/* ===== Правка 2026-11-02: кегль меньше, межбуквенное плотнее, её значки, кнопка почти незаметна ===== */
+.panel:not(.cover) .band { transform: scaleX(1.08); width: calc(100% / 1.08); letter-spacing: -.02em; font-size: 10.5cqi; }
+.panel:not(.cover) .band.two { font-size: 8cqi; }
+.panel:not(.cover) .dish .name { font-size: clamp(11px, 3.1cqi, 12.5px); letter-spacing: -.005em; }
+.panel:not(.cover) .dish .prod { font-size: clamp(10px, 2.8cqi, 11.5px); letter-spacing: -.01em; }
+.panel:not(.cover) .dish { display: block; padding: 1.5cqi 0 1.6cqi; }
+.panel:not(.cover) .fav, .panel:not(.cover) .nofav { display: none; }
+.ico { display: inline-block; height: 1.25em; width: auto; vertical-align: -.25em; margin-left: .45em; mix-blend-mode: multiply; pointer-events: none; }
+.ico + .ico { margin-left: .2em; }
+.dish.done .ico { opacity: .5; }
+.dish img.strike { position: absolute; pointer-events: none; mix-blend-mode: multiply; opacity: .85; object-fit: fill; }
+/* «Выбери за меня» — почти незаметная строка */
+.panel:not(.cover) .actions .pick {
+  background: none; color: var(--ink); opacity: .45; min-height: 32px; padding: 0;
+  font: 500 clamp(10px, 2.8cqi, 11.5px)/1 var(--sans); letter-spacing: .02em; text-transform: lowercase;
+  text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; border-radius: 0;
+}
+.panel:not(.cover) .actions .pick:hover { opacity: .8; }
+.panel:not(.cover) .actions .hint { font-size: clamp(10px, 2.8cqi, 11.5px); opacity: .7; }
+.panel[data-sec="goryachee"] .band { margin-left: 3cqi; }
+/* значки ростом с прописную букву (её правка) */
+.ico { height: .78em; vertical-align: 0; margin-left: .35em; }
+.ico + .ico { margin-left: .15em; }
+.panel:not(.cover) .ico { height: calc(clamp(11px, 3.1cqi, 12.5px) * .74); }
+.nw { white-space: nowrap; }
+.panel:not(.cover) .dish .name .ico { height: .74em; }
+.nw { white-space: nowrap; }
+.panel:not(.cover) .dish .name .ico { height: .74em; }
+/* починка: z-index внутри 3D-страницы ломал попадание тапа в супах и десертах */
+.panel[data-sec="supy"] .dishes, .panel[data-sec="deserty"] .dishes,
+.panel[data-sec="supy"] .plate, .panel[data-sec="deserty"] .plate { position: static; z-index: auto; }
+
+/* ===== Правка 2026-11-02 (ночь): текст никогда не обрезается — картинка уступает место; рисованные волны у картинок ===== */
+.panel:not(.cover) { --k: 1; }
+.panel:not(.cover) .dishes { flex: 0 0 auto !important; overflow: visible; min-height: auto; }
+.panel:not(.cover) .actions { flex: 0 0 auto; }
+.panel:not(.cover) .plate { flex: 0 1 var(--ih, 44cqi); min-height: 12cqi; display: flex; align-items: flex-end; overflow: visible; position: relative; padding: 4cqi 5cqi 0; }
+.panel:not(.cover) .dishart { height: 100% !important; width: auto !important; max-width: 78cqi; object-fit: contain; position: relative; z-index: 1; }
+.panel[data-sec="zavtrak"]   { --ih: 44cqi; }
+.panel[data-sec="goryachee"] { --ih: 44cqi; }
+.panel[data-sec="salaty"]    { --ih: 42cqi; }
+.panel[data-sec="supy"]      { --ih: 54cqi; }
+.panel[data-sec="deserty"]   { --ih: 62cqi; }
+.panel[data-sec="zavtrak"] .dishart, .panel[data-sec="supy"] .dishart { margin: 0 0 0 auto !important; }
+.panel[data-sec="goryachee"] .dishart, .panel[data-sec="salaty"] .dishart, .panel[data-sec="deserty"] .dishart { margin: 0 auto 0 0 !important; }
+.panel[data-sec="supy"] .plate, .panel[data-sec="deserty"] .plate { padding: 2cqi 5cqi 2cqi; margin-top: auto; }
+/* меньше расстояние между блюдами; кегли умножаются на --k, если столбцу не хватает места */
+.panel:not(.cover) .dish { padding: calc(1cqi * var(--k)) 0 calc(1.1cqi * var(--k)) !important; }
+.panel:not(.cover) .dish .name { font-size: calc(clamp(11px, 3.1cqi, 12.5px) * var(--k)); }
+.panel:not(.cover) .dish .prod { font-size: calc(clamp(10px, 2.8cqi, 11.5px) * var(--k)); margin-top: .2cqi; }
+.panel:not(.cover) .band { font-size: calc(10.5cqi * var(--k)); }
+.panel:not(.cover) .band.two { font-size: calc(8cqi * var(--k)); }
+.panel:not(.cover) .dishes { padding-top: calc(1.6cqi * var(--k)); margin-top: calc(2.2cqi * var(--k)); }
+/* рисованные волнистые полосы у картинок — карандашом, в духе её стикеров */
+.panel:not(.cover) .plate::before, .panel:not(.cover) .plate::after {
+  content: ""; display: block !important; position: absolute; z-index: 0; pointer-events: none;
+  background: none no-repeat center / 100% 100%; opacity: .7; border-radius: 0; inset: auto;
+}
+.panel:not(.cover) .plate::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%2040%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%22-2%25%22%20y%3D%22-40%25%22%20width%3D%22104%25%22%20height%3D%22180%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.9%22%20numOctaves%3D%222%22%20seed%3D%224%22%20result%3D%22n%22/%3E%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.5%201.55%22%20result%3D%22h%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.04%22%20numOctaves%3D%221%22%20seed%3D%229%22%20result%3D%22w%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22w%22%20scale%3D%223%22%20result%3D%22d%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cg%20filter%3D%22url%28%23c%29%22%20fill%3D%22none%22%20stroke%3D%22%23033E69%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M4%2022%20C%2040%2012%2C%2070%2030%2C%20110%2021%20S%20180%2012%2C%20220%2022%20S%20300%2031%2C%20340%2020%20S%20380%2015%2C%20396%2019%22%20stroke-width%3D%223.2%22/%3E%3Cpath%20d%3D%22M30%2031%20C%2070%2025%2C%20100%2036%2C%20140%2030%20S%20210%2024%2C%20250%2031%22%20stroke-width%3D%222.2%22%20opacity%3D%22.75%22/%3E%3C/g%3E%3C/svg%3E"); left: 5cqi; right: 5cqi; bottom: 0; height: 6cqi; }
+.panel:not(.cover) .plate::after  { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20160%2030%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%22-4%25%22%20y%3D%22-50%25%22%20width%3D%22108%25%22%20height%3D%22200%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.9%22%20numOctaves%3D%222%22%20seed%3D%227%22%20result%3D%22n%22/%3E%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.5%201.55%22%20result%3D%22h%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.05%22%20numOctaves%3D%221%22%20seed%3D%223%22%20result%3D%22w%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22w%22%20scale%3D%223%22%20result%3D%22d%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cg%20filter%3D%22url%28%23c%29%22%20fill%3D%22none%22%20stroke%3D%22%23033E69%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M4%2012%20C%2030%204%2C%2050%2020%2C%2080%2012%20S%20130%205%2C%20156%2013%22%20stroke-width%3D%223%22/%3E%3Cpath%20d%3D%22M20%2022%20C%2045%2016%2C%2070%2027%2C%20100%2021%22%20stroke-width%3D%222%22%20opacity%3D%22.75%22/%3E%3C/g%3E%3C/svg%3E"); width: 30cqi; height: 5cqi; top: 9cqi; }
+.panel[data-sec="zavtrak"] .plate::after, .panel[data-sec="supy"] .plate::after { left: 6cqi; }
+.panel[data-sec="goryachee"] .plate::after, .panel[data-sec="salaty"] .plate::after, .panel[data-sec="deserty"] .plate::after { right: 6cqi; }
+.panel[data-sec="supy"] .plate::after, .panel[data-sec="deserty"] .plate::after { top: 4cqi; }
+
+/* ===== Выбор 2026-11-02: шрифт Б — Oswald в заголовках и названиях, состав — Helvetica Neue Regular ===== */
+.panel:not(.cover) .band {
+  font-family: "Oswald", "HN", sans-serif; font-weight: 500; text-transform: uppercase;
+  font-size: calc(13.5cqi * var(--k)); line-height: .92; letter-spacing: -.005em;
+  transform: none; width: auto;
+}
+.panel:not(.cover) .band.two { font-size: calc(10.5cqi * var(--k)); line-height: .95; }
+.panel:not(.cover) .dish .name {
+  font-family: "Oswald", "HN", sans-serif; font-weight: 400; text-transform: uppercase;
+  font-size: calc(clamp(12px, 3.5cqi, 13.5px) * var(--k)); line-height: 1.2; letter-spacing: .025em;
+}
+/* волнистая карандашная полоса — только между заголовком и блюдами */
+.panel:not(.cover) .dishes { border-top: 0 !important; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%2016%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%22-2%25%22%20y%3D%22-60%25%22%20width%3D%22104%25%22%20height%3D%22220%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.9%22%20numOctaves%3D%222%22%20seed%3D%224%22%20result%3D%22n%22/%3E%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.4%201.6%22%20result%3D%22h%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.04%22%20numOctaves%3D%221%22%20seed%3D%229%22%20result%3D%22w%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22w%22%20scale%3D%222.5%22%20result%3D%22d%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cpath%20filter%3D%22url%28%23c%29%22%20d%3D%22M3%208%20C%2030%203%2C%2055%2013%2C%2085%208%20S%20140%203%2C%20170%208%20S%20225%2013%2C%20255%208%20S%20310%203%2C%20340%208%20S%20385%2012%2C%20397%207%22%20fill%3D%22none%22%20stroke%3D%22%23033E69%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E") no-repeat 0 0 / 100% calc(2.6cqi + 4px); padding-top: calc(3.4cqi * var(--k)) !important; }
+.panel:not(.cover) .plate::before, .panel:not(.cover) .plate::after { display: none !important; }
+
+/* кнопка: вариант 4 — тонкая капсула (по умолчанию), вариант 2 — кубик «наугад» (?btn=2) */
+.panel:not(.cover) .actions .pick {
+  opacity: 1; text-decoration: none; text-transform: none; letter-spacing: 0;
+  font: 400 clamp(11px, 3.1cqi, 12.5px)/1 var(--sans); color: var(--ink); background: none;
+  border: 1px solid var(--ink); border-radius: 999px; padding: 0 4.4cqi; min-height: 30px;
+}
+.btn2 .panel:not(.cover) .actions .pick { border: 0; padding: 0; display: inline-flex; align-items: center; gap: 2.2cqi; }
+.dice { width: 22px; height: 22px; border: 1.4px solid var(--ink); border-radius: 5px; position: relative; transform: rotate(8deg); flex: 0 0 auto; transition: transform .45s cubic-bezier(.2,.8,.2,1); }
+.dice i { position: absolute; width: 3.6px; height: 3.6px; border-radius: 50%; background: var(--red); }
+.dice i:nth-child(1) { left: 4px; top: 4px; } .dice i:nth-child(2) { left: 50%; top: 50%; margin: -1.8px 0 0 -1.8px; } .dice i:nth-child(3) { right: 4px; bottom: 4px; }
+.pick:active .dice, .pick.press .dice { transform: rotate(-80deg); }
+/* кнопка всегда внизу столбца; рисунок не залезает под номер страницы на телефоне */
+.panel:not(.cover) .actions { margin-top: auto !important; }
+.phone .panel[data-sec="zavtrak"] .plate, .phone .panel[data-sec="goryachee"] .plate, .phone .panel[data-sec="salaty"] .plate { padding-top: 12cqi; }
+
+/* ===== её правка: картинки одного размера; у «Горячего» рисунок справа напротив гречки и риса ===== */
+.panel:not(.cover) { --ih: 40cqi !important; }
+.panel:not(.cover) .dishart { max-width: 46cqi; }
+.panel[data-sec="goryachee"] .plate {
+  position: absolute; right: 5cqi; top: var(--gy, 60%); width: 40cqi; height: 40cqi;
+  padding: 0; margin: 0; flex: none; transform: translateY(-50%); z-index: 0; pointer-events: none;
+}
+.panel[data-sec="goryachee"] .dishart { margin: 0 auto !important; max-width: 100%; }
+.panel[data-sec="goryachee"] .band { margin: 0 !important; padding-top: 9cqi; }
+.phone .panel[data-sec="goryachee"] .band { padding-top: 14cqi; }
+/* салаты: рисунок справа напротив «с тунцом» и «винегрета» */
+.panel[data-sec="salaty"] .plate {
+  position: absolute; right: 5cqi; top: var(--gy, 60%); width: 40cqi; height: 40cqi;
+  padding: 0; margin: 0; flex: none; transform: translateY(-50%); z-index: 0; pointer-events: none;
+}
+.panel[data-sec="salaty"] .dishart { margin: 0 auto !important; max-width: 100%; transform: rotate(-2.5deg); }
+.panel[data-sec="salaty"] .band { margin: 0 !important; padding-top: 9cqi; }
+.phone .panel[data-sec="salaty"] .band { padding-top: 14cqi; }
+/* рисунки в середине столбца чуть крупнее, чтобы на глаз совпадали с верхними и нижними */
+.panel[data-sec="goryachee"] .plate, .panel[data-sec="salaty"] .plate { width: 44cqi; height: 44cqi; }
+/* рисунок посреди столбца: своя переменная --py (у плашки есть встроенная --gy от старого градиента) */
+.panel[data-sec="goryachee"] .plate, .panel[data-sec="salaty"] .plate { top: var(--py, 50%); padding: 0 !important; height: 44cqi !important; }
+
+/* ===== её правка: окружности (тарелки, миски, пирог) одного диаметра ≈ 40cqi.
+   Ширина картинки = диаметр / доля, которую тарелка занимает в рисунке (замерено по альфе). ===== */
+.panel:not(.cover) { --d: calc(40cqi * var(--is, 1)); }
+.panel:not(.cover) .dishart { height: auto !important; max-height: none; max-width: none; }
+.panel[data-sec="zavtrak"]   .dishart { width: calc(var(--d) / .96) !important; }
+.panel[data-sec="goryachee"] .dishart { width: var(--d) !important; }
+.panel[data-sec="salaty"]    .dishart { width: var(--d) !important; }
+.panel[data-sec="supy"]      .dishart { width: calc(var(--d) / .85) !important; }
+.panel[data-sec="deserty"]   .dishart { width: calc(var(--d) / .78) !important; }
+.panel[data-sec="zavtrak"] .plate, .panel[data-sec="supy"] .plate, .panel[data-sec="deserty"] .plate { flex: 0 0 auto; }
+.panel[data-sec="goryachee"] .plate, .panel[data-sec="salaty"] .plate { width: auto; height: auto !important; }
+.panel[data-sec="goryachee"] .plate, .panel[data-sec="salaty"] .plate { right: var(--pr, 5cqi); }
+
+/* ===== краш-тест: «что есть дома», легенда, контраст, цели нажатия, оранжевый у выбранного ===== */
+.panel:not(.cover) .dish .prod { opacity: .8; }
+.dish.nohome .name, .dish.nohome .prod, .dish.nohome .ico { opacity: .3; }
+.dish.won .name { color: var(--rust, #C74225); }
+.panel:not(.cover) .actions { gap: 4cqi; align-items: center; }
+.panel:not(.cover) .actions .pick { min-height: 44px; }
+.home-btn {
+  appearance: none; border: 0; background: none; cursor: pointer; min-height: 44px; padding: 0 1cqi;
+  font: 400 clamp(11px, 3.1cqi, 12.5px)/1 var(--sans); color: var(--ink); opacity: .75;
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+}
+.panel:not(.cover) .actions .hint { margin-left: auto; text-align: right; }
+.pager .ghost[data-go] { min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; }
+
+.homesheet { position: fixed; inset: 0; z-index: 1000; background: rgba(3,62,105,.28); display: grid; place-items: end center; }
+.hs-card {
+  width: min(520px, 100%); max-height: 86vh; overflow: auto; background: #FCF5E6; color: #033E69;
+  padding: 22px 20px calc(18px + env(safe-area-inset-bottom)); border-radius: 18px 18px 0 0;
+  box-shadow: 0 -20px 40px -20px rgba(3,62,105,.45);
+}
+@media (min-width: 900px) { .homesheet { place-items: center; } .hs-card { border-radius: 14px; } }
+.hs-card h3 { margin: 0; font: 500 30px/1 "Oswald", var(--sans); text-transform: uppercase; }
+.hs-sub { margin: 6px 0 14px; font: 400 12.5px/1.35 var(--sans); opacity: .8; }
+.hs-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  appearance: none; cursor: pointer; border: 1px solid rgba(3,62,105,.35); background: none; color: #033E69;
+  border-radius: 999px; padding: 8px 12px; font: 400 13px/1 var(--sans); min-height: 36px;
+}
+.chip.out { text-decoration: line-through; opacity: .45; border-style: dashed; }
+.hs-legend { margin: 16px 0 4px; padding-top: 12px; border-top: 1px solid rgba(3,62,105,.2); display: grid; gap: 6px; font: 400 12px/1.3 var(--sans); opacity: .85; }
+.hs-legend img { height: 10px; vertical-align: 0; margin-right: 4px; }
+.hs-foot { display: flex; justify-content: space-between; margin-top: 14px; }
+.hs-foot button { appearance: none; border: 0; background: none; cursor: pointer; min-height: 44px; font: 400 13px/1 var(--sans); color: #033E69; }
+.hs-foot .hs-done { font-family: "Oswald", var(--sans); font-weight: 500; font-size: 16px; text-transform: uppercase; color: #C74225; }
+.panel:not(.cover) .dish.nohome .name, .panel:not(.cover) .dish.nohome .prod, .panel:not(.cover) .dish.nohome .ico { opacity: .3; }
+.panel:not(.cover) .dish.won .name { color: #C74225; }
+/* кубик без слова, пять точек; «дома» без подчёркивания (её правка) */
+.dice { width: 24px; height: 24px; }
+.dice i { width: 3.8px; height: 3.8px; margin: 0; }
+.dice i:nth-child(1) { left: 4px; top: 4px; right: auto; bottom: auto; }
+.dice i:nth-child(2) { right: 4px; top: 4px; left: auto; bottom: auto; }
+.dice i:nth-child(3) { left: 50%; top: 50%; margin: -1.9px 0 0 -1.9px; right: auto; bottom: auto; }
+.dice i:nth-child(4) { left: 4px; bottom: 4px; right: auto; top: auto; }
+.dice i:nth-child(5) { right: 4px; bottom: 4px; left: auto; top: auto; }
+.btn2 .panel:not(.cover) .actions .pick { min-width: 44px; justify-content: center; }
+.home-btn { text-decoration: none; }
+/* ровные точки: кубик без наклона, точки по сетке 3×3 (её правка) */
+.dice { transform: none; display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: 3px; box-sizing: border-box; }
+.dice i { position: static !important; margin: auto !important; width: 4px; height: 4px; }
+.dice i:nth-child(1) { grid-area: 1 / 1; }
+.dice i:nth-child(2) { grid-area: 1 / 3; }
+.dice i:nth-child(3) { grid-area: 2 / 2; }
+.dice i:nth-child(4) { grid-area: 3 / 1; }
+.dice i:nth-child(5) { grid-area: 3 / 3; }
+.pick:active .dice, .pick.press .dice { transform: rotate(90deg); }
+/* кубик — маленький, в правом нижнем углу столбца; точки ровные (SVG) */
+.panel:not(.cover) .actions .home-btn { order: 1; }
+.panel:not(.cover) .actions .hint { order: 2; }
+.panel:not(.cover) .actions .pick { order: 3; margin-left: auto; min-width: 44px; min-height: 44px; padding: 0; justify-content: flex-end; }
+.dice-svg { width: 16px; height: 16px; display: block; transition: transform .45s cubic-bezier(.2,.8,.2,1); }
+.pick:active .dice-svg, .pick.press .dice-svg { transform: rotate(90deg); }
+.panel:not(.cover) .actions .hint { margin-left: auto; }
+/* объёмный кубик по её референсу, в красках меню; «дома» — одно слово на всё меню */
+.dice-svg { width: 26px; height: 31px; }
+.pick:active .dice-svg, .pick.press .dice-svg { transform: rotate(-35deg) translateY(-3px); }
+.home-btn { display: none; }
+.home-global { position: fixed; left: 4.5vw; top: calc(4vw + env(safe-area-inset-top)); z-index: 50; font: 400 13px/1 var(--sans); letter-spacing: 0; min-height: 44px; padding: 0 2px; }
+.desk .flipbar { display: flex; justify-content: center; gap: 22px; }
+.desk .flipbar .home-global { position: static; min-height: 0; padding: 0; font: 400 13px/1.3 var(--type); color: var(--ink); background: none; border: 0; cursor: pointer; }
+.desk .flipbar .home-global { text-decoration: none; }
+/* обводка выбранного — её карандашный овал */
+.dish img.oval { position: absolute; pointer-events: none; object-fit: fill; mix-blend-mode: multiply; z-index: 2; }
+/* починка: прыжок кубика уводил рисунок из-под курсора, и клик терялся — клики ловит сама кнопка */
+.pick > *, .pick svg, .pick svg * { pointer-events: none; }
+.pick:active, .pick.press { transform: none !important; }
+
+/* волнистые полоски разные в каждом разделе (её правка) */
+.panel[data-sec="zavtrak"] .dishes { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%2016%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%22-2%25%22%20y%3D%22-60%25%22%20width%3D%22104%25%22%20height%3D%22220%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.9%22%20numOctaves%3D%222%22%20seed%3D%224%22%20result%3D%22n%22/%3E%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.4%201.6%22%20result%3D%22h%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.04%22%20numOctaves%3D%221%22%20seed%3D%229%22%20result%3D%22w%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22w%22%20scale%3D%222.5%22%20result%3D%22d%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cg%20filter%3D%22url%28%23c%29%22%20fill%3D%22none%22%20stroke%3D%22%23033E69%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M3%208%20C%2030%203%2C%2055%2013%2C%2085%208%20S%20140%203%2C%20170%208%20S%20225%2013%2C%20255%208%20S%20310%203%2C%20340%208%20S%20385%2012%2C%20397%207%22%20stroke-width%3D%222.6%22/%3E%3C/g%3E%3C/svg%3E"); }
+.panel[data-sec="goryachee"] .dishes { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%2016%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%22-2%25%22%20y%3D%22-60%25%22%20width%3D%22104%25%22%20height%3D%22220%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.9%22%20numOctaves%3D%222%22%20seed%3D%2211%22%20result%3D%22n%22/%3E%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.4%201.6%22%20result%3D%22h%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.04%22%20numOctaves%3D%221%22%20seed%3D%2216%22%20result%3D%22w%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22w%22%20scale%3D%222.5%22%20result%3D%22d%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cg%20filter%3D%22url%28%23c%29%22%20fill%3D%22none%22%20stroke%3D%22%23033E69%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M3%209%20C%2060%204%2C%20120%2013%2C%20200%208%20S%20330%204%2C%20397%209%22%20stroke-width%3D%222.8%22/%3E%3C/g%3E%3C/svg%3E"); }
+.panel[data-sec="supy"] .dishes { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%2016%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%22-2%25%22%20y%3D%22-60%25%22%20width%3D%22104%25%22%20height%3D%22220%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.9%22%20numOctaves%3D%222%22%20seed%3D%2217%22%20result%3D%22n%22/%3E%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.4%201.6%22%20result%3D%22h%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.04%22%20numOctaves%3D%221%22%20seed%3D%2222%22%20result%3D%22w%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22w%22%20scale%3D%222.5%22%20result%3D%22d%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cg%20filter%3D%22url%28%23c%29%22%20fill%3D%22none%22%20stroke%3D%22%23033E69%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M3%208%20Q%2023%202%2C%2043%208%20T%2083%208%20T%20123%208%20T%20163%208%20T%20203%208%20T%20243%208%20T%20283%208%20T%20323%208%20T%20363%208%20T%20397%208%22%20stroke-width%3D%222.2%22/%3E%3C/g%3E%3C/svg%3E"); }
+.panel[data-sec="salaty"] .dishes { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%2016%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%22-2%25%22%20y%3D%22-60%25%22%20width%3D%22104%25%22%20height%3D%22220%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.9%22%20numOctaves%3D%222%22%20seed%3D%2223%22%20result%3D%22n%22/%3E%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.4%201.6%22%20result%3D%22h%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.04%22%20numOctaves%3D%221%22%20seed%3D%2228%22%20result%3D%22w%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22w%22%20scale%3D%222.5%22%20result%3D%22d%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cg%20filter%3D%22url%28%23c%29%22%20fill%3D%22none%22%20stroke%3D%22%23033E69%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M3%2010%20C%2040%206%2C%2070%2012%2C%20110%209%20S%20180%205%2C%20220%209%20S%20300%2013%2C%20397%206%22%20stroke-width%3D%222.4%22/%3E%3Cpath%20d%3D%22M60%2013%20C%20120%2010%2C%20180%2014%2C%20240%2012%22%20stroke-width%3D%221.5%22%20opacity%3D%22.6%22/%3E%3C/g%3E%3C/svg%3E"); }
+.panel[data-sec="deserty"] .dishes { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%2016%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%22-2%25%22%20y%3D%22-60%25%22%20width%3D%22104%25%22%20height%3D%22220%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.9%22%20numOctaves%3D%222%22%20seed%3D%2231%22%20result%3D%22n%22/%3E%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.4%201.6%22%20result%3D%22h%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.04%22%20numOctaves%3D%221%22%20seed%3D%2236%22%20result%3D%22w%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22w%22%20scale%3D%222.5%22%20result%3D%22d%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cg%20filter%3D%22url%28%23c%29%22%20fill%3D%22none%22%20stroke%3D%22%23033E69%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M3%207%20C%2020%2012%2C%2035%203%2C%2052%208%20S%2085%2012%2C%20102%207%20S%20135%203%2C%20152%208%20S%20185%2012%2C%20202%207%20S%20235%203%2C%20252%208%20S%20285%2012%2C%20302%207%20S%20335%203%2C%20352%208%20S%20385%2012%2C%20397%208%22%20stroke-width%3D%222.3%22/%3E%3C/g%3E%3C/svg%3E"); }
+
+/* кофейный след от стакана и капли (её правка): лежат на бумаге под текстом, multiply */
+.panel:not(.cover)::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: auto; background-repeat: no-repeat; mix-blend-mode: multiply; }
+.panel[data-sec="supy"]::before    { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20200%20200%22%3E%3Cfilter%20id%3D%22f%22%20x%3D%22-10%25%22%20y%3D%22-10%25%22%20width%3D%22120%25%22%20height%3D%22120%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.035%22%20numOctaves%3D%222%22%20seed%3D%227%22%20result%3D%22t%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22t%22%20scale%3D%229%22%20result%3D%22d%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.6%22%20numOctaves%3D%222%22%20seed%3D%2210%22%20result%3D%22g%22/%3E%3CfeColorMatrix%20in%3D%22g%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.2%201.45%22%20result%3D%22h%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cg%20filter%3D%22url%28%23f%29%22%20fill%3D%22none%22%20stroke%3D%22%237A4A22%22%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%2278%22%20stroke-width%3D%225%22%20stroke-opacity%3D%22.55%22/%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%2278%22%20stroke-width%3D%229%22%20stroke-opacity%3D%22.35%22%20stroke-dasharray%3D%22150%20340%22%20stroke-dashoffset%3D%2240%22/%3E%3Ccircle%20cx%3D%22103%22%20cy%3D%2297%22%20r%3D%2274%22%20stroke-width%3D%222%22%20stroke-opacity%3D%22.3%22%20stroke-dasharray%3D%2290%2060%20200%20140%22/%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%2282%22%20stroke-width%3D%221.4%22%20stroke-opacity%3D%22.22%22/%3E%3C/g%3E%3C/svg%3E"); background-size: 58cqi; background-position: -12cqi 72%; }
+.panel[data-sec="zavtrak"]::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20200%20140%22%3E%3Cfilter%20id%3D%22f%22%20x%3D%22-20%25%22%20y%3D%22-20%25%22%20width%3D%22140%25%22%20height%3D%22140%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.08%22%20numOctaves%3D%222%22%20seed%3D%225%22%20result%3D%22t%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22t%22%20scale%3D%227%22/%3E%3C/filter%3E%3Cg%20filter%3D%22url%28%23f%29%22%20fill%3D%22%237A4A22%22%3E%3Ccircle%20cx%3D%2260%22%20cy%3D%2250%22%20r%3D%2213%22%20fill-opacity%3D%220.45%22/%3E%3Ccircle%20cx%3D%2292%22%20cy%3D%2272%22%20r%3D%225%22%20fill-opacity%3D%220.4%22/%3E%3Ccircle%20cx%3D%22110%22%20cy%3D%2240%22%20r%3D%223.5%22%20fill-opacity%3D%220.38%22/%3E%3Ccircle%20cx%3D%2240%22%20cy%3D%2288%22%20r%3D%224%22%20fill-opacity%3D%220.35%22/%3E%3Ccircle%20cx%3D%22130%22%20cy%3D%2292%22%20r%3D%222.6%22%20fill-opacity%3D%220.35%22/%3E%3Ccircle%20cx%3D%2278%22%20cy%3D%2224%22%20r%3D%222.4%22%20fill-opacity%3D%220.3%22/%3E%3Ccircle%20cx%3D%22150%22%20cy%3D%2260%22%20r%3D%222%22%20fill-opacity%3D%220.3%22/%3E%3Ccircle%20cx%3D%2228%22%20cy%3D%2246%22%20r%3D%221.8%22%20fill-opacity%3D%220.3%22/%3E%3C/g%3E%3C/svg%3E"); background-size: 40cqi; background-position: 92% 84%; }
+.panel[data-sec="deserty"]::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20200%20140%22%3E%3Cfilter%20id%3D%22f%22%20x%3D%22-20%25%22%20y%3D%22-20%25%22%20width%3D%22140%25%22%20height%3D%22140%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.08%22%20numOctaves%3D%222%22%20seed%3D%229%22%20result%3D%22t%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22t%22%20scale%3D%227%22/%3E%3C/filter%3E%3Cg%20filter%3D%22url%28%23f%29%22%20fill%3D%22%237A4A22%22%3E%3Ccircle%20cx%3D%22120%22%20cy%3D%2260%22%20r%3D%229%22%20fill-opacity%3D%220.42%22/%3E%3Ccircle%20cx%3D%2290%22%20cy%3D%2284%22%20r%3D%223.6%22%20fill-opacity%3D%220.38%22/%3E%3Ccircle%20cx%3D%22150%22%20cy%3D%2290%22%20r%3D%222.8%22%20fill-opacity%3D%220.34%22/%3E%3Ccircle%20cx%3D%2270%22%20cy%3D%2246%22%20r%3D%222.2%22%20fill-opacity%3D%220.3%22/%3E%3Ccircle%20cx%3D%22160%22%20cy%3D%2238%22%20r%3D%221.8%22%20fill-opacity%3D%220.3%22/%3E%3C/g%3E%3C/svg%3E"); background-size: 30cqi; background-position: 88% 60%; }
+.panel[data-sec="salaty"]::before  { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20200%20140%22%3E%3Cfilter%20id%3D%22f%22%20x%3D%22-20%25%22%20y%3D%22-20%25%22%20width%3D%22140%25%22%20height%3D%22140%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.08%22%20numOctaves%3D%222%22%20seed%3D%229%22%20result%3D%22t%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22t%22%20scale%3D%227%22/%3E%3C/filter%3E%3Cg%20filter%3D%22url%28%23f%29%22%20fill%3D%22%237A4A22%22%3E%3Ccircle%20cx%3D%22120%22%20cy%3D%2260%22%20r%3D%229%22%20fill-opacity%3D%220.42%22/%3E%3Ccircle%20cx%3D%2290%22%20cy%3D%2284%22%20r%3D%223.6%22%20fill-opacity%3D%220.38%22/%3E%3Ccircle%20cx%3D%22150%22%20cy%3D%2290%22%20r%3D%222.8%22%20fill-opacity%3D%220.34%22/%3E%3Ccircle%20cx%3D%2270%22%20cy%3D%2246%22%20r%3D%222.2%22%20fill-opacity%3D%220.3%22/%3E%3Ccircle%20cx%3D%22160%22%20cy%3D%2238%22%20r%3D%221.8%22%20fill-opacity%3D%220.3%22/%3E%3C/g%3E%3C/svg%3E"); background-size: 28cqi; background-position: 88% 93%; }
+
+/* след от стакана крупнее и на внутренней стороне — в «Супах» (её правка) */
+.panel[data-sec="supy"]::before { background-size: 86cqi; background-position: -16cqi 58%; }
+
+/* след от стакана на сгибе между «Горячим» и «Супами» — половинки совпадают; капли крупнее (её правка) */
+.panel[data-sec="goryachee"]::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20200%20200%22%3E%3Cfilter%20id%3D%22f%22%20x%3D%22-10%25%22%20y%3D%22-10%25%22%20width%3D%22120%25%22%20height%3D%22120%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.035%22%20numOctaves%3D%222%22%20seed%3D%227%22%20result%3D%22t%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22t%22%20scale%3D%229%22%20result%3D%22d%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.6%22%20numOctaves%3D%222%22%20seed%3D%2210%22%20result%3D%22g%22/%3E%3CfeColorMatrix%20in%3D%22g%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.2%201.45%22%20result%3D%22h%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cg%20filter%3D%22url%28%23f%29%22%20fill%3D%22none%22%20stroke%3D%22%237A4A22%22%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%2278%22%20stroke-width%3D%225%22%20stroke-opacity%3D%22.55%22/%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%2278%22%20stroke-width%3D%229%22%20stroke-opacity%3D%22.35%22%20stroke-dasharray%3D%22150%20340%22%20stroke-dashoffset%3D%2240%22/%3E%3Ccircle%20cx%3D%22103%22%20cy%3D%2297%22%20r%3D%2274%22%20stroke-width%3D%222%22%20stroke-opacity%3D%22.3%22%20stroke-dasharray%3D%2290%2060%20200%20140%22/%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%2282%22%20stroke-width%3D%221.4%22%20stroke-opacity%3D%22.22%22/%3E%3C/g%3E%3C/svg%3E"); background-size: 90cqi; background-position: 55cqi 62%; }
+.panel[data-sec="supy"]::before { background-size: 90cqi; background-position: -45cqi 62%; }
+.panel[data-sec="zavtrak"]::before { background-size: 60cqi; background-position: 96% 86%; }
+.panel[data-sec="salaty"]::before { background-size: 54cqi; background-position: 94% 90%; }
+.panel[data-sec="deserty"]::before { background-size: 48cqi; background-position: 92% 62%; }
+/* капли убраны (её правка), остаётся только след от стакана на «Горячем» и «Супах» */
+.panel[data-sec="zavtrak"]::before, .panel[data-sec="salaty"]::before, .panel[data-sec="deserty"]::before { background-image: none !important; }
+/* весь кофе убран (её правка) */
+.panel:not(.cover)::before { background-image: none !important; content: none; }
+/* весь текст на кегль-полтора меньше — место под новые блюда (её правка) */
+.panel:not(.cover) .dish .name { font-size: calc(clamp(10.5px, 3.1cqi, 12px) * var(--k)); }
+.panel:not(.cover) .dish .prod { font-size: calc(clamp(9px, 2.5cqi, 10.2px) * var(--k)); }
+.panel:not(.cover) .band { font-size: calc(12cqi * var(--k)); }
+.panel:not(.cover) .band.two { font-size: calc(9.4cqi * var(--k)); }
+.panel:not(.cover) .actions .hint, .home-btn { font-size: clamp(10px, 2.7cqi, 11.5px); }
+/* запасной режим для маленьких экранов: список прокручивается внутри столбца, внизу мягкое затухание */
+.panel.tight .dishes { flex: 1 1 auto !important; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(180deg, #000 calc(100% - 28px), transparent); padding-bottom: 24px; }
+.phone .panel[data-sec="supy"] .band, .phone .panel[data-sec="deserty"] .band { padding-top: 15cqi; }
+
+/* ===== её правка: все заголовки одного размера, лёгкая волна, рисунки прежнего размера ===== */
+.panel[data-sec="zavtrak"] .dishes { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%2012%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%22-2%25%22%20y%3D%22-80%25%22%20width%3D%22104%25%22%20height%3D%22260%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.9%22%20numOctaves%3D%222%22%20seed%3D%224%22%20result%3D%22n%22/%3E%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.4%201.6%22%20result%3D%22h%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.03%22%20numOctaves%3D%221%22%20seed%3D%229%22%20result%3D%22w%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22w%22%20scale%3D%221.6%22%20result%3D%22d%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cpath%20filter%3D%22url%28%23c%29%22%20d%3D%22M3%206%20C%2090%204.6%2C%20160%207.4%2C%20240%206%20S%20350%204.8%2C%20397%206.2%22%20fill%3D%22none%22%20stroke%3D%22%23033E69%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E"); background-size: 100% 10px; }
+.panel[data-sec="goryachee"] .dishes { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%2012%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%22-2%25%22%20y%3D%22-80%25%22%20width%3D%22104%25%22%20height%3D%22260%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.9%22%20numOctaves%3D%222%22%20seed%3D%2211%22%20result%3D%22n%22/%3E%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.4%201.6%22%20result%3D%22h%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.03%22%20numOctaves%3D%221%22%20seed%3D%2216%22%20result%3D%22w%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22w%22%20scale%3D%221.6%22%20result%3D%22d%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cpath%20filter%3D%22url%28%23c%29%22%20d%3D%22M3%206.4%20C%20120%205%2C%20220%207.2%2C%20320%205.8%20S%20380%206%2C%20397%206%22%20fill%3D%22none%22%20stroke%3D%22%23033E69%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E"); background-size: 100% 10px; }
+.panel[data-sec="supy"] .dishes { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%2012%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%22-2%25%22%20y%3D%22-80%25%22%20width%3D%22104%25%22%20height%3D%22260%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.9%22%20numOctaves%3D%222%22%20seed%3D%2217%22%20result%3D%22n%22/%3E%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.4%201.6%22%20result%3D%22h%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.03%22%20numOctaves%3D%221%22%20seed%3D%2222%22%20result%3D%22w%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22w%22%20scale%3D%221.6%22%20result%3D%22d%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cpath%20filter%3D%22url%28%23c%29%22%20d%3D%22M3%205.8%20C%2070%207%2C%20150%204.8%2C%20230%206.2%20S%20340%207%2C%20397%205.6%22%20fill%3D%22none%22%20stroke%3D%22%23033E69%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E"); background-size: 100% 10px; }
+.panel[data-sec="salaty"] .dishes { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%2012%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%22-2%25%22%20y%3D%22-80%25%22%20width%3D%22104%25%22%20height%3D%22260%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.9%22%20numOctaves%3D%222%22%20seed%3D%2223%22%20result%3D%22n%22/%3E%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.4%201.6%22%20result%3D%22h%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.03%22%20numOctaves%3D%221%22%20seed%3D%2228%22%20result%3D%22w%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22w%22%20scale%3D%221.6%22%20result%3D%22d%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cpath%20filter%3D%22url%28%23c%29%22%20d%3D%22M3%206.2%20C%2080%204.9%2C%20180%207.3%2C%20260%205.9%20S%20360%205%2C%20397%206.3%22%20fill%3D%22none%22%20stroke%3D%22%23033E69%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E"); background-size: 100% 10px; }
+.panel[data-sec="deserty"] .dishes { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%2012%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%22-2%25%22%20y%3D%22-80%25%22%20width%3D%22104%25%22%20height%3D%22260%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.9%22%20numOctaves%3D%222%22%20seed%3D%2231%22%20result%3D%22n%22/%3E%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.4%201.6%22%20result%3D%22h%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.03%22%20numOctaves%3D%221%22%20seed%3D%2236%22%20result%3D%22w%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22w%22%20scale%3D%221.6%22%20result%3D%22d%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cpath%20filter%3D%22url%28%23c%29%22%20d%3D%22M3%205.9%20C%20110%207.1%2C%20210%204.9%2C%20290%206.1%20S%20370%207%2C%20397%205.8%22%20fill%3D%22none%22%20stroke%3D%22%23033E69%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E"); background-size: 100% 10px; }
+.panel:not(.cover) .band, .panel:not(.cover) .band.two, .band.sub { font: 500 calc(12cqi * var(--k)) / .92 "Oswald", "HN", sans-serif; text-transform: uppercase; letter-spacing: -.005em; }
+li.subhead { list-style: none; padding: calc(6cqi * var(--k)) 0 calc(3.4cqi * var(--k)); margin-bottom: calc(1.2cqi * var(--k)); background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%2012%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%22-2%25%22%20y%3D%22-80%25%22%20width%3D%22104%25%22%20height%3D%22260%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.9%22%20numOctaves%3D%222%22%20seed%3D%2219%22%20result%3D%22n%22/%3E%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20-1.4%201.6%22%20result%3D%22h%22/%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.03%22%20numOctaves%3D%221%22%20seed%3D%2224%22%20result%3D%22w%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22w%22%20scale%3D%221.6%22%20result%3D%22d%22/%3E%3CfeComposite%20in%3D%22d%22%20in2%3D%22h%22%20operator%3D%22in%22/%3E%3C/filter%3E%3Cpath%20filter%3D%22url%28%23c%29%22%20d%3D%22M3%206%20C%20100%207.2%2C%20200%204.8%2C%20300%206.4%20S%20380%205.4%2C%20397%206%22%20fill%3D%22none%22%20stroke%3D%22%23033E69%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E") no-repeat 0 100% / 100% 10px; }
+.band.sub { margin: 0; padding: 0; color: var(--ink); transform: none; width: auto; text-shadow: none; }
+/* суп — рисунок справа напротив супов (как у горячего и салатов) */
+.panel[data-sec="supy"] .plate { position: absolute; right: var(--pr, 5cqi); top: var(--py, 30%); width: auto; height: auto !important; padding: 0 !important; margin: 0; flex: none; transform: translateY(-50%); z-index: 0; pointer-events: none; }
+.panel[data-sec="supy"] .dishart { margin: 0 !important; }
+/* горячее занимает всю высоту: последние блюда стоят напротив кубика */
+.panel[data-sec="goryachee"]:not(.tight) .dishes { flex: 1 1 auto !important; display: flex; flex-direction: column; justify-content: space-between; }
+/* подзаголовок «Закуски» — без отступов заголовка столбца */
+.panel:not(.cover) .band.sub, .phone .panel:not(.cover) .band.sub { margin: 0 !important; padding: 0 !important; transform: none !important; width: auto !important; text-shadow: none; }
+li.subhead { padding-top: calc(5cqi * var(--k)) !important; }
+/* без затухания (её правка): лист по ширине окна, низкий экран — прокручивается вся страница */
+.desk { overflow-y: auto; place-items: safe center; padding: 32px 0 96px; box-sizing: border-box; }
+.desk .caption, .desk .flipbar { position: fixed; }
+.panel.tight .dishes { -webkit-mask-image: none !important; mask-image: none !important; padding-bottom: 0; }
+.desk { grid-template-rows: auto auto; align-content: safe center; }
+.desk .flipbar { position: static !important; grid-area: 2 / 1; margin-top: 16px !important; }

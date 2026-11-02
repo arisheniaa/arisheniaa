@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#033E69">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Меню">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="robots" content="noindex, nofollow">
+<title>Меню</title>
+<link rel="stylesheet" href="menu.css?v=202611022326">
+</head>
+<body>
+<!-- Направление B «Спичечная этикетка (живой лист)». Черновик Ф2. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- Карандаш (ВРЕМЕННЫЙ: заменить её сканами линий). Графит: мелкий разрыв штриха + дрожь края -->
+    <filter id="pencil" x="-5%" y="-40%" width="110%" height="180%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="2" seed="3" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.9" result="holes"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="1" seed="8" result="w"/>
+      <feDisplacementMap in="SourceGraphic" in2="w" scale="2.4" result="edge"/>
+      <feComposite in="edge" in2="holes" operator="in"/>
+    </filter>
+    <!-- Сухое зерно внутри заливок (как в постерах «Аэрофлота»): редкие светлые пробелы краски. Для заглушек; в её рисунках зерно придёт своё -->
+    <filter id="dry" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="11" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -9 7.0" result="holes"/>
+      <feComposite in="SourceGraphic" in2="holes" operator="in"/>
+    </filter>
+    <!-- Кофейное кольцо: рваный край -->
+    <filter id="cup" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="7" result="t"/>
+      <feDisplacementMap in="SourceGraphic" in2="t" scale="7"/>
+    </filter>
+    <radialGradient id="ringfill">
+      <stop offset=".80" stop-color="#A8743A" stop-opacity="0"/>
+      <stop offset=".905" stop-color="#A8743A" stop-opacity=".9"/>
+      <stop offset=".95" stop-color="#A8743A" stop-opacity=".38"/>
+      <stop offset="1" stop-color="#A8743A" stop-opacity=".05"/>
+    </radialGradient>
+    <symbol id="ring" viewBox="0 0 100 100">
+      <g filter="url(#cup)">
+        <circle cx="50" cy="50" r="44" fill="url(#ringfill)"/>
+        <circle cx="50" cy="50" r="44.5" fill="none" stroke="#A8743A" stroke-opacity=".35" stroke-width=".9" stroke-dasharray="70 9 120 14 40"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<main id="app" aria-live="polite"></main>
+
+<noscript><p style="padding:24px">Меню работает на JavaScript.</p></noscript>
+<script src="menu.js?v=202611022326"></script>
+<script src="fit.js?v=202611022326"></script>
+<script src="btn.js?v=202611022326"></script>
+</body>
+</html>
