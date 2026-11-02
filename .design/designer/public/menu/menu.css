@@ -733,3 +733,6 @@ li.subhead { padding-top: calc(5cqi * var(--k)) !important; }
 .panel.tight .dishes { -webkit-mask-image: none !important; mask-image: none !important; padding-bottom: 0; }
 .desk { grid-template-rows: auto auto; align-content: safe center; }
 .desk .flipbar { position: static !important; grid-area: 2 / 1; margin-top: 16px !important; }
+/* лист целиком в окне Full HD: поля меньше */
+.desk { padding: 22px 0 22px; }
+.desk .flipbar { margin-top: 12px !important; }

@@ -478,10 +478,10 @@
     var W, H, out = app.querySelector('.outside'), flip = app.querySelector('#flip'), side = 'in';
     function layout() {
       var vw = window.innerWidth, vh = window.innerHeight;
-      W = Math.floor(Math.min((vw - 120) / 3, 470)); H = Math.round(W * 2.05); // по ширине: на низком экране страница прокручивается, текст не мельчает
-      sheet.style.width = 3 * W + 'px'; sheet.style.height = H + 'px'; sheet.style.marginTop = '-26px';
+      W = Math.floor(Math.min((vw - 120) / 3, vh >= 860 ? (vh - 90) / 2.05 : 470, 470)); H = Math.round(W * 2.05); // окно от 860 px (Full HD) — лист целиком в окне; ниже — по ширине, текст полного размера, прокручивается страница // по ширине: на низком экране страница прокручивается, текст не мельчает
+      sheet.style.width = 3 * W + 'px'; sheet.style.height = H + 'px'; sheet.style.marginTop = '0px';
       [L, M, R].forEach(function (c, i) { c.style.width = W + 'px'; c.style.height = H + 'px'; c.style.left = i * W + 'px'; });
-      out.style.width = 3 * W + 'px'; out.style.height = H + 'px'; out.style.marginTop = '-26px';
+      out.style.width = 3 * W + 'px'; out.style.height = H + 'px'; out.style.marginTop = '0px';
       L.style.transformOrigin = '100% 50%'; R.style.transformOrigin = '0% 50%';
       c1.style.left = W + 'px'; c2.style.left = 2 * W + 'px';
       render(spring ? spring.x : 0);
