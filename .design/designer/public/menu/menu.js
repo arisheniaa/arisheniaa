@@ -22,8 +22,8 @@
       ['pyure', 'Пюре с котлеткой', 'картофель, фарш, молоко', 1],
       ['grechka', 'Гречка с курочкой', 'гречка, курица, лук', 0],
       ['ris-ryba', 'Рис с рыбкой', 'рис, рыба, лимон', 0],
+      ['zharenyi-ris', 'Жареный рис с курицей', 'рис, курица, яйцо', 0],
       ['podruzhki', 'Макароны-подружки', 'макароны, яйцо, масло', 0],
-      ['macncheese', 'Мак энд чиз', 'макароны, чеддер, молоко', 0],
       ['pasta', 'Паста в сливочном соусе', 'паста, сливки, пармезан', 0],
       ['pelmeni', 'Пельмени / гёдза', 'пельмени, сметана', 0],
       ['perec', 'Фаршированные перцы', 'перец, фарш, рис', 0],
@@ -313,9 +313,9 @@
       var rows = [].slice.call(panel.querySelectorAll('.dish')), cand = rows.filter(function (li) { return !li.classList.contains('done') && !li.classList.contains('nohome'); });
       var hint = panel.querySelector('.hint');
       if (!cand.length) { hint.innerHTML = rows.some(function (li) { return !li.classList.contains('done'); }) ? 'для остального<br>чего-то нет дома' : 'всё уже было —<br>новая неделя с понедельника'; buzz([20, 60, 20]); return; }
-      var win = cand[Math.floor(Math.random() * cand.length)], seq = [], d = 50, prev = -1;
-      while (d < 400) { var k; do { k = Math.floor(Math.random() * cand.length); } while (cand.length > 1 && k === prev); prev = k; seq.push([cand[k], d]); d *= 1.15; }
-      seq.push([win, 420]);
+      var win = cand[Math.floor(Math.random() * cand.length)], seq = [], d = 35, prev = -1;
+      while (d < 220) { var k; do { k = Math.floor(Math.random() * cand.length); } while (cand.length > 1 && k === prev); prev = k; seq.push([cand[k], d]); d *= 1.25; }
+      seq.push([win, 240]);
       if (RM.matches) seq = [[win, 0]];
       var i = 0, cur = null;
       (function hop() {

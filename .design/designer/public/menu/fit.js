@@ -35,7 +35,7 @@
     var ps = [].filter.call(document.querySelectorAll('.panel:not(.cover)'), function (p) { return p.getClientRects().length; });
     ps.forEach(function (p) { p.classList.remove('tight'); p.style.setProperty('--is', 1); p.style.setProperty('--k', 1); });
     var k = 1;
-    ps.forEach(function (p) { var kk = 1; while (p.scrollHeight > p.clientHeight + 1 && kk > 0.9) { kk -= 0.02; p.style.setProperty('--k', kk.toFixed(2)); } k = Math.min(k, kk); });
+    ps.forEach(function (p) { var kk = 1; while (p.scrollHeight > p.clientHeight + 1 && kk > (document.querySelector('.phone') ? 0.86 : 0.9)) { kk -= 0.02; p.style.setProperty('--k', kk.toFixed(2)); } k = Math.min(k, kk); });
     ps.forEach(function (p) { p.style.setProperty('--k', k.toFixed(2)); if (p.scrollHeight > p.clientHeight + 1) p.classList.add('tight'); });
     placeHot();
     shown.forEach(function (el) { el.hidden = true; el.style.visibility = ''; });

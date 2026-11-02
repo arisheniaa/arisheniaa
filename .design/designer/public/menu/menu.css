@@ -736,3 +736,17 @@ li.subhead { padding-top: calc(5cqi * var(--k)) !important; }
 /* лист целиком в окне Full HD: поля меньше */
 .desk { padding: 22px 0 22px; }
 .desk .flipbar { margin-top: 12px !important; }
+
+/* телефон: названия и состав крупнее, строки плотнее (её правка) */
+.phone .panel:not(.cover) .dish { padding: calc(.9cqi * var(--k)) 0 calc(1cqi * var(--k)) !important; }
+.phone .panel:not(.cover) .dish .name { font-size: calc(15px * var(--k)); line-height: 1.12; }
+.phone .panel:not(.cover) .dish .prod { font-size: calc(12.5px * var(--k)); line-height: 1.2; margin-top: .1em; }
+.phone .panel:not(.cover) .dishes { padding-top: calc(2.4cqi * var(--k)) !important; }
+/* телефон: плотнее, чтобы «Супы и закуски» и «Десерты» влезали целиком */
+.phone .panel:not(.cover) .dish { padding: calc(.55cqi * var(--k)) 0 calc(.65cqi * var(--k)) !important; }
+.phone .panel:not(.cover) .band { padding-top: 12.5cqi !important; }
+.phone .panel[data-sec="zavtrak"] .band { padding-top: 0 !important; }
+.phone .panel:not(.cover) .actions { padding-top: 0; padding-bottom: calc(2cqi + env(safe-area-inset-bottom)); min-height: 0; }
+.phone .panel:not(.cover) .actions .pick { min-height: 40px; }
+.phone li.subhead { padding-top: calc(3.6cqi * var(--k)) !important; padding-bottom: calc(2.6cqi * var(--k)); }
+.phone .panel[data-sec="deserty"] .plate { padding-top: 0 !important; padding-bottom: 0 !important; }
