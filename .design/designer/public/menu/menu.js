@@ -442,7 +442,7 @@
       }
       var cur = Math.round(clamp(pos, 0, N - 1));
       pgEl.textContent = (cur + 1) + ' / ' + N;
-      pager.style.color = '';
+      pager.style.visibility = cur === 0 ? 'hidden' : ''; // на обложке стрелок и номера нет (её правка)
       app.querySelectorAll('.ghost').forEach(function (b) { b.style.color = cur === 0 ? '#FCF5E6' : '#033E69'; });
     }
     var spring = new Spring(0, render);
