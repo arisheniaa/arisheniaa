@@ -1,44 +1,57 @@
-/* Подгонка: если столбцу не хватает высоты — сначала сжимается картинка (CSS), потом чуть уменьшается кегль, текст не обрезается никогда */
+/* Подгонка: один интервал между блюдами (--rp) и один кегль (--k) на всё меню.
+   Сначала сжимается интервал, потом чуть кегль; если и так не влезает — список прокручивается внутри столбца. Текст не обрезается никогда. */
 (function () {
-  // сколько нужно уменьшить рисунки, чтобы столбец влез (без изменения кегля)
-  function needIs(p) {
-    var is = 1; p.style.setProperty('--k', 1); p.style.setProperty('--is', 1);
-    while (p.scrollHeight > p.clientHeight + 1 && is > 0.72) { is -= 0.04; p.style.setProperty('--is', is.toFixed(2)); }
-    return is;
-  }
-  function fitK(p) {
-    var k = 1, guard = 0;
-    while (p.scrollHeight > p.clientHeight + 1 && k > 0.66 && guard++ < 20) { k -= 0.03; p.style.setProperty('--k', k.toFixed(2)); }
-  }
-  // «Горячее» и «Салаты»: рисунок справа, по центру между двумя блюдами
-  function placeHot() {
-    var AT = { goryachee: [1, 2], salaty: [3, 4], supy: [1, 3] }; // напротив гречки и риса; напротив тунца и винегрета
-    document.querySelectorAll('.panel[data-sec="goryachee"], .panel[data-sec="salaty"], .panel[data-sec="supy"]').forEach(function (p) {
-      var at = AT[p.dataset.sec], rows = p.querySelectorAll('.dish'); if (rows.length <= at[1] || !p.getClientRects().length) return;
-      var pr = p.getBoundingClientRect(), a = rows[at[0]].getBoundingClientRect(), b = rows[at[1]].getBoundingClientRect();
-      var sx = pr.height / p.offsetHeight || 1;
+  // рисунок справа, по центру между строками [a, b] — напротив коротких названий
+  // рамка самого текста, а не блока: строка состава — блок во всю ширину столбца
+  function textRect(el) { var r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect(); }
+  var AT = { zavtrak: [2, 4], goryachee: [1, 2], supy: [1, 3], salaty: [3, 4] };
+  function placeArt(ps) {
+    ps.forEach(function (p) {
+      var at = AT[p.dataset.sec], rows = p.querySelectorAll('.dish'); if (!at || rows.length <= at[1]) return;
+      var pr = p.getBoundingClientRect(), sx = pr.height / p.offsetHeight || 1;
+      var a = rows[at[0]].getBoundingClientRect(), b = rows[at[1]].getBoundingClientRect();
       p.style.setProperty('--py', ((a.top + b.bottom) / 2 - pr.top) / sx + 'px');
-      // не закрывать текст: если рисунок задевает названия соседних строк, сдвинуть его к краю
+      // не закрывать текст: если рисунок задевает строки, сдвинуть его к краю листа
       p.style.removeProperty('--pr');
       var img = p.querySelector('.dishart').getBoundingClientRect(), need = 0;
-      [].forEach.call(rows, function (r) { var n = r.querySelector('.name').getBoundingClientRect(); if (n.bottom > img.top && n.top < img.bottom) need = Math.max(need, n.right + 6 - img.left); });
-      if (need > 0) p.style.setProperty('--pr', Math.max(4, parseFloat(getComputedStyle(p.querySelector('.plate')).right) - need / sx) + 'px');
+      [].forEach.call(rows, function (r) {
+        [r.querySelector('.name'), r.querySelector('.prod')].forEach(function (el) {
+          var n = textRect(el); if (n.bottom > img.top + 4 && n.top < img.bottom - 4) need = Math.max(need, n.right + 6 - img.left);
+        });
+      });
+      if (need > 0) p.style.setProperty('--pr', Math.max(0, parseFloat(getComputedStyle(p.querySelector('.plate')).right) - need / sx) + 'px');
     });
   }
-  // рисунки всегда одного размера; кегль один на всё меню — считается по обеим сторонам листа (скрытая сторона
-  // на время замера показывается невидимой); не мельче 0.9, остальное — прокрутка внутри столбца
+  // кубик не занимает строку; если последнее блюдо упирается в него — столбец оставляет под кубиком место
+  function diceRow(p) {
+    p.classList.remove('dicerow');
+    var b = p.querySelector('.pick').getBoundingClientRect(), hit = false;
+    p.querySelectorAll('.dish .name, .dish .prod, .plate .dishart').forEach(function (el) {
+      var r = el.tagName === 'IMG' ? el.getBoundingClientRect() : textRect(el); if (r.right > b.left && r.bottom > b.top + 6) hit = true;
+    });
+    p.classList.toggle('dicerow', hit);
+  }
   var busy = false;
   function fitAll() {
     busy = true;
     var shown = [];
     document.querySelectorAll('.desk .sheet[hidden], .desk .outside[hidden]').forEach(function (el) { el.hidden = false; el.style.visibility = 'hidden'; shown.push(el); });
     var ps = [].filter.call(document.querySelectorAll('.panel:not(.cover)'), function (p) { return p.getClientRects().length; });
-    ps.forEach(function (p) { p.classList.remove('tight'); p.style.setProperty('--is', 1); p.style.setProperty('--k', 1); });
-    var k = 1;
-    ps.forEach(function (p) { var kk = 1; while (p.scrollHeight > p.clientHeight + 1 && kk > (document.querySelector('.phone') ? 0.86 : 0.9)) { kk -= 0.02; p.style.setProperty('--k', kk.toFixed(2)); } k = Math.min(k, kk); });
-    ps.forEach(function (p) { p.style.setProperty('--k', k.toFixed(2)); if (p.scrollHeight > p.clientHeight + 1) p.classList.add('tight'); });
-    placeHot();
+    var phone = !!document.querySelector('.phone');
+    var RP = phone ? [5, 2] : [9, 3], KMIN = phone ? 0.86 : 0.9;
+    function set(name, v) { ps.forEach(function (p) { p.style.setProperty(name, v); }); }
+    function over() { return ps.some(function (p) { return p.scrollHeight > p.clientHeight + 1; }); }
+    ps.forEach(function (p) { p.classList.remove('tight'); });
+    set('--k', 1); set('--rp', RP[0] + 'px');
+    ps.forEach(diceRow);
+    var rp = RP[0], k = 1;
+    while (over() && rp > RP[1]) { rp -= 0.5; set('--rp', rp + 'px'); }
+    while (over() && k > KMIN) { k -= 0.02; set('--k', k.toFixed(2)); }
+    ps.forEach(diceRow);
+    ps.forEach(function (p) { if (p.scrollHeight > p.clientHeight + 1) p.classList.add('tight'); });
+    placeArt(ps);
     shown.forEach(function (el) { el.hidden = true; el.style.visibility = ''; });
+    window.__fit = { rp: rp, k: k };
     setTimeout(function () { busy = false; }, 0);
   }
   var t; function soon() { clearTimeout(t); t = setTimeout(fitAll, 60); }

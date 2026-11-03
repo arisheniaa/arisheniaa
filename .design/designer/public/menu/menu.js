@@ -305,37 +305,75 @@
       li.classList.toggle('done', on); li.setAttribute('aria-pressed', on);
       if (on) { strike(li, true); buzz(8); } else { var s = li.querySelector('.strike'); if (s) s.remove(); }
     }
+    // бросок кубика: приседает, подлетает с оборотами (тень на столе бледнеет и сжимается), падает, подпрыгивает и ложится
+    function toss(btn, dur) {
+      var die = btn.querySelector('.dice-svg'), sh = btn.querySelector('.die-sh');
+      if (!die || RM.matches) return;
+      var up = 'cubic-bezier(.2,.7,.4,1)', down = 'cubic-bezier(.55,0,.9,.45)';
+      die.animate([
+        { transform: 'translate(0,0) rotate(0deg) scale(1,1)', easing: 'ease-out' },
+        { transform: 'translate(0,3px) rotate(0deg) scale(1.14,.84)', offset: .07, easing: up },
+        { transform: 'translate(-14px,-86px) rotate(-430deg) scale(1,1)', offset: .43, easing: down },
+        { transform: 'translate(-18px,0) rotate(-720deg) scale(1,1)', offset: .72, easing: 'ease-out' },
+        { transform: 'translate(-18px,2px) rotate(-720deg) scale(1.12,.86)', offset: .77, easing: up },
+        { transform: 'translate(-8px,-18px) rotate(-790deg) scale(1,1)', offset: .87, easing: down },
+        { transform: 'translate(-2px,0) rotate(-810deg) scale(1.06,.94)', offset: .94, easing: 'ease-out' },
+        { transform: 'translate(0,0) rotate(-810deg) scale(1,1)' }
+      ], { duration: dur });
+      if (sh) sh.animate([
+        { transform: 'translateX(0) scale(1)', opacity: .16 },
+        { transform: 'translateX(0) scale(1.15)', opacity: .2, offset: .07 },
+        { transform: 'translateX(-14px) scale(.35)', opacity: .06, offset: .43 },
+        { transform: 'translateX(-18px) scale(1.1)', opacity: .22, offset: .72 },
+        { transform: 'translateX(-8px) scale(.75)', opacity: .12, offset: .87 },
+        { transform: 'translateX(-2px) scale(1.05)', opacity: .18, offset: .94 },
+        { transform: 'translateX(0) scale(1)', opacity: .16 }
+      ], { duration: dur });
+    }
     var run = 0;
-    function pick() {
+    function pick(btn) {
       var my = ++run;
       panel.querySelectorAll('.oval').forEach(function (x) { x.remove(); });
       panel.querySelectorAll('.won,.hop').forEach(function (x) { x.classList.remove('won', 'hop'); });
-      var rows = [].slice.call(panel.querySelectorAll('.dish')), cand = rows.filter(function (li) { return !li.classList.contains('done') && !li.classList.contains('nohome'); });
+      // группы: раздел и подразделы (в «Супах» — супы и закуски), из каждой по одному блюду
+      var groups = [[]];
+      panel.querySelectorAll('.dishes > li').forEach(function (li) { if (li.classList.contains('subhead')) groups.push([]); else groups[groups.length - 1].push(li); });
+      var rows = [].slice.call(panel.querySelectorAll('.dish'));
+      var cands = groups.map(function (g) { return g.filter(function (li) { return !li.classList.contains('done') && !li.classList.contains('nohome'); }); }).filter(function (c) { return c.length; });
       var hint = panel.querySelector('.hint');
-      if (!cand.length) { hint.innerHTML = rows.some(function (li) { return !li.classList.contains('done'); }) ? 'для остального<br>чего-то нет дома' : 'всё уже было —<br>новая неделя с понедельника'; buzz([20, 60, 20]); return; }
-      var win = cand[Math.floor(Math.random() * cand.length)], seq = [], d = 35, prev = -1;
-      while (d < 220) { var k; do { k = Math.floor(Math.random() * cand.length); } while (cand.length > 1 && k === prev); prev = k; seq.push([cand[k], d]); d *= 1.25; }
-      seq.push([win, 240]);
-      if (RM.matches) seq = [[win, 0]];
-      var i = 0, cur = null;
+      hint.classList.remove('sr');
+      if (!cands.length) { hint.innerHTML = rows.some(function (li) { return !li.classList.contains('done'); }) ? 'для остального<br>чего-то нет дома' : 'всё уже было —<br>новая неделя с понедельника'; buzz([20, 60, 20]); return; }
+      hint.textContent = '';
+      var delays = [], d = 45; while (d < 230) { delays.push(d); d *= 1.25; }
+      var total = delays.reduce(function (a, b) { return a + b; }, 0);
+      var seqs = cands.map(function (cand) {
+        var win = cand[Math.floor(Math.random() * cand.length)], seq = [], prev = -1;
+        delays.forEach(function () { var k; do { k = Math.floor(Math.random() * cand.length); } while (cand.length > 1 && k === prev); prev = k; seq.push(cand[k]); });
+        seq.push(win); return seq;
+      });
+      if (RM.matches) { seqs = seqs.map(function (s) { return [s[s.length - 1]]; }); delays = []; }
+      toss(btn, total + 80);
+      var i = 0, cur = [];
       (function hop() {
         if (my !== run) return;
-        if (cur) cur.classList.remove('hop');
-        var step = seq[i]; cur = step[0]; cur.classList.add('hop');
-        if (i === seq.length - 1) {
-          cur.classList.remove('hop'); cur.classList.add('won');
-          var list = panel.querySelector('.dishes'), lr = list.getBoundingClientRect(), cr = cur.getBoundingClientRect(), top = list.scrollTop + (cr.top - lr.top) - list.clientHeight / 2 + cr.height / 2;
-          list.scrollTo({ top: top, behavior: RM.matches ? 'auto' : 'smooth' });
-          oval(cur); buzz([12, 60, 26]); // хаптика в кадр, где начинается овал
-          hint.textContent = 'сегодня: ' + cur.querySelector('.name').textContent.toLowerCase();
+        cur.forEach(function (li) { li.classList.remove('hop'); });
+        cur = seqs.map(function (s) { return s[i]; });
+        if (i === delays.length) {
+          cur.forEach(function (li) { li.classList.add('won'); oval(li); });
+          var list = panel.querySelector('.dishes');
+          if (list.scrollHeight > list.clientHeight + 1) { var lr = list.getBoundingClientRect(), cr = cur[0].getBoundingClientRect(); list.scrollTo({ top: list.scrollTop + (cr.top - lr.top) - list.clientHeight / 2 + cr.height / 2, behavior: RM.matches ? 'auto' : 'smooth' }); }
+          buzz([12, 60, 26]); // хаптика в кадр, где начинается овал
+          hint.classList.add('sr'); // для скринридера; на листе выбор показывает овал
+          hint.textContent = 'сегодня: ' + cur.map(function (li) { return li.querySelector('.name').textContent.toLowerCase(); }).join(' и ');
           return;
         }
-        buzz(5); i++; setTimeout(hop, step[1]);
+        cur.forEach(function (li) { li.classList.add('hop'); });
+        buzz(5); setTimeout(hop, delays[i++]);
       })();
     }
     panel.addEventListener('click', function (e) {
       if (gate && gate()) return; // жест листания съел нажатие
-      if (e.target.closest('.pick')) return pick();
+      var b = e.target.closest('.pick'); if (b) return pick(b);
       if (e.target.closest('.home-btn')) return openHome();
       var li = e.target.closest('.dish'); if (li) toggle(li);
     });
