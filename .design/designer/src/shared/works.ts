@@ -192,6 +192,18 @@ const bsu = (id: string, text: string): Shot => ({
 const KLASSIKO = bsu('klassiko', `Пост для спортивного контента${NB}— первое Класико сезона: «Барселона» против «Реала».`);
 const RYBAKINA = bsu('rybakina', `Пост для спортивного контента${NB}— Рыбакина стала первой ракеткой мира.`);
 const PRYZHOK = bsu('pryzhok', `Пост для спортивного контента${NB}— откуда меряют прыжок в${NB}длину.`);
+/* Домашнее меню (arisheniaa.ru/menu) — её правка 3 ноября: «подтяни
+   недавно созданное меню и добавь его в портфолио к айдентике». Кадры —
+   scripts/capture-menu.mjs. На компьютере — лист раскрытый и обратная
+   сторона (широкие места заняты сертификатом и Ryze, поэтому они в
+   просмотре крупно, сразу за обложкой), на телефоне и в колонке — панели. */
+const MENU_CAP = {
+  name: 'домашнее меню',
+  text: `Меню блюд, которые я готовлю дома: лист в${NB}три сложения, ретро-обложка, карандашные пометки и${NB}кубик «выбери за меня».`,
+  href: `${B}menu/`,
+};
+const menu = (f: string, kind: Shot['kind'], only?: Shot['only']): Shot => ({ src: w(`menu-${f}`), kind, cap: MENU_CAP, ...(only ? { only } : {}) });
+
 /** Посты спортивного уикенда для прямой ссылки `arisheniaa.ru/#posty`
  *  (страница для Авиасейлс): по ней просмотр открывается сразу на них. */
 export const SPORT_POSTS: Shot[] = [KLASSIKO, RYBAKINA, PRYZHOK];
@@ -253,12 +265,24 @@ export const SERVICES: Service[] = [
          телефоне восемь (и первым там Ryze), а сторис должны попасть все
          три. Не поместившиеся скрины приглашения можно долистать стрелками
          в просмотре крупно. */
+      /* Меню — обложка вторым телефоном (видна и в свёрнутой колонке),
+         карандашный выбор пятым, десерты девятым; на компьютере из десяти
+         телефонных мест у меню три, на телефоне из восьми — два. */
       KLASSIKO,
+      menu('m-cover', 'phone'),
+      menu('d-open', 'wide', 'desk'),
+      menu('d-out', 'wide', 'desk'),
       phoneOf('invite', 0),
       RYBAKINA,
+      menu('m-pick', 'phone'),
       phoneOf('invite', 1),
       PRYZHOK,
-      ...[3, 4, 7, 8, 9, 11].map((k) => phoneOf('invite', k)),
+      phoneOf('invite', 3),
+      menu('m-deserty', 'phone'),
+      ...[4, 7, 8, 9, 11].map((k) => phoneOf('invite', k)),
+      menu('m-zavtrak', 'phone'),
+      menu('m-supy', 'phone'),
+      menu('m-salaty', 'phone'),
       { src: w('cert-back'), kind: 'wide', cap: CERT, only: 'mob' },
     ],
   },
