@@ -194,7 +194,8 @@ export function LightboxProvider({ children }: { children: ReactNode }) {
                 onClick={(e) => e.stopPropagation()}
               >
                 <b className="lb-cap-name">{cur.cap.name}</b>
-                <span className="lb-cap-text">{cur.cap.text}</span>
+                {/* Без описания — только заголовок (подпись меню, её правка). */}
+                {cur.cap.text && <span className="lb-cap-text">{cur.cap.text}</span>}
                 {cur.before && (
                   <span className="lb-ba" role="group" aria-label="Сравнить с прежним экраном">
                     <button type="button" aria-pressed={showBefore} onClick={() => setShowBefore(true)}>
