@@ -71,6 +71,11 @@
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+  // счётчик нажатий без сторонних сервисов: пустой запрос на свой сайт, его видно в журнале сервера (tools/menu-stats.sh)
+  function track(e, s) {
+    if (navigator.webdriver) return; // автотесты не считаем
+    try { fetch('hit?e=' + e + (s ? '&s=' + s : ''), { method: 'GET', keepalive: true, cache: 'no-store', credentials: 'omit' }).catch(function () {}); } catch (x) {}
+  }
   // Apple: проекция импульса (Designing Fluid Interfaces), экспоненциальное затухание
   function project(v, d) { d = d || 0.998; return (v / 1000) * d / (1 - d); }
   // Apple: резиновый край
@@ -302,6 +307,7 @@
     function toggle(li) {
       var id = li.dataset.id, i = store.cooked.indexOf(id), on = i < 0;
       if (on) store.cooked.push(id); else store.cooked.splice(i, 1); save();
+      track(on ? 'cooked' : 'uncooked', id);
       li.classList.toggle('done', on); li.setAttribute('aria-pressed', on);
       if (on) { strike(li, true); buzz(8); } else { var s = li.querySelector('.strike'); if (s) s.remove(); }
     }
@@ -333,6 +339,7 @@
     var run = 0;
     function pick(btn) {
       var my = ++run;
+      track('dice', panel.dataset.sec);
       panel.querySelectorAll('.oval').forEach(function (x) { x.remove(); });
       panel.querySelectorAll('.won,.hop').forEach(function (x) { x.classList.remove('won', 'hop'); });
       // группы: раздел и подразделы (в «Супах» — супы и закуски), из каждой по одному блюду
@@ -393,6 +400,7 @@
     return Object.keys(set).sort(function (a, b) { return a.localeCompare(b, 'ru'); });
   }
   function openHome() {
+    track('home');
     var old = document.querySelector('.homesheet'); if (old) old.remove();
     var el = document.createElement('div'); el.className = 'homesheet'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Что есть дома');
     el.innerHTML = '<div class="hs-card"><h3>Чего нет дома?</h3><p class="hs-sub">отметь, что закончилось — блюда с этим побледнеют, кубик их пропустит</p>' +
@@ -402,7 +410,7 @@
     document.body.appendChild(el);
     el.addEventListener('click', function (e) {
       var c = e.target.closest('.chip');
-      if (c) { var p = c.dataset.p, i = home.out.indexOf(p); if (i < 0) home.out.push(p); else home.out.splice(i, 1); c.classList.toggle('out', i < 0); saveHome(); applyHome(); return; }
+      if (c) { var p = c.dataset.p, i = home.out.indexOf(p); if (i < 0) home.out.push(p); else home.out.splice(i, 1); track(i < 0 ? 'out' : 'in', encodeURIComponent(p)); c.classList.toggle('out', i < 0); saveHome(); applyHome(); return; }
       if (e.target.closest('.hs-reset')) { home.out = []; saveHome(); applyHome(); el.querySelectorAll('.chip.out').forEach(function (x) { x.classList.remove('out'); }); return; }
       if (e.target.closest('.hs-done') || e.target === el) el.remove();
     });
