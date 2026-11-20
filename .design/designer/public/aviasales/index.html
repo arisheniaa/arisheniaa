@@ -91,6 +91,9 @@ section { padding-block: 44px; }
 .shot figcaption .en { display: block; font-size: 14px; font-weight: 400; }
 .brief { display: grid; gap: 18px; align-content: start; }
 .about { font-size: clamp(17px, 1.7vw, 19px); line-height: 1.55; }
+.exits.exits4 { grid-template-columns: 1fr; }
+@media (min-width: 480px) { .exits.exits4 { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 900px) { .exits.exits4 { grid-template-columns: repeat(4, 1fr); } }
 .note { border: 2px solid var(--red); border-radius: 8px; background: #fff; padding: 14px 16px; display: grid; gap: 6px 24px; }
 @media (min-width: 640px) { .note { grid-template-columns: 1fr 1fr; } }
 .exits-h { display: flex; align-items: center; gap: 10px; font-weight: 700; }
@@ -170,18 +173,6 @@ section { padding-block: 44px; }
 .pass dt { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-2); }
 .pass dt .en { text-transform: none; letter-spacing: 0; }
 .pass dd { margin: 0; font-weight: 800; font-size: 18px; }
-
-/* предыдущие работы */
-.works { display: grid; gap: 16px; }
-@media (min-width: 760px) { .works { grid-template-columns: 1fr 1fr; } }
-.work { background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: grid; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
-a.work:hover { border-color: var(--green); box-shadow: 0 8px 20px rgba(47,74,154,.12); }
-.work img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; object-position: 50% 0; border-bottom: 1px solid var(--line); }
-.work div { padding: 14px 16px 16px; display: grid; gap: 4px; }
-.work h3 { font-size: 18px; font-weight: 700; line-height: 1.2; }
-.work h3 .en { display: block; font-size: 14px; }
-.work p { font-size: 14.5px; color: var(--ink-2); }
-.work .go { font-size: 13px; font-weight: 700; color: var(--green-d); margin-top: 4px; }
 
 /* посадочный талон: раскладка как у бумажного талона авиакомпании, координаты в пикселях скана 1200×488 */
 .bp { --mono: 'Overpass Mono', 'Consolas', monospace; position: relative; display: grid; grid-template-columns: 868fr 332fr; background: #fdfdfb; color: #1d1d1f;
@@ -377,12 +368,11 @@ a.work:hover { border-color: var(--green); box-shadow: 0 8px 20px rgba(47,74,154
       <p><b>Инициативный проект.</b> Я придумала и сделала эти развлечения сама, без заказа, чтобы показать, какими могли бы быть спецпроекты Авиасейлс. Все сюжеты взяты с моих рейсов: раньше я работала бортпроводницей.</p>
       <p><b>Для вашей безопасности</b> все игры работают прямо на этой странице. В случае турбулентности нажмите табло в углу экрана.</p>
     </div>
-    <nav class="exits" aria-label="Разделы" style="margin-top:14px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+    <nav class="exits exits4" aria-label="Разделы" style="margin-top:14px">
       <a class="exit" href="#test"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h13M12 6l6 6-6 6"/></svg><span>Какой ты пассажир<span class="en">Passenger quiz</span></span></a>
       <a class="exit" href="#chicken"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h13M12 6l6 6-6 6"/></svg><span>Курица или рыба<span class="en">Chicken or fish</span></span></a>
       <a class="exit" href="#excuse"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h13M12 6l6 6-6 6"/></svg><span>Объяснительная<span class="en">Excuse generator</span></span></a>
       <a class="exit" href="#cat"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h13M12 6l6 6-6 6"/></svg><span>Найди кошку в салоне<span class="en">Find the cat</span></span></a>
-      <a class="exit" href="#works"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h13M12 6l6 6-6 6"/></svg><span>Мои сайты<span class="en">My websites</span></span></a>
     </nav>
   </div>
 
@@ -434,18 +424,6 @@ a.work:hover { border-color: var(--green); box-shadow: 0 8px 20px rgba(47,74,154
         </div>
       </div>
       <div class="cat-res" id="cat-res" aria-live="polite" hidden></div>
-    </div>
-  </section>
-
-  <!-- предыдущие работы -->
-  <section id="works" class="wrap" aria-labelledby="works-title">
-    <div class="sh"><span class="tile"><svg viewBox="0 0 34 34" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="4" y="7" width="26" height="20" rx="2"/><path d="M4 13h26M9 10h.01M12 10h.01"/></svg></span><h2 id="works-title">Мои сайты<span class="en">My websites</span></h2></div>
-    <div class="works">
-      <a class="work" href="https://arisheniaa.github.io/nastyanico/" target="_blank" rel="noopener"><img src="img/w-nico.jpg" alt="Новая обложка сайта фотографа Nastya Nico" width="960" height="540" loading="lazy"><div><h3>Редизайн сайта фотографа Nastya Nico<span class="en">Photographer website redesign</span></h3><p>Перенесла с конструктора на свой сайт. Черно-белый минимализм и наконец-то кнопки связи.</p><span class="go">Смотреть / Open →</span></div></a>
-      <a class="work" href="https://arisheniaa.ru/ph/" target="_blank" rel="noopener"><img src="img/w-my.jpg" alt="Мой сайт фотографа" width="960" height="540" loading="lazy"><div><h3>Мой сайт дизайнера и фотографа<span class="en">My designer and photographer website</span></h3><p>Два сайта на одном домене. А еще тест, который собирает раскадровку будущей съемки.</p><span class="go">Смотреть / Open →</span></div></a>
-      <a class="work" href="https://totoshiroph.ru" target="_blank" rel="noopener"><img src="img/w-toto.jpg" alt="Главный экран сайта фотографа Toto Shiro" width="960" height="540" loading="lazy"><div><h3>Сайт фотографа Toto Shiro<span class="en">Photographer website from scratch</span></h3><p>«Дорого и роскошно»: цены в конвертах-приглашениях и уроки курса на пластинке.</p><span class="go">Смотреть / Open →</span></div></a>
-      <a class="work" href="https://prazdnik.194.87.187.207.sslip.io/" target="_blank" rel="noopener"><img src="img/w-invite.jpg" alt="Конверт приглашения на день рождения" width="960" height="540" loading="lazy"><div><h3>Приглашение на мой день рождения<span class="en">My birthday invitation</span></h3><p>Конверт открывается, если на него нажать. У каждого гостя своя именная ссылка и тест, а мне приходит сводка ответов.</p><span class="go">Смотреть / Open →</span></div></a>
-      <a class="work" href="https://arisheniaa.ru/#posty" target="_blank" rel="noopener"><img src="img/w-posts.jpg" alt="PR-баннер анонса матча" width="900" height="506" loading="lazy"><div><h3>Посты и баннеры<span class="en">Posts and banners</span></h3><p>Система для спортивного медиа: пост, сторис и PR-баннер для каждой публикации.</p><span class="go">Смотреть / Open →</span></div></a>
     </div>
   </section>
 
