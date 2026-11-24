@@ -205,6 +205,18 @@ const MENU_CAP = {
   href: `${B}menu/`,
 };
 const menu = (f: string, kind: Shot['kind'], only?: Shot['only']): Shot => ({ src: w(`menu-${f}`), kind, cap: MENU_CAP, ...(only ? { only } : {}) });
+/* «Развлечения на борту» (arisheniaa.ru/aviasales) — инициативный спецпроект
+   для Авиасейлс, ее правка 24 ноября: «добавь проект в айдентику». Кадры —
+   scripts/capture-aviasales.mjs: первый экран и каждая игра в результате.
+   В кольце два телефона (первый экран и тест), остальное листается в
+   просмотре крупно; широкие кадры только на компьютере, сразу за первым
+   экраном. Текст подписи без «ё» и длинных тире, как она пишет сама. */
+const AV_CAP = {
+  name: 'Развлечения на борту',
+  text: `Инициативный спецпроект для${NB}Авиасейлс: четыре игры в${NB}стиле бортовой инструкции по${NB}безопасности.`,
+  href: `${B}aviasales/`,
+};
+const av = (f: string, kind: Shot['kind'], only?: Shot['only']): Shot => ({ src: w(`av-${f}`), kind, cap: AV_CAP, ...(only ? { only } : {}) });
 
 /** Посты спортивного уикенда для прямой ссылки `arisheniaa.ru/#posty`
  *  (страница для Авиасейлс): по ней просмотр открывается сразу на них. */
@@ -270,17 +282,30 @@ export const SERVICES: Service[] = [
       /* Меню — обложка вторым телефоном (видна и в свёрнутой колонке),
          карандашный выбор пятым, десерты девятым; на компьютере из десяти
          телефонных мест у меню три, на телефоне из восьми — два. */
+      /* «Развлечения на борту» (24 ноября) — вторым и восьмым телефоном: на
+         компьютере в кольце оба, на телефоне (восемь мест, первым Ryze) —
+         первый экран; сторис уикенда по-прежнему все три. */
       KLASSIKO,
+      av('m-hero', 'phone'),
+      av('d-hero', 'wide', 'desk'),
+      av('d-quiz', 'wide', 'desk'),
+      av('d-pass', 'wide', 'desk'),
+      av('d-excuse', 'wide', 'desk'),
+      av('d-cat', 'wide', 'desk'),
       menu('m-cover', 'phone'),
       menu('d-open', 'wide', 'desk'),
       menu('d-out', 'wide', 'desk'),
       phoneOf('invite', 0),
       RYBAKINA,
       menu('m-pick', 'phone'),
-      phoneOf('invite', 1),
       PRYZHOK,
-      phoneOf('invite', 3),
+      av('m-quiz', 'phone'),
       menu('m-deserty', 'phone'),
+      phoneOf('invite', 1),
+      av('m-pass', 'phone', 'mob'),
+      av('m-excuse', 'phone', 'mob'),
+      av('m-cat', 'phone', 'mob'),
+      phoneOf('invite', 3),
       ...[4, 7, 8, 9, 11].map((k) => phoneOf('invite', k)),
       menu('m-zavtrak', 'phone'),
       menu('m-supy', 'phone'),
